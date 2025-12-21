@@ -1,15 +1,18 @@
 const run = async () => {
 
-    const textField = new HCWTextField('Hi this is me');
 
-    textField.setText('Its still Me');
-    textField.onClick = (interaction) => { console.log(interaction) };
+    const faderUpdate = (values) => {
+        console.log(values);
+    }
 
+    const faderFiled = new HCWFaderField('Fader 1', 99321841)
+        .onValueChange(faderUpdate)
+        
     const simpleWindow = new HCWWindow(200, 200, 200, 200)
         .setTouchZoneColor('#00ff95')
         .setMinSizes(50, 50)
         .setId(2898361)
-        .addContextField(textField)
+        .addContextField(faderFiled)
 
     new HCWSetup('hcw-canvas')
         .setGrid(100, 100, 0.1, '#00ff95')

@@ -239,6 +239,8 @@ class HCWTouch {
 
         const contextHit = HCWInteraction.getContextHitByCords(mouseX, mouseY);
 
+        console.log(contextHit)
+
         HCWRender.updateFrame();
     }
 

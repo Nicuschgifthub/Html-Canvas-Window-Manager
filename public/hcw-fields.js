@@ -42,3 +42,37 @@ class HCWTextField {
 
     }
 }
+
+class HCWFaderField {
+    constructor(faderText = 'Fader 01', id = Date.now()) {
+        this.type = 'fader';
+        this.text = faderText;
+
+        this.renderProps = {
+            colors: {
+                background: '#1b1717ff',
+                fader: '#574b4bff'
+            },
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null,
+            sx: null,
+            sy: null
+        }
+
+        this.values = {
+
+        }
+    }
+
+    onValueChange(newFunction) {
+        newFunction(this.values);
+        return this;
+    }
+
+
+    render(contextwindow) {
+
+    }
+}
