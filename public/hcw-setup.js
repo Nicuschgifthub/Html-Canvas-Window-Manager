@@ -94,6 +94,7 @@ class HCWSetup {
 
     files() {
         return [
+            'hcw-helper.js',
             'hcw-grid-snap.js',
             'hcw-mouse-style.js',
             'hcw-render.js',

@@ -7,7 +7,7 @@ const run = async () => {
 
     const faderFiled = new HCWFaderField('Fader 1', 99321841)
         .onValueChange(faderUpdate)
-        
+
     const simpleWindow = new HCWWindow(200, 200, 200, 200)
         .setTouchZoneColor('#00ff95')
         .setMinSizes(50, 50)

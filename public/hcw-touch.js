@@ -68,16 +68,25 @@ class HCWInteraction {
     }
 
     static getContextHitByCords(mouseX, mouseY) {
-        const window = this._windowContextFilteredByMouseCoords(mouseX, mouseY)[0];
+        const windows = this._windowContextFilteredByMouseCoords(mouseX, mouseY);
+        if (!windows || windows.length === 0) return { window: null, field: null };
+        const window = windows[0];
 
-        if (!window) return {
-            window: null,
+        // Iterate through the window's contextfields to find a match
+        if (window.contextfields && window.contextfields.length > 0) {
+            for (let i = 0; i < window.contextfields.length; i++) {
+                const field = window.contextfields[i];
+                const rp = field.renderProps;
+                if (!rp || rp.startX === null) continue; // Not rendered yet
+
+                if (mouseX >= rp.startX && mouseX <= rp.endX &&
+                    mouseY >= rp.startY && mouseY <= rp.endY) {
+                    return { window, field };
+                }
+            }
         }
 
-        console.log(window)
-
-        // implement the rest
-
+        return { window, field: null };
     }
 }
 
@@ -238,8 +247,11 @@ class HCWTouch {
         }
 
         const contextHit = HCWInteraction.getContextHitByCords(mouseX, mouseY);
-
-        console.log(contextHit)
+        if (contextHit.field) {
+            HCW.pointer.contextdrag = true;
+            HCW.pointer.contextwindow = contextHit.field;
+            contextHit.field._interaction({ type: 'mousedown', mouseX, mouseY });
+        }
 
         HCWRender.updateFrame();
     }
@@ -264,6 +276,10 @@ class HCWTouch {
             HCWWindowActions.downResize.move(mouseX, mouseY);
         }
 
+        if (HCW.pointer.contextdrag && HCW.pointer.contextwindow) {
+            HCW.pointer.contextwindow._interaction({ type: 'mousemove', mouseX, mouseY });
+        }
+
         HCWRender.updateFrame();
     }
 
@@ -284,6 +300,12 @@ class HCWTouch {
 
         if (HCWWindowActions.getDownResizeWindow()) {
             HCWWindowActions.downResize.end();
+        }
+
+        if (HCW.pointer.contextdrag && HCW.pointer.contextwindow) {
+            HCW.pointer.contextwindow._interaction({ type: 'mouseup' });
+            HCW.pointer.contextdrag = false;
+            HCW.pointer.contextwindow = null;
         }
 
         HCWRender.updateFrame();

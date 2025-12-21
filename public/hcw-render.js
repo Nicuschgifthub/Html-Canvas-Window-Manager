@@ -52,8 +52,12 @@ class HCWRender {
 
     }
 
-    static drawContextFields(windows) {
+    static drawContextFields(window) {
+        if (!window.contextfields || window.contextfields.length === 0) return;
 
+        window.contextfields.forEach(field => {
+            field.render(window.contextwindow);
+        });
     }
 
     static drawWindow(window) {
