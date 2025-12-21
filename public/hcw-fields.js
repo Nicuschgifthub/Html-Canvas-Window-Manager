@@ -152,48 +152,67 @@ class HCWFaderField {
 }
 
 class HCWEncoderField {
-    constructor(encoderText = 'Encoder 01', id = Date.now()) {
+    constructor(encoderText = 'Encoder', id = Date.now()) {
         this.type = 'encoder';
         this.text = encoderText;
         this.id = id;
 
-        this.value = 0.0; // 0.0 to 1.0
+        this.value = 0.0; // Single Value (0.0 to 1.0)
+
         this.displayType = 'value'; // 'value', 'byte', 'percent'
         this.onValueChangeCallback = null;
 
         this.renderProps = {
             colors: {
                 background: '#1b1717ff',
-                knob: '#574b4bff',
+                knobOuter: '#574b4bff',
+                knobInner: '#3d3434',
                 indicator: '#ffffff',
+                indicatorInner: '#00ff95',
                 text: '#ffffff'
             },
             centerX: null,
             centerY: null,
-            radius: null,
+            outerRadius: null,
+            innerRadius: null,
+
             startX: null,
             startY: null,
             endX: null,
-            endY: null
+            endY: null,
+
+            activeRing: null
         };
+
+        this._lastInteractionAngle = null;
     }
 
     /**
-     * Set the encoder value (0.0 - 1.0)
-     * @param {number} val 
+     * Set the encoder values (0.0 - 1.0)
+     * @param {number} val1 Outer value
+     * @param {number} val2 Inner value (optional)
      */
-    setValue(val) {
-        const oldVal = this.value;
-        this.value = Math.max(0, Math.min(1, val));
+    setValue(val1, val2 = null) {
+        let changed = false;
 
-        if (oldVal !== this.value) {
-            if (this.onValueChangeCallback) {
-                this.onValueChangeCallback({
-                    value: this.value,
-                    byte: Math.round(this.value * 255),
-                    percent: Math.round(this.value * 100)
-                });
+        if (val1 !== null && val1 !== undefined) {
+            const v1 = Math.max(0, Math.min(1, val1));
+            if (this.value !== v1) {
+                this.value = v1;
+                changed = true;
             }
+        }
+
+        if (val2 !== null && val2 !== undefined) {
+            const v2 = Math.max(0, Math.min(1, val2));
+            if (this.value2 !== v2) {
+                this.value2 = v2;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            this._triggerCallback();
             if (typeof HCWRender !== 'undefined') {
                 HCWRender.updateFrame();
             }
@@ -201,10 +220,16 @@ class HCWEncoderField {
         return this;
     }
 
-    /**
-     * Set the label text
-     * @param {string} name 
-     */
+    _triggerCallback() {
+        if (this.onValueChangeCallback) {
+            this.onValueChangeCallback({
+                value: this.value,
+                byte: Math.round(this.value * 255),
+                percent: Math.round(this.value * 100)
+            });
+        }
+    }
+
     setLabel(name) {
         this.text = name;
         if (typeof HCWRender !== 'undefined') {
@@ -213,10 +238,6 @@ class HCWEncoderField {
         return this;
     }
 
-    /**
-     * Set the value display type
-     * @param {'value'|'byte'|'percent'} type 
-     */
     setDisplayType(type) {
         if (['value', 'byte', 'percent'].includes(type)) {
             this.displayType = type;
@@ -236,37 +257,63 @@ class HCWEncoderField {
         return this;
     }
 
-    _getFormattedValue() {
+    _getFormattedValue(val) {
         switch (this.displayType) {
             case 'byte':
-                return Math.round(this.value * 255).toString();
+                return Math.round(val * 255).toString();
             case 'percent':
-                return Math.round(this.value * 100) + '%';
+                return Math.round(val * 100) + '%';
             case 'value':
             default:
-                return this.value.toFixed(2);
+                return val;
         }
     }
 
     _interaction(interaction) {
-        if (interaction.type === 'mousedown' || interaction.type === 'mousemove') {
+        if (interaction.type === 'mousedown') {
             const cx = this.renderProps.centerX;
             const cy = this.renderProps.centerY;
+            const dist = Math.sqrt(Math.pow(interaction.mouseX - cx, 2) + Math.pow(interaction.mouseY - cy, 2));
 
-            let angle = Math.atan2(interaction.mouseY - cy, interaction.mouseX - cx);
-            let deg = angle * (180 / Math.PI);
-            let adjustedDeg = deg - 135;
-            if (adjustedDeg < 0) adjustedDeg += 360;
-
-            if (adjustedDeg <= 270) {
-                this.setValue(adjustedDeg / 270);
+            if (dist < this.renderProps.innerRadius * 1.2) {
+                this.renderProps.activeRing = 'inner';
+            } else {
+                this.renderProps.activeRing = 'outer';
             }
+
+        } else if (interaction.type === 'mousemove') {
+            if (this.renderProps.activeRing) {
+                this._updateFromDelta(interaction.mouseX, interaction.mouseY);
+            }
+
+        } else if (interaction.type === 'mouseup') {
+            this.renderProps.activeRing = null;
 
         } else if (interaction.type === 'scroll') {
             const step = 0.05;
             const direction = interaction.deltaY > 0 ? -1 : 1;
             this.setValue(this.value + (step * direction));
         }
+    }
+
+    _updateFromDelta(mx, my) {
+        const cx = this.renderProps.centerX;
+        const cy = this.renderProps.centerY;
+        const currentAngle = Math.atan2(my - cy, mx - cx);
+
+        let delta = currentAngle - this._lastInteractionAngle;
+
+        if (delta > Math.PI) delta -= 2 * Math.PI;
+        if (delta < -Math.PI) delta += 2 * Math.PI;
+
+        const coarseFactor = 1.0 / (Math.PI * 2);
+        const fineFactor = 0.1 / (Math.PI * 2);
+
+        const factor = (this.renderProps.activeRing === 'inner') ? fineFactor : coarseFactor;
+
+        this.setValue(this.value + (delta * factor));
+
+        this._lastInteractionAngle = currentAngle;
     }
 
     render(contextwindow) {
@@ -289,11 +336,13 @@ class HCWEncoderField {
         }
 
         const minDim = Math.min(sx, sy);
-        const radius = (minDim * 0.35);
+        const outerRadius = (minDim * 0.35);
+        const innerRadius = (minDim * 0.20);
 
         this.renderProps.centerX = cx;
         this.renderProps.centerY = knobCy;
-        this.renderProps.radius = radius;
+        this.renderProps.outerRadius = outerRadius;
+        this.renderProps.innerRadius = innerRadius;
 
         const colors = this.renderProps.colors;
 
@@ -301,38 +350,47 @@ class HCWEncoderField {
         HCW.ctx.fillRect(contextwindow.x, contextwindow.y, sx, sy);
 
         HCW.ctx.beginPath();
-        HCW.ctx.arc(cx, knobCy, radius, 0, 2 * Math.PI);
-        HCW.ctx.fillStyle = colors.knob;
+        HCW.ctx.arc(cx, knobCy, outerRadius, 0, 2 * Math.PI);
+        HCW.ctx.fillStyle = colors.knobOuter;
         HCW.ctx.fill();
 
-        const startRad = (135 * Math.PI) / 180;
-        const rangeRad = (270 * Math.PI) / 180;
-        const currentRad = startRad + (this.value * rangeRad);
-
-        const indX = cx + (Math.cos(currentRad) * (radius * 0.8));
-        const indY = knobCy + (Math.sin(currentRad) * (radius * 0.8));
+        this._drawIndicator(cx, knobCy, outerRadius, this.value, colors.indicator);
 
         HCW.ctx.beginPath();
-        HCW.ctx.moveTo(cx, knobCy);
-        HCW.ctx.lineTo(indX, indY);
-        HCW.ctx.strokeStyle = colors.indicator;
-        HCW.ctx.lineWidth = 3;
-        HCW.ctx.stroke();
+        HCW.ctx.arc(cx, knobCy, innerRadius, 0, 2 * Math.PI);
+        HCW.ctx.fillStyle = colors.knobInner;
+        HCW.ctx.fill();
 
-        HCW.ctx.beginPath();
-        HCW.ctx.arc(cx, knobCy, radius, startRad, currentRad);
-        HCW.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        HCW.ctx.lineWidth = 5;
-        HCW.ctx.stroke();
+        this._drawIndicator(cx, knobCy, innerRadius, this.value2, colors.indicatorInner);
 
         if (showText) {
             HCW.ctx.fillStyle = colors.text;
             HCW.ctx.font = "12px Arial";
             HCW.ctx.textAlign = "center";
-            HCW.ctx.fillText(this.text, cx, knobCy + radius + 15);
-            HCW.ctx.fillText(this._getFormattedValue(), cx, knobCy + radius + 30);
-            HCW.ctx.textAlign = "start"; // Reset alignment
+            HCW.ctx.fillText(this.text, cx, knobCy + outerRadius + 20);
+
+            HCW.ctx.font = "10px Monospace";
+            const v1Str = this._getFormattedValue(this.value);
+            HCW.ctx.fillText(`${v1Str}`, cx, knobCy + outerRadius + 35);
+
+            HCW.ctx.textAlign = "start";
         }
+    }
+
+    _drawIndicator(cx, cy, radius, value, color) {
+        const startRad = (135 * Math.PI) / 180;
+        const rangeRad = (270 * Math.PI) / 180;
+        const currentRad = startRad + (value * rangeRad);
+
+        const indX = cx + (Math.cos(currentRad) * (radius * 0.8));
+        const indY = cy + (Math.sin(currentRad) * (radius * 0.8));
+
+        HCW.ctx.beginPath();
+        HCW.ctx.moveTo(cx, cy);
+        HCW.ctx.lineTo(indX, indY);
+        HCW.ctx.strokeStyle = color;
+        HCW.ctx.lineWidth = 3;
+        HCW.ctx.stroke();
     }
 }
 

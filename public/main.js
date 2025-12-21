@@ -46,7 +46,7 @@ const run = async () => {
 
     const faderFiled = new HCWFaderField('Fader 1', 99321841)
         .onValueChange(faderUpdate)
-
+        .setDisplayType('byte')
 
     const encoderFiled = new HCWEncoderField('Encoder 1', 99321842)
         .onValueChange(faderUpdate)
@@ -74,7 +74,7 @@ const run = async () => {
                 .setTouchZoneColor('#00ff95')
                 .setMinSizes(50, 50)
                 .setId(459852587)
-                .addContextField(keyboardField)
+                .addContextField(encoderFiled)
         ])
         .addWindow(simpleWindow)
 
