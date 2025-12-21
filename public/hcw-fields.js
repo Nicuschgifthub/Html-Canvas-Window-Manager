@@ -28,9 +28,21 @@ class HCWFaderField {
      * @param {number} val 
      */
     setValue(val) {
+        const oldVal = this.value;
         this.value = Math.max(0, Math.min(1, val));
-        if (this.onValueChangeCallback) {
-            this.onValueChangeCallback(this.value);
+
+        if (oldVal !== this.value) {
+            if (this.onValueChangeCallback) {
+                this.onValueChangeCallback({
+                    value: this.value,
+                    byte: Math.round(this.value * 255),
+                    percent: Math.round(this.value * 100)
+                });
+            }
+            // Trigger global render update to show change immediately
+            if (typeof HCWRender !== 'undefined') {
+                HCWRender.updateFrame();
+            }
         }
         return this;
     }
@@ -71,6 +83,13 @@ class HCWFaderField {
             let normalizedVal = 1 - (relativeY / height);
 
             this.setValue(normalizedVal);
+        } else if (interaction.type === 'scroll') {
+            // Handle scroll (wheel)
+            // deltaY > 0 means scrolling down (reducing value usually?)
+            // Let's say scrolling UP (negative deltaY) increases value
+            const step = 0.05;
+            const direction = interaction.deltaY > 0 ? -1 : 1;
+            this.setValue(this.value + (step * direction));
         }
     }
 

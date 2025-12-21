@@ -311,10 +311,22 @@ class HCWTouch {
         HCWRender.updateFrame();
     }
 
+    static _handleWheel(e) {
+        e.preventDefault();
+        const { mouseX, mouseY } = HCWTouch._eventMouseToCords(e);
+
+        const contextHit = HCWInteraction.getContextHitByCords(mouseX, mouseY);
+        if (contextHit.field) {
+            contextHit.field._interaction({ type: 'scroll', deltaY: e.deltaY });
+            HCWRender.updateFrame();
+        }
+    }
+
     static setupListener() {
         HCW.canvas.addEventListener('mousedown', this._handleMouseDown);
         HCW.canvas.addEventListener('mousemove', this._handleMouseMove);
         HCW.canvas.addEventListener('mouseup', this._handleMouseUp);
+        HCW.canvas.addEventListener('wheel', this._handleWheel);
 
         HCW.canvas.addEventListener('touchstart', this._handleMouseDown);
         HCW.canvas.addEventListener('touchmove', this._handleMouseMove);
