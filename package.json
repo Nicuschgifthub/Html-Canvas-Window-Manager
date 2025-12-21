@@ -1,4 +1,10 @@
 {
+  "name": "web-based-touch-fixture-console",
+  "version": "0.0.1",
+  "description": "A Web Based Touch Fixture Console via ArtNet",
+  "author": {
+    "name": "Nicusch | Nixkuchen"
+  },
   "dependencies": {
     "express": "^4.21.2"
   }

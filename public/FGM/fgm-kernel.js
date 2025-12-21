@@ -10,6 +10,5 @@ class FGMKernel {
 
         if (data._goToPage !== undefined) { FGMSubKernel.pageChange(data._goToPage, fromPreset, singlePreset); return };
 
-
     }
 }

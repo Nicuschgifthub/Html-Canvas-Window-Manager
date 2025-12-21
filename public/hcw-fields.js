@@ -8,6 +8,8 @@ class HCWFaderField {
         this.displayType = 'byte'; // 'value', 'byte', 'percent'
         this.onValueChangeCallback = null;
 
+        this.parentWindow = null;
+
         this.renderProps = {
             colors: {
                 background: '#1b1717ff',
@@ -21,6 +23,11 @@ class HCWFaderField {
             sx: null,
             sy: null
         };
+    }
+
+    setParentWindow(win) {
+        this.parentWindow = win;
+        return this;
     }
 
     setLabel(label) {
@@ -149,6 +156,8 @@ class HCWEncoderField {
         this.displayType = 'byte';
         this.onValueChangeCallback = null;
 
+        this.parentWindow = null;
+
         this.renderProps = {
             colors: {
                 background: '#1b1717ff',
@@ -166,6 +175,11 @@ class HCWEncoderField {
         };
 
         this._lastInteractionAngle = null;
+    }
+
+    setParentWindow(win) {
+        this.parentWindow = win;
+        return this;
     }
 
     setValue(val1, val2 = null) {
@@ -692,6 +706,8 @@ class HCWNumberField {
             ['<=', 'C', 'ENTER']
         ];
 
+        this.parentWindow = null;
+
         this.renderProps = {
             colors: {
                 background: '#1b1717ff',
@@ -713,6 +729,11 @@ class HCWNumberField {
 
         this._pressedKey = null;
         this._dragLastY = null;
+    }
+
+    setParentWindow(win) {
+        this.parentWindow = win;
+        return this;
     }
 
     setLabel(label) {
@@ -882,6 +903,8 @@ class HCWKeyboardField {
             ['DELETE', '<=', 'SPACE', 'ENTER']
         ];
 
+        this.parentWindow = null;
+
         this.renderProps = {
             colors: {
                 background: '#1b1717ff',
@@ -907,6 +930,11 @@ class HCWKeyboardField {
 
         this._pressedKey = null;
         this._dragLastY = null;
+    }
+
+    setParentWindow(win) {
+        this.parentWindow = win;
+        return this;
     }
 
     setLabel(label) {
