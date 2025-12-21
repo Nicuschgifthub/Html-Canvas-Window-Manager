@@ -156,6 +156,8 @@ class HCWWindow {
         this.scrollindex = 1;
         this.scrollindexratio = 1.2;
 
+        this.hidden = false;
+
         this.temp = {};
 
         this.data = {};
@@ -174,6 +176,16 @@ class HCWWindow {
     addContextField(contextField) {
         this.contextfields.push(contextField);
         return this;
+    }
+
+    setHidden(hide = true, reRender = true) {
+        this.hidden = hide;
+        if (typeof HCWRender !== 'undefined' && reRender == true) HCWRender.updateFrame();
+        return this;
+    }
+
+    getHiddenStatus() {
+        return this.hidden
     }
 
     setId(id) {
@@ -259,6 +271,7 @@ class HCWWindow {
             const currentCenter = current.getCenter();
 
             HCW.windows.forEach(other => {
+                if (other.hidden) return;
                 if (other === current || processed.has(other)) return;
 
                 if (current.checkOverlap(other)) {

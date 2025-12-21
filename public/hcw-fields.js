@@ -23,6 +23,12 @@ class HCWFaderField {
         };
     }
 
+    setLabel(label) {
+        this.text = label;
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
+    }
+
     /**
      * Set the fader value (0.0 - 1.0)
      * @param {number} val 
@@ -42,18 +48,6 @@ class HCWFaderField {
             if (typeof HCWRender !== 'undefined') {
                 HCWRender.updateFrame();
             }
-        }
-        return this;
-    }
-
-    /**
-     * Set the label text
-     * @param {string} name 
-     */
-    setLabel(name) {
-        this.text = name;
-        if (typeof HCWRender !== 'undefined') {
-            HCWRender.updateFrame();
         }
         return this;
     }
@@ -101,10 +95,6 @@ class HCWFaderField {
         }
     }
 
-    /**
-     * Handle interactions passed from the global touch handler
-     * @param {object} interaction 
-     */
     _interaction(interaction) {
         if (interaction.type === 'mousedown' || interaction.type === 'mousemove') {
             const relativeY = interaction.mouseY - this.renderProps.startY;
@@ -120,10 +110,6 @@ class HCWFaderField {
         }
     }
 
-    /**
-     * Render the field within the given context window
-     * @param {object} contextwindow The bounding box to render into
-     */
     render(contextwindow) {
         this.renderProps.startX = contextwindow.x;
         this.renderProps.startY = contextwindow.y;
@@ -317,6 +303,28 @@ class HCWEncoderField {
         this._lastInteractionAngle = currentAngle;
     }
 
+    _drawIndicator(cx, cy, radius, value, color, isFullRotation = false) {
+        let currentRad;
+
+        if (isFullRotation) {
+            currentRad = (value * 2 * Math.PI) - (Math.PI / 2);
+        } else {
+            const startRad = (135 * Math.PI) / 180;
+            const rangeRad = (270 * Math.PI) / 180;
+            currentRad = startRad + (value * rangeRad);
+        }
+
+        const indX = cx + (Math.cos(currentRad) * (radius * 0.8));
+        const indY = cy + (Math.sin(currentRad) * (radius * 0.8));
+
+        HCW.ctx.beginPath();
+        HCW.ctx.moveTo(cx, cy);
+        HCW.ctx.lineTo(indX, indY);
+        HCW.ctx.strokeStyle = color;
+        HCW.ctx.lineWidth = 3;
+        HCW.ctx.stroke();
+    }
+
     render(contextwindow) {
         this.renderProps.startX = contextwindow.x;
         this.renderProps.startY = contextwindow.y;
@@ -371,35 +379,11 @@ class HCWEncoderField {
 
             HCW.ctx.font = "10px Monospace";
             const v1Str = this._getFormattedValue(this.value);
-            HCW.ctx.fillText(`${v1Str}`, cx, knobCy + outerRadius + 35);
+            const v2Str = this._getFormattedValue(this.value2);
+            HCW.ctx.fillText(`${v1Str} | ${v2Str}`, cx, knobCy + outerRadius + 35);
 
             HCW.ctx.textAlign = "start";
         }
-    }
-
-    /**
-     * Updated to support full 360 degree rotation for the inner knob
-     */
-    _drawIndicator(cx, cy, radius, value, color, isFullRotation = false) {
-        let currentRad;
-
-        if (isFullRotation) {
-            currentRad = (value * 2 * Math.PI) - (Math.PI / 2);
-        } else {
-            const startRad = (135 * Math.PI) / 180;
-            const rangeRad = (270 * Math.PI) / 180;
-            currentRad = startRad + (value * rangeRad);
-        }
-
-        const indX = cx + (Math.cos(currentRad) * (radius * 0.8));
-        const indY = cy + (Math.sin(currentRad) * (radius * 0.8));
-
-        HCW.ctx.beginPath();
-        HCW.ctx.moveTo(cx, cy);
-        HCW.ctx.lineTo(indX, indY);
-        HCW.ctx.strokeStyle = color;
-        HCW.ctx.lineWidth = 3;
-        HCW.ctx.stroke();
     }
 }
 
@@ -439,6 +423,12 @@ class HCWPresetField {
 
         this._dragLastY = null;
         this._pressedIndex = -1;
+    }
+
+    setLabel(label) {
+        this.text = label;
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
     }
 
     /**
@@ -703,6 +693,12 @@ class HCWNumberField {
         this._dragLastY = null;
     }
 
+    setLabel(label) {
+        this.text = label;
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
+    }
+
     setValue(val) {
         this.value = String(val);
         if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
@@ -889,6 +885,12 @@ class HCWKeyboardField {
 
         this._pressedKey = null;
         this._dragLastY = null;
+    }
+
+    setLabel(label) {
+        this.text = label;
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
     }
 
     setValue(val) {

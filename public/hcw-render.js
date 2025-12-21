@@ -61,10 +61,12 @@ class HCWRender {
     }
 
     static drawWindow(window) {
+        // this.debugDraw(window);
+        if (window.hidden) return;
+
         this._drawBaseBox(window);
         this._drawTouchZones(window);
         this.drawContextFields(window);
-        // this.debugDraw(window);
     }
 
     static updateFrame() {

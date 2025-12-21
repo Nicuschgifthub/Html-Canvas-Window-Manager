@@ -4,7 +4,7 @@ class HCWInteraction {
             window.boundingbox.startx < mouseX &&
             window.boundingbox.endx > mouseX &&
             window.boundingbox.starty < mouseY &&
-            window.boundingbox.endy > mouseY
+            window.boundingbox.endy > mouseY && window.hidden == false
         )
     }
 
@@ -63,14 +63,14 @@ class HCWInteraction {
             window.contextwindow.x < mouseX &&
             window.contextwindow.x2 > mouseX &&
             window.contextwindow.y < mouseY &&
-            window.contextwindow.y2 > mouseY
+            window.contextwindow.y2 > mouseY && window.hidden == false
         )
     }
 
     static getContextHitByCords(mouseX, mouseY) {
         const windows = this._windowContextFilteredByMouseCoords(mouseX, mouseY);
         if (!windows || windows.length === 0) return { window: null, field: null };
-        const window = windows[0];
+        let window = windows[0];
 
         // Iterate through the window's contextfields to find a match
         if (window.contextfields && window.contextfields.length > 0) {

@@ -18,6 +18,7 @@ class HCWGridSnap {
         if (HCW.pointer.usermoveorresize) return;
 
         HCW.windows.forEach(window => {
+            if (window.hidden) return;
             const snapsForCords = this._findClosestSnapPoint(window.x, window.y);
             const snapsForDims = this._findClosestSnapPoint(window.x + window.sx, window.y + window.sy);
 
