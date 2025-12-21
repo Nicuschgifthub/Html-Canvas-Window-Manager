@@ -245,14 +245,9 @@ class HCWWindow {
     }
 
     static resolveCollisions(activeWindow) {
-        // Simple Queue based interaction
-        // If activeWindow overlaps others, push them away.
-        // Then those pushed windows become 'active' against others.
-
         let processed = new Set();
         let queue = [activeWindow];
 
-        // Safety break to prevent infinite loops in tight spaces
         let iterations = 0;
         const maxIterations = 100;
 
@@ -267,7 +262,6 @@ class HCWWindow {
                 if (other === current || processed.has(other)) return;
 
                 if (current.checkOverlap(other)) {
-                    // Calculate overlap amounts
                     let overlapX = 0;
                     let overlapY = 0;
 
@@ -275,7 +269,7 @@ class HCWWindow {
                         overlapX = (current.x + current.sx) - other.x;
                     } else {
                         overlapX = (other.x + other.sx) - current.x;
-                        overlapX = -overlapX; // Negative means push left
+                        overlapX = -overlapX;
                     }
 
                     if (currentCenter.y < other.getCenter().y) {
@@ -285,27 +279,18 @@ class HCWWindow {
                         overlapY = -overlapY;
                     }
 
-                    // Decide push direction (Min overlap axis)
-                    // Add buffer
                     const buffer = 10;
 
                     if (Math.abs(overlapX) < Math.abs(overlapY)) {
-                        // Push Horizontal
                         other.x += overlapX > 0 ? overlapX + buffer : overlapX - buffer;
                     } else {
-                        // Push Vertical
                         other.y += overlapY > 0 ? overlapY + buffer : overlapY - buffer;
                     }
 
-                    // Ensure window stays somewhat on screen (optional, but good for UX)
-                    // For now, let's just push.
-
-                    // Recalculate internals since position changed
                     other._calculateTouchZones();
                     other._calculateBoundingBox();
                     other._calculateContextWindow();
 
-                    // Add to queue to propagate push
                     queue.push(other);
                 }
             });
