@@ -286,20 +286,41 @@ class HCWTouch {
     static _handleMouseUp(e) {
         e.preventDefault();
 
+        // Check for Dragging Window End
         if (HCWWindowActions.getMovingWindow()) {
+            const win = HCWWindowActions.getMovingWindow();
             HCWWindowActions.moveEnd();
+            // Resolve Collisions on drop
+            if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
+                HCWWindow.resolveCollisions(win);
+            }
         }
 
+        // Check for Resize Ends (Right)
         if (HCWWindowActions.getRightResizeWindow()) {
+            const win = HCWWindowActions.getRightResizeWindow();
             HCWWindowActions.rightResize.end();
+            if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
+                HCWWindow.resolveCollisions(win);
+            }
         }
 
+        // Check for Resize Ends (Multi)
         if (HCWWindowActions.getMultiResizeWindow()) {
+            const win = HCWWindowActions.getMultiResizeWindow();
             HCWWindowActions.multiResize.end();
+            if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
+                HCWWindow.resolveCollisions(win);
+            }
         }
 
+        // Check for Resize Ends (Down)
         if (HCWWindowActions.getDownResizeWindow()) {
+            const win = HCWWindowActions.getDownResizeWindow();
             HCWWindowActions.downResize.end();
+            if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
+                HCWWindow.resolveCollisions(win);
+            }
         }
 
         if (HCW.pointer.contextdrag && HCW.pointer.contextwindow) {

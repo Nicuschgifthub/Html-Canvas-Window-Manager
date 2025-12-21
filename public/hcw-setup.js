@@ -142,7 +142,6 @@ class HCWWindow {
 
         this.minsizex = 0;
         this.minsizey = 0;
-
         this.basecolor = '#454545';
 
         this.touchzonecolor = '#969696';
@@ -162,6 +161,14 @@ class HCWWindow {
         this.data = {};
 
         this._init();
+    }
+
+    close() {
+        const index = HCW.windows.indexOf(this);
+        if (index > -1) {
+            HCW.windows.splice(index, 1);
+            HCWRender.updateFrame();
+        }
     }
 
     addContextField(contextField) {
@@ -221,6 +228,88 @@ class HCWWindow {
 
         this.contextwindow.sx = this.contextwindow.x2 - this.contextwindow.x;
         this.contextwindow.sy = this.contextwindow.y2 - this.contextwindow.y;
+    }
+
+    getCenter() {
+        return {
+            x: this.x + (this.sx / 2),
+            y: this.y + (this.sy / 2)
+        };
+    }
+
+    checkOverlap(other) {
+        return (this.x < other.x + other.sx &&
+            this.x + this.sx > other.x &&
+            this.y < other.y + other.sy &&
+            this.y + this.sy > other.y);
+    }
+
+    static resolveCollisions(activeWindow) {
+        // Simple Queue based interaction
+        // If activeWindow overlaps others, push them away.
+        // Then those pushed windows become 'active' against others.
+
+        let processed = new Set();
+        let queue = [activeWindow];
+
+        // Safety break to prevent infinite loops in tight spaces
+        let iterations = 0;
+        const maxIterations = 100;
+
+        while (queue.length > 0 && iterations < maxIterations) {
+            let current = queue.shift();
+            processed.add(current);
+            iterations++;
+
+            const currentCenter = current.getCenter();
+
+            HCW.windows.forEach(other => {
+                if (other === current || processed.has(other)) return;
+
+                if (current.checkOverlap(other)) {
+                    // Calculate overlap amounts
+                    let overlapX = 0;
+                    let overlapY = 0;
+
+                    if (currentCenter.x < other.getCenter().x) {
+                        overlapX = (current.x + current.sx) - other.x;
+                    } else {
+                        overlapX = (other.x + other.sx) - current.x;
+                        overlapX = -overlapX; // Negative means push left
+                    }
+
+                    if (currentCenter.y < other.getCenter().y) {
+                        overlapY = (current.y + current.sy) - other.y;
+                    } else {
+                        overlapY = (other.y + other.sy) - current.y;
+                        overlapY = -overlapY;
+                    }
+
+                    // Decide push direction (Min overlap axis)
+                    // Add buffer
+                    const buffer = 10;
+
+                    if (Math.abs(overlapX) < Math.abs(overlapY)) {
+                        // Push Horizontal
+                        other.x += overlapX > 0 ? overlapX + buffer : overlapX - buffer;
+                    } else {
+                        // Push Vertical
+                        other.y += overlapY > 0 ? overlapY + buffer : overlapY - buffer;
+                    }
+
+                    // Ensure window stays somewhat on screen (optional, but good for UX)
+                    // For now, let's just push.
+
+                    // Recalculate internals since position changed
+                    other._calculateTouchZones();
+                    other._calculateBoundingBox();
+                    other._calculateContextWindow();
+
+                    // Add to queue to propagate push
+                    queue.push(other);
+                }
+            });
+        }
     }
 
     _calculateTouchZones() {
