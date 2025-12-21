@@ -17,7 +17,7 @@ Install all packages and run it via node.js open the site in the browser
 
 - Rewrite everything to be a browser based Fixture console via ArtNet
 
-## Current Status of the Fixture controll
+## Current Status of the Fixture control
 
 ![discord-simpletable](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/current.png)
 
