@@ -23,4 +23,8 @@ Install all packages and run it via node.js open the site in the browser
 
 ## Window Features that currently exist HCW only no FGM
 
-![discord-simpletable](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/hcw-last.png)
+![discord-simpletable](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/hcw-latest.png)
+
+## NOTICE
+
+All my commits have no meaning, i will update this repo to be the Fixture console via ArtNet (Browser Based) only
