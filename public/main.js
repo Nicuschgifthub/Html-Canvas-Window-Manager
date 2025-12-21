@@ -57,9 +57,9 @@ const run = async () => {
         .setId(2898361)
         .addContextField(faderFiled)
 
-    const numberField = new HCWNumberField('The Numpad', 12345)
+    const keyboardField = new HCWKeyboardField('Full Keyboard', 123456)
         .onEnter((val) => {
-            console.log("Numpad Enter:", val);
+            console.log("Keyboard Enter:", val);
         });
 
     new HCWSetup('hcw-canvas')
@@ -74,7 +74,7 @@ const run = async () => {
                 .setTouchZoneColor('#00ff95')
                 .setMinSizes(50, 50)
                 .setId(459852587)
-                .addContextField(numberField)
+                .addContextField(keyboardField)
         ])
         .addWindow(simpleWindow)
 

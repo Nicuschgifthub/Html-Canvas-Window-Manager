@@ -754,7 +754,7 @@ class HCWNumberField {
                 } else if (key === 'C') {
                     this.value = "";
                 } else if (key === '<=') {
-                    this.value = this.value.slice(1);
+                    this.value = this.value.slice(0, -1);
                 } else {
                     // Number
                     this.value += key;
@@ -857,6 +857,263 @@ class HCWNumberField {
                     w: colW,
                     h: rowH
                 });
+            });
+        });
+    }
+}
+
+class HCWKeyboardField {
+    constructor(fieldName = 'Keyboard', id = Date.now()) {
+        this.type = 'keyboard';
+        this.text = fieldName;
+        this.id = id;
+
+        this.value = "";
+        this.onEnterCallback = null;
+        this.isUpperCase = true; // Default to upper case
+
+        // Layout constants
+        this.headerHeight = 30;
+        this.displayHeight = 40;
+        this.gap = 4;
+
+        // QWERTZ Layout
+        this.keys = [
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'ß'],
+            ['Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ü'],
+            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä'],
+            ['SHIFT', 'Y', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '-'],
+            ['DELETE', '<=', 'SPACE', 'ENTER']
+        ];
+
+        this.renderProps = {
+            colors: {
+                background: '#1b1717ff',
+                headerText: '#ffffff',
+                displayBg: '#000000',
+                displayText: '#00ff95',
+                keyDefault: '#333333',
+                keyActive: '#555555',
+                keyText: '#ffffff',
+                specialKey: '#005500',
+                specialKeyActive: '#007700',
+                deleteKey: '#770000',
+                deleteKeyActive: '#990000',
+                shiftKey: '#444444',
+                shiftKeyActive: '#888888'
+            },
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null,
+            buttons: []
+        };
+
+        this._pressedKey = null;
+        this._dragLastY = null;
+    }
+
+    setValue(val) {
+        this.value = String(val);
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
+    }
+
+    onEnter(callback) {
+        this.onEnterCallback = callback;
+        return this;
+    }
+
+    _interaction(interaction) {
+        if (interaction.type === 'mousedown') {
+            const { mouseX, mouseY } = interaction;
+            this._potentialClick = true;
+            this._clickStartY = mouseY;
+
+            // Check button hits
+            const hit = this._findHitButton(mouseX, mouseY);
+            if (hit) {
+                this._pressedKey = hit.key;
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            }
+
+        } else if (interaction.type === 'mousemove') {
+            const { mouseX, mouseY } = interaction;
+            if (this._potentialClick && Math.abs(mouseY - this._clickStartY) > 5) {
+                this._potentialClick = false;
+                this._pressedKey = null;
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            }
+
+        } else if (interaction.type === 'mouseup') {
+
+            if (this._potentialClick && this._pressedKey) {
+                const key = this._pressedKey; // This is the RAW key from the layout (e.g. 'SHIFT', 'A')
+
+                if (key === 'ENTER') {
+                    if (this.onEnterCallback) {
+                        this.onEnterCallback(this.value);
+                    }
+                } else if (key === '<=') {
+                    this.value = this.value.slice(0, -1);
+                } else if (key === 'DELETE') { // Clear All
+                    this.value = "";
+                } else if (key === 'SPACE') {
+                    this.value += " ";
+                } else if (key === 'SHIFT') {
+                    this.isUpperCase = !this.isUpperCase;
+                } else {
+                    // Regular character
+                    // Apply case logic
+                    if (this.isUpperCase) {
+                        this.value += key.toUpperCase();
+                    } else {
+                        this.value += key.toLowerCase();
+                    }
+                }
+            }
+
+            this._potentialClick = false;
+            this._pressedKey = null;
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        }
+    }
+
+    _findHitButton(x, y) {
+        return this.renderProps.buttons.find(b =>
+            x >= b.x && x <= b.x + b.w &&
+            y >= b.y && y <= b.y + b.h
+        );
+    }
+
+    render(contextwindow) {
+        this.renderProps.startX = contextwindow.x;
+        this.renderProps.startY = contextwindow.y;
+        this.renderProps.endX = contextwindow.x2;
+        this.renderProps.endY = contextwindow.y2;
+
+        const { x, y, sx, sy } = contextwindow;
+
+        // Background
+        HCW.ctx.fillStyle = this.renderProps.colors.background;
+        HCW.ctx.fillRect(x, y, sx, sy);
+
+        // Header
+        HCW.ctx.fillStyle = this.renderProps.colors.headerText;
+        HCW.ctx.font = "bold 14px Arial";
+        HCW.ctx.textAlign = "center";
+        HCW.ctx.fillText(this.text, x + (sx / 2), y + 20);
+        HCW.ctx.textAlign = "start";
+
+        // Display Area
+        const displayY = y + this.headerHeight;
+        HCW.ctx.fillStyle = this.renderProps.colors.displayBg;
+        HCW.ctx.fillRect(x + 5, displayY, sx - 10, this.displayHeight);
+
+        HCW.ctx.fillStyle = this.renderProps.colors.displayText;
+        HCW.ctx.font = "20px Monospace";
+        HCW.ctx.textAlign = "left";
+
+        let textToDraw = this.value;
+        const metrics = HCW.ctx.measureText(textToDraw);
+        if (metrics.width > sx - 20) {
+            HCW.ctx.textAlign = "right";
+            HCW.ctx.fillText(textToDraw, x + sx - 10, displayY + 28);
+        } else {
+            HCW.ctx.fillText(textToDraw, x + 10, displayY + 28);
+        }
+        HCW.ctx.textAlign = "start";
+
+        // Keypad Grid
+        const gridY = displayY + this.displayHeight + 10;
+        const gridH = sy - (gridY - y) - 5;
+        const gridW = sx - 10;
+        const gridX = x + 5;
+
+        const rows = this.keys.length;
+        const rowH = (gridH - ((rows - 1) * this.gap)) / rows;
+
+        this.renderProps.buttons = [];
+
+        this.keys.forEach((rowKeys, rowIndex) => {
+            const rowY = gridY + (rowIndex * (rowH + this.gap));
+
+            // Layout Logic for specific rows
+            let totalKeyWeight = 0;
+            if (rowIndex === 4) { // Last row: DELETE, C, SPACE, ENTER
+                // DELETE: 1.5, C: 1, SPACE: 4, ENTER: 1.5 -> Total ~8
+                rowKeys.forEach(k => {
+                    if (k === 'SPACE') totalKeyWeight += 4;
+                    else if (k === 'DELETE' || k === 'ENTER') totalKeyWeight += 1.5;
+                    else totalKeyWeight += 1;
+                });
+            } else if (rowIndex === 3) { // SHIFT row
+                // SHIFT needs to be wider?
+                rowKeys.forEach(k => {
+                    if (k === 'SHIFT') totalKeyWeight += 1.5;
+                    else totalKeyWeight += 1;
+                });
+            } else {
+                totalKeyWeight = rowKeys.length;
+            }
+
+            const unitW = (gridW - ((rowKeys.length - 1) * this.gap)) / totalKeyWeight;
+
+            let currentX = gridX;
+
+            rowKeys.forEach((keyRaw, colIndex) => {
+                let colW = unitW;
+                if (rowIndex === 4) {
+                    if (keyRaw === 'SPACE') colW = unitW * 4;
+                    else if (keyRaw === 'DELETE' || keyRaw === 'ENTER') colW = unitW * 1.5;
+                } else if (rowIndex === 3) {
+                    if (keyRaw === 'SHIFT') colW = unitW * 1.5;
+                }
+
+                // Determine display label based on case (only for single chars usually)
+                let displayLabel = keyRaw;
+                if (!this.isUpperCase && keyRaw.length === 1) {
+                    displayLabel = keyRaw.toLowerCase();
+                    // Handle numbers? Usually shift affects numbers (symbols), but for simplicity:
+                    // If we want 1-0 to stay 1-0, we just lower case. 
+                    // To be strict, 1.toLowerCase is 1.
+                }
+
+                // Color Logic
+                let bg = this.renderProps.colors.keyDefault;
+                if (keyRaw === 'ENTER') bg = this.renderProps.colors.specialKey;
+                else if (keyRaw === 'DELETE' || keyRaw === '<=') bg = this.renderProps.colors.deleteKey;
+                else if (keyRaw === 'SHIFT') bg = this.isUpperCase ? this.renderProps.colors.shiftKeyActive : this.renderProps.colors.shiftKey;
+
+                // Active State (Pressing)
+                if (this._pressedKey === keyRaw) {
+                    if (keyRaw === 'ENTER') bg = this.renderProps.colors.specialKeyActive;
+                    else if (keyRaw === 'DELETE' || keyRaw === '<=') bg = this.renderProps.colors.deleteKeyActive;
+                    else if (keyRaw === 'SHIFT') { /* handled above by toggle state usually, but for press feedback: */ bg = '#aaaaaa'; }
+                    else bg = this.renderProps.colors.keyActive;
+                }
+
+                // Draw Button
+                HCW.ctx.fillStyle = bg;
+                HCW.ctx.fillRect(currentX, rowY, colW, rowH);
+
+                // Draw Text
+                HCW.ctx.fillStyle = this.renderProps.colors.keyText;
+                HCW.ctx.font = (displayLabel.length > 1) ? "bold 11px Arial" : "14px Arial";
+                HCW.ctx.textAlign = "center";
+                HCW.ctx.fillText(displayLabel, currentX + (colW / 2), rowY + (rowH / 2) + 5);
+                HCW.ctx.textAlign = "start";
+
+                // Hitbox
+                this.renderProps.buttons.push({
+                    key: keyRaw, // Store RAW key for logic
+                    x: currentX,
+                    y: rowY,
+                    w: colW,
+                    h: rowH
+                });
+
+                currentX += colW + this.gap;
             });
         });
     }
