@@ -415,15 +415,38 @@ class HCWPresetField {
      * @param {string} name Display name
      * @param {string} color Hex color
      * @param {any} data Data to return on press
+     * @param {any} id Optional custom ID (defaults to auto-generated)
+     * @param {number} progress Optional progress (0.0 - 1.0)
      */
-    addPreset(name, color = '#cccccc', data = {}) {
+    addPreset(name, color = '#cccccc', data = {}, id = null, progress = null) {
         this.presets.push({
-            id: Date.now() + Math.random(),
+            id: id || (Date.now() + Math.random()),
             name,
             color,
-            data
+            data,
+            progress
         });
         if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
+    }
+
+    /**
+     * Update an existing preset by ID
+     * @param {any} id ID of the preset to update
+     * @param {object} updates Object containing fields to update { name, color, data, progress }
+     */
+    updatePreset(id, updates = {}) {
+        const preset = this.presets.find(p => p.id === id);
+        if (preset) {
+            if (updates.name !== undefined) preset.name = updates.name;
+            if (updates.color !== undefined) preset.color = updates.color;
+            if (updates.data !== undefined) preset.data = updates.data;
+            if (updates.progress !== undefined) preset.progress = updates.progress;
+
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } else {
+            console.warn(`HCWPresetField: Preset with id '${id}' not found.`);
+        }
         return this;
     }
 
@@ -542,7 +565,6 @@ class HCWPresetField {
         const itemWidth = (availWidth - ((cols - 1) * this.gap)) / cols;
 
         // 2. Clamp Scroll based on new dimensions
-        // This prevents items from disappearing offscreen if window expands
         this._clampScroll();
 
         // Background
@@ -591,7 +613,34 @@ class HCWPresetField {
                 HCW.ctx.fillStyle = this.renderProps.colors.itemText;
                 HCW.ctx.font = "12px Arial";
                 HCW.ctx.textAlign = "center";
-                HCW.ctx.fillText(preset.name, px + (itemWidth / 2), py + (this.itemHeight / 2) + 4);
+
+                // Adjust text position if progress is shown
+                let textY = py + (this.itemHeight / 2) + 4;
+                if (preset.progress !== undefined && preset.progress !== null) {
+                    textY = py + (this.itemHeight / 2) - 5;
+                }
+
+                HCW.ctx.fillText(preset.name, px + (itemWidth / 2), textY);
+
+                // Draw Progress Bar and Percent
+                if (preset.progress !== undefined && preset.progress !== null) {
+                    const barHeight = 6;
+                    const progress = Math.max(0, Math.min(1, preset.progress));
+
+                    // Bar Background (Darker)
+                    HCW.ctx.fillStyle = "rgba(0,0,0,0.3)";
+                    HCW.ctx.fillRect(px, py + this.itemHeight - barHeight, itemWidth, barHeight);
+
+                    // Bar Fill (Green)
+                    HCW.ctx.fillStyle = "#00ff00";
+                    HCW.ctx.fillRect(px, py + this.itemHeight - barHeight, itemWidth * progress, barHeight);
+
+                    // Percentage Text
+                    HCW.ctx.fillStyle = this.renderProps.colors.itemText;
+                    HCW.ctx.font = "10px Arial";
+                    HCW.ctx.fillText(Math.round(progress * 100) + "%", px + (itemWidth / 2), textY + 15);
+                }
+
                 HCW.ctx.textAlign = "start";
 
                 // Store hit box (using absolute screen coords)

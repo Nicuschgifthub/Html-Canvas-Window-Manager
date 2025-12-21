@@ -6,20 +6,43 @@ const run = async () => {
     }
 
     const presetField = new HCWPresetField("Colors");
-    presetField.addPreset("Red", "#ff0000", { r: 255, g: 0, b: 0 });
-    presetField.addPreset("Blue", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue1", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue21", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue2", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue3", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue4", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue5", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue6", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue7", "#0000ff", { r: 0, g: 0, b: 255 });
-    presetField.addPreset("Blue77", "#0000ff", { r: 0, g: 0, b: 255 });
+
+    presetField.addPreset("Red", "#ff0000", { r: 255, g: 0, b: 0 }, "preset_red");
+    presetField.addPreset("Blue", "#0000ff", { r: 0, g: 0, b: 255 }, "preset_blue");
+
+    for (let i = 1; i <= 20; i++) {
+        presetField.addPreset(`Generic ${i}`, '#555555', { index: i });
+    }
+
     presetField.onPresetPress((data, preset) => {
-        console.log("Selected:", preset.name, data);
+        console.log("Selected:", preset.name, data, "ID:", preset.id);
     });
+
+    // Demonstrate updating a preset with progress
+    presetField.addPreset("Downloading...", "#444444", {}, "preset_load", 0.0);
+
+    setTimeout(() => {
+        console.log("Updating Blue Preset...");
+        presetField.updatePreset("preset_blue", {
+            name: "Dark Blue",
+            color: "#00008b",
+            data: { r: 0, g: 0, b: 139 }
+        });
+
+        // Animate progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 0.1;
+            if (progress > 1) {
+                progress = 1;
+                clearInterval(interval);
+                presetField.updatePreset("preset_load", { name: "Done!", progress: 1.0, color: "#005500" });
+            } else {
+                presetField.updatePreset("preset_load", { progress: progress });
+            }
+        }, 500);
+
+    }, 2000);
 
     const faderFiled = new HCWFaderField('Fader 1', 99321841)
         .onValueChange(faderUpdate)
@@ -33,7 +56,6 @@ const run = async () => {
         .setMinSizes(50, 50)
         .setId(2898361)
         .addContextField(faderFiled)
-    // .addContextField(encoderFiled)
 
     new HCWSetup('hcw-canvas')
         .setGrid(100, 100, 0.1, '#00ff95')
