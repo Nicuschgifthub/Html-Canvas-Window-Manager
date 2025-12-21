@@ -1,14 +1,13 @@
 const run = async () => {
 
-
     const faderUpdate = (values) => {
         console.log(values);
     }
 
     const presetField = new HCWPresetField("Colors");
-
-    presetField.addPreset("Red", "#ff0000", { r: 255, g: 0, b: 0 }, "preset_red");
-    presetField.addPreset("Blue", "#0000ff", { r: 0, g: 0, b: 255 }, "preset_blue");
+    presetField.addPreset("Red", "#860000ff", { r: 255, g: 0, b: 0 }, "preset_red");
+    presetField.addPreset("Blue", "#00007eff", { r: 0, g: 0, b: 255 }, "preset_blue");
+    presetField.addPreset("Loading...", "#444444", {}, "preset_load", 0.4);
 
     for (let i = 1; i <= 20; i++) {
         presetField.addPreset(`Generic ${i}`, '#555555', { index: i });
@@ -18,65 +17,55 @@ const run = async () => {
         console.log("Selected:", preset.name, data, "ID:", preset.id);
     });
 
-    // Demonstrate updating a preset with progress
-    presetField.addPreset("Downloading...", "#444444", {}, "preset_load", 0.0);
-
-    setTimeout(() => {
-        console.log("Updating Blue Preset...");
-        presetField.updatePreset("preset_blue", {
-            name: "Dark Blue",
-            color: "#00008b",
-            data: { r: 0, g: 0, b: 139 }
-        });
-
-        // Animate progress
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 0.1;
-            if (progress > 1) {
-                progress = 1;
-                clearInterval(interval);
-                presetField.updatePreset("preset_load", { name: "Done!", progress: 1.0, color: "#005500" });
-            } else {
-                presetField.updatePreset("preset_load", { progress: progress });
-            }
-        }, 500);
-
-    }, 2000);
+    const encoderFiled = new HCWEncoderField('Enco1', 99321842)
+        .setDisplayType('byte')
+        .setLabel("Encoder 1")
+        .onValueChange(faderUpdate)
 
     const faderFiled = new HCWFaderField('Fader 1', 99321841)
+        .setValue(.4)
         .onValueChange(faderUpdate)
-
-    const encoderFiled = new HCWEncoderField('Encoder 1', 99321842)
-        .setDisplayType('byte')
-        .onValueChange(faderUpdate)
-
-    const simpleWindow = new HCWWindow(200, 200, 200, 200)
-        .setTouchZoneColor('#00ff95')
-        .setMinSizes(50, 50)
-        .setId(2898361)
-        .addContextField(faderFiled)
 
     const keyboardField = new HCWKeyboardField('Full Keyboard', 123456)
         .onEnter((val) => {
             console.log("Keyboard Enter:", val);
         });
 
+    const numberField = new HCWNumberField('Full Numbers', 883216)
+        .onEnter((val) => {
+            console.log(val);
+        })
+
     new HCWSetup('hcw-canvas')
         .setGrid(100, 100, 0.1, '#00ff95')
         .addWindows([
-            new HCWWindow(200, 500, 100, 100)
+            new HCWWindow(200, 0, 500, 300)
                 .setTouchZoneColor('#00ff95')
                 .setMinSizes(50, 50)
                 .setId(45654984)
                 .addContextField(presetField),
-            new HCWWindow(200, 700, 100, 100)
+            new HCWWindow(0, 300, 200, 200)
                 .setTouchZoneColor('#00ff95')
                 .setMinSizes(50, 50)
                 .setId(459852587)
-                .addContextField(encoderFiled)
+                .addContextField(encoderFiled),
+            new HCWWindow(0, 600, 100, 300)
+                .setTouchZoneColor('#00ff95')
+                .setMinSizes(50, 50)
+                .setId(577712893)
+                .addContextField(faderFiled),
+            new HCWWindow(500, 500, 700, 400)
+                .setTouchZoneColor('#00ff95')
+                .setMinSizes(50, 50)
+                .setId(58972168)
+                .addContextField(keyboardField),
+            new HCWWindow(200, 600, 200, 300)
+                .setTouchZoneColor('#00ff95')
+                .setMinSizes(50, 50)
+                .setId(58972167)
+                .addContextField(numberField)
         ])
-        .addWindow(simpleWindow)
+    // .addWindow(simpleWindow)
 
     setTimeout(() => {
         console.log(HCW)
