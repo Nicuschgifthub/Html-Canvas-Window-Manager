@@ -657,3 +657,207 @@ class HCWPresetField {
         HCW.ctx.restore();
     }
 }
+
+class HCWNumberField {
+    constructor(fieldName = 'Numpad', id = Date.now()) {
+        this.type = 'numpad';
+        this.text = fieldName;
+        this.id = id;
+
+        this.value = "";
+        this.onEnterCallback = null;
+
+        this.headerHeight = 30;
+        this.displayHeight = 40;
+        this.gap = 4;
+
+        this.keys = [
+            ['7', '8', '9'],
+            ['4', '5', '6'],
+            ['1', '2', '3'],
+            ['.', '0', ','],
+            ['<=', 'C', 'ENTER']
+        ];
+
+        this.renderProps = {
+            colors: {
+                background: '#1b1717ff',
+                headerText: '#ffffff',
+                displayBg: '#000000',
+                displayText: '#00ff95',
+                keyDefault: '#333333',
+                keyActive: '#555555',
+                keyText: '#ffffff',
+                enterKey: '#005500',
+                enterKeyActive: '#007700'
+            },
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null,
+            buttons: [] // Hit zones
+        };
+
+        this._pressedKey = null; // Track pressed key for visual feedback
+        this._dragLastY = null; // Needed for compatibility with touch/drag context
+    }
+
+    setValue(val) {
+        this.value = String(val);
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
+    }
+
+    onEnter(callback) {
+        this.onEnterCallback = callback;
+        return this;
+    }
+
+    _interaction(interaction) {
+        if (interaction.type === 'mousedown') {
+            const { mouseX, mouseY } = interaction;
+            this._potentialClick = true;
+            this._clickStartY = mouseY;
+
+            // Check button hits
+            const hit = this._findHitButton(mouseX, mouseY);
+            if (hit) {
+                this._pressedKey = hit.key;
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            }
+
+        } else if (interaction.type === 'mousemove') {
+            const { mouseX, mouseY } = interaction;
+            if (this._potentialClick && Math.abs(mouseY - this._clickStartY) > 5) {
+                this._potentialClick = false;
+                this._pressedKey = null;
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            }
+
+        } else if (interaction.type === 'mouseup') {
+
+            if (this._potentialClick && this._pressedKey) {
+                // Determine action
+                const key = this._pressedKey;
+
+                if (key === 'ENTER') {
+                    if (this.onEnterCallback) {
+                        this.onEnterCallback(this.value);
+                    }
+                    // Optionally clear or keep value? Let's keep it until user clears or overwrites.
+                    // Or maybe we should clear? Usually numpads might clear on enter. 
+                    // Let's keep it for now.
+                } else if (key === '.' || key === ',') {
+                    // Prevent multiple dots/commas if desired? 
+                    // For now just append.
+                    this.value += key;
+                } else if (key === 'C') {
+                    this.value = "";
+                } else if (key === '<=') {
+                    this.value = this.value.slice(1);
+                } else {
+                    // Number
+                    this.value += key;
+                }
+            }
+
+            this._potentialClick = false;
+            this._pressedKey = null;
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        }
+    }
+
+    _findHitButton(x, y) {
+        return this.renderProps.buttons.find(b =>
+            x >= b.x && x <= b.x + b.w &&
+            y >= b.y && y <= b.y + b.h
+        );
+    }
+
+    render(contextwindow) {
+        this.renderProps.startX = contextwindow.x;
+        this.renderProps.startY = contextwindow.y;
+        this.renderProps.endX = contextwindow.x2;
+        this.renderProps.endY = contextwindow.y2;
+
+        const { x, y, sx, sy } = contextwindow;
+
+        // Background
+        HCW.ctx.fillStyle = this.renderProps.colors.background;
+        HCW.ctx.fillRect(x, y, sx, sy);
+
+        // Header
+        HCW.ctx.fillStyle = this.renderProps.colors.headerText;
+        HCW.ctx.font = "bold 14px Arial";
+        HCW.ctx.textAlign = "center";
+        HCW.ctx.fillText(this.text, x + (sx / 2), y + 20);
+        HCW.ctx.textAlign = "start";
+
+        // Display Area
+        const displayY = y + this.headerHeight;
+        HCW.ctx.fillStyle = this.renderProps.colors.displayBg;
+        HCW.ctx.fillRect(x + 5, displayY, sx - 10, this.displayHeight);
+
+        HCW.ctx.fillStyle = this.renderProps.colors.displayText;
+        HCW.ctx.font = "20px Monospace"; // Digital look
+        HCW.ctx.textAlign = "right";
+        // Simple clipping of text could be needed if too long, but for now just draw
+        HCW.ctx.fillText(this.value, x + sx - 15, displayY + 28);
+        HCW.ctx.textAlign = "start"; // Reset
+
+        // Keypad Grid
+        const gridY = displayY + this.displayHeight + 10;
+        const gridH = sy - (gridY - y) - 5; // Available height
+        const gridW = sx - 10; // Available width (5px padding sides)
+        const gridX = x + 5;
+
+        // We have 5 rows
+        const rows = this.keys.length;
+        const rowH = (gridH - ((rows - 1) * this.gap)) / rows;
+
+        this.renderProps.buttons = [];
+
+        this.keys.forEach((rowKeys, rowIndex) => {
+            const rowY = gridY + (rowIndex * (rowH + this.gap));
+
+            // Calculate col width based on keys in this row
+            // If row has 1 key (ENTER), it spans full width
+            const cols = rowKeys.length;
+            const colW = (gridW - ((cols - 1) * this.gap)) / cols;
+
+            rowKeys.forEach((key, colIndex) => {
+                const btnX = gridX + (colIndex * (colW + this.gap));
+
+                // Color Logic
+                let bg = this.renderProps.colors.keyDefault;
+                if (key === 'ENTER') bg = this.renderProps.colors.enterKey;
+
+                // Active State
+                if (this._pressedKey === key) {
+                    if (key === 'ENTER') bg = this.renderProps.colors.enterKeyActive;
+                    else bg = this.renderProps.colors.keyActive;
+                }
+
+                // Draw Button
+                HCW.ctx.fillStyle = bg;
+                HCW.ctx.fillRect(btnX, rowY, colW, rowH);
+
+                // Draw Text
+                HCW.ctx.fillStyle = this.renderProps.colors.keyText;
+                HCW.ctx.font = (key === 'ENTER') ? "bold 12px Arial" : "16px Arial";
+                HCW.ctx.textAlign = "center";
+                HCW.ctx.fillText(key, btnX + (colW / 2), rowY + (rowH / 2) + 6);
+                HCW.ctx.textAlign = "start";
+
+                // Hitbox
+                this.renderProps.buttons.push({
+                    key,
+                    x: btnX,
+                    y: rowY,
+                    w: colW,
+                    h: rowH
+                });
+            });
+        });
+    }
+}
