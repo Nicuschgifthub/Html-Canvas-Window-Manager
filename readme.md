@@ -15,4 +15,12 @@ Install all packages and run it via node.js open the site in the browser
 
 ## Planned Updates
 
-- Add interactive buttons and other things used in base html sites
+- Rewrite everything to be a browser based Fixture console via ArtNet
+
+## Current Status of the Fixture controll
+
+![discord-simpletable](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/current.png)
+
+## Window Features that currently exist HCW only no FGM
+
+![discord-simpletable](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/hcw-last.png)
