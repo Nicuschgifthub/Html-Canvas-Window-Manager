@@ -220,7 +220,6 @@ class HCWEncoderField {
 
     setDisplayType(type) {
         if (['value', 'byte', 'percent'].includes(type)) {
-            console.log(type)
             this.displayType = type;
             if (typeof HCWRender !== 'undefined') {
                 HCWRender.updateFrame();
@@ -398,6 +397,8 @@ class HCWPresetField {
 
         this.scrollY = 0;
 
+        this.parentWindow = null;
+
         this.itemMinWidth = 80;
         this.itemHeight = 60;
         this.gap = 5;
@@ -423,6 +424,11 @@ class HCWPresetField {
 
         this._dragLastY = null;
         this._pressedIndex = -1;
+    }
+
+    setParentWindow(win) {
+        this.parentWindow = win;
+        return this;
     }
 
     setLabel(label) {
@@ -472,6 +478,22 @@ class HCWPresetField {
     }
 
     /**
+     * Update all existing presets
+     * @param {object} updates Object containing fields to update { name, color, data, progress }
+     */
+    updateAllPresets(updates = {}, blacklistIds = []) {
+        this.presets.forEach(preset => {
+            if (blacklistIds.find(p => p === preset.id)) return;
+            if (updates.name !== undefined) preset.name = updates.name;
+            if (updates.color !== undefined) preset.color = updates.color;
+            if (updates.data !== undefined) preset.data = updates.data;
+            if (updates.progress !== undefined) preset.progress = updates.progress;
+        });
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
+    }
+
+    /**
      * Callback when a preset is pressed
      * @param {function} callback (data, preset) => {}
      */
@@ -517,7 +539,7 @@ class HCWPresetField {
                 const preset = this.presets[this._pressedIndex];
                 if (preset) {
                     if (this.onPresetPressCallback) {
-                        this.onPresetPressCallback(preset.data, preset);
+                        this.onPresetPressCallback(this.parentWindow, this, preset.data, preset);
                     } else {
                         console.warn("HCWPresetField: Clicked presest '" + preset.name + "' but no callback set.");
                     }
