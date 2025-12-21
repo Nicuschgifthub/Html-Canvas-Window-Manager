@@ -6,6 +6,7 @@ class HCWFaderField {
         this.id = id;
 
         this.value = 0.0; // 0.0 to 1.0
+        this.displayType = 'value'; // 'value', 'byte', 'percent'
         this.onValueChangeCallback = null;
 
         this.renderProps = {
@@ -48,6 +49,32 @@ class HCWFaderField {
     }
 
     /**
+     * Set the label text
+     * @param {string} name 
+     */
+    setLabel(name) {
+        this.text = name;
+        if (typeof HCWRender !== 'undefined') {
+            HCWRender.updateFrame();
+        }
+        return this;
+    }
+
+    /**
+     * Set the value display type
+     * @param {'value'|'byte'|'percent'} type 
+     */
+    setDisplayType(type) {
+        if (['value', 'byte', 'percent'].includes(type)) {
+            this.displayType = type;
+            if (typeof HCWRender !== 'undefined') {
+                HCWRender.updateFrame();
+            }
+        }
+        return this;
+    }
+
+    /**
      * Get the current value
      * @returns {number}
      */
@@ -62,6 +89,18 @@ class HCWFaderField {
     onValueChange(callback) {
         this.onValueChangeCallback = callback;
         return this;
+    }
+
+    _getFormattedValue() {
+        switch (this.displayType) {
+            case 'byte':
+                return Math.round(this.value * 255).toString();
+            case 'percent':
+                return Math.round(this.value * 100) + '%';
+            case 'value':
+            default:
+                return this.value.toFixed(2);
+        }
     }
 
     /**
@@ -128,6 +167,204 @@ class HCWFaderField {
         HCW.ctx.fillStyle = colors.text;
         HCW.ctx.font = "12px Arial";
         HCW.ctx.fillText(this.text, x + 5, y + 15);
-        HCW.ctx.fillText(this.value.toFixed(2), x + 5, y + 30);
+        HCW.ctx.fillText(this._getFormattedValue(), x + 5, y + 30);
+    }
+}
+
+class HCWEncoderField {
+    constructor(encoderText = 'Encoder 01', id = Date.now()) {
+        this.type = 'encoder';
+        this.text = encoderText;
+        this.id = id;
+
+        this.value = 0.0; // 0.0 to 1.0
+        this.displayType = 'value'; // 'value', 'byte', 'percent'
+        this.onValueChangeCallback = null;
+
+        this.renderProps = {
+            colors: {
+                background: '#1b1717ff',
+                knob: '#574b4bff',
+                indicator: '#ffffff',
+                text: '#ffffff'
+            },
+            centerX: null,
+            centerY: null,
+            radius: null,
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null
+        };
+    }
+
+    /**
+     * Set the encoder value (0.0 - 1.0)
+     * @param {number} val 
+     */
+    setValue(val) {
+        const oldVal = this.value;
+        this.value = Math.max(0, Math.min(1, val));
+
+        if (oldVal !== this.value) {
+            if (this.onValueChangeCallback) {
+                this.onValueChangeCallback({
+                    value: this.value,
+                    byte: Math.round(this.value * 255),
+                    percent: Math.round(this.value * 100)
+                });
+            }
+            if (typeof HCWRender !== 'undefined') {
+                HCWRender.updateFrame();
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Set the label text
+     * @param {string} name 
+     */
+    setLabel(name) {
+        this.text = name;
+        if (typeof HCWRender !== 'undefined') {
+            HCWRender.updateFrame();
+        }
+        return this;
+    }
+
+    /**
+     * Set the value display type
+     * @param {'value'|'byte'|'percent'} type 
+     */
+    setDisplayType(type) {
+        if (['value', 'byte', 'percent'].includes(type)) {
+            this.displayType = type;
+            if (typeof HCWRender !== 'undefined') {
+                HCWRender.updateFrame();
+            }
+        }
+        return this;
+    }
+
+    getValue() {
+        return this.value;
+    }
+
+    onValueChange(callback) {
+        this.onValueChangeCallback = callback;
+        return this;
+    }
+
+    _getFormattedValue() {
+        switch (this.displayType) {
+            case 'byte':
+                return Math.round(this.value * 255).toString();
+            case 'percent':
+                return Math.round(this.value * 100) + '%';
+            case 'value':
+            default:
+                return this.value.toFixed(2);
+        }
+    }
+
+    _interaction(interaction) {
+        if (interaction.type === 'mousedown' || interaction.type === 'mousemove') {
+            const cx = this.renderProps.centerX;
+            const cy = this.renderProps.centerY;
+
+            let angle = Math.atan2(interaction.mouseY - cy, interaction.mouseX - cx);
+            let deg = angle * (180 / Math.PI);
+            let adjustedDeg = deg - 135;
+            if (adjustedDeg < 0) adjustedDeg += 360;
+
+            if (adjustedDeg <= 270) {
+                this.setValue(adjustedDeg / 270);
+            }
+
+        } else if (interaction.type === 'scroll') {
+            const step = 0.05;
+            const direction = interaction.deltaY > 0 ? -1 : 1;
+            this.setValue(this.value + (step * direction));
+        }
+    }
+
+    render(contextwindow) {
+        this.renderProps.startX = contextwindow.x;
+        this.renderProps.startY = contextwindow.y;
+        this.renderProps.endX = contextwindow.x2;
+        this.renderProps.endY = contextwindow.y2;
+
+        const sx = contextwindow.sx;
+        const sy = contextwindow.sy;
+
+        // Check if we have space for text
+        const showText = sy > 100;
+
+        // Calculate center and radius
+        const cx = contextwindow.x + (sx / 2);
+
+        let knobCy;
+        if (showText) {
+            // Top 45% if showing text
+            knobCy = contextwindow.y + (sy * 0.45);
+        } else {
+            // Centered if no text
+            knobCy = contextwindow.y + (sy * 0.5);
+        }
+
+        const minDim = Math.min(sx, sy);
+        const radius = (minDim * 0.35);
+
+        this.renderProps.centerX = cx;
+        this.renderProps.centerY = knobCy;
+        this.renderProps.radius = radius;
+
+        const colors = this.renderProps.colors;
+
+        // 1. Background
+        HCW.ctx.fillStyle = colors.background;
+        HCW.ctx.fillRect(contextwindow.x, contextwindow.y, sx, sy);
+
+        // 2. Knob Circle
+        HCW.ctx.beginPath();
+        HCW.ctx.arc(cx, knobCy, radius, 0, 2 * Math.PI);
+        HCW.ctx.fillStyle = colors.knob;
+        HCW.ctx.fill();
+
+        // 3. Indicator Line
+        // Start angle (135 deg) + (value * 270 deg)
+        const startRad = (135 * Math.PI) / 180;
+        const rangeRad = (270 * Math.PI) / 180;
+        const currentRad = startRad + (this.value * rangeRad);
+
+        // Calculate end point on circle
+        const indX = cx + (Math.cos(currentRad) * (radius * 0.8));
+        const indY = knobCy + (Math.sin(currentRad) * (radius * 0.8));
+
+        HCW.ctx.beginPath();
+        HCW.ctx.moveTo(cx, knobCy);
+        HCW.ctx.lineTo(indX, indY);
+        HCW.ctx.strokeStyle = colors.indicator;
+        HCW.ctx.lineWidth = 3;
+        HCW.ctx.stroke();
+
+        // 4. Value Arc (Optional but nice)
+        HCW.ctx.beginPath();
+        HCW.ctx.arc(cx, knobCy, radius, startRad, currentRad);
+        HCW.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        HCW.ctx.lineWidth = 5;
+        HCW.ctx.stroke();
+
+        // 5. Text Label & Value
+        // Only draw text if we have enough space
+        if (showText) {
+            HCW.ctx.fillStyle = colors.text;
+            HCW.ctx.font = "12px Arial";
+            HCW.ctx.textAlign = "center";
+            HCW.ctx.fillText(this.text, cx, knobCy + radius + 15);
+            HCW.ctx.fillText(this._getFormattedValue(), cx, knobCy + radius + 30);
+            HCW.ctx.textAlign = "start"; // Reset alignment
+        }
     }
 }
