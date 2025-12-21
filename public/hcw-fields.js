@@ -368,3 +368,217 @@ class HCWEncoderField {
         }
     }
 }
+
+class HCWPresetField {
+    constructor(fieldName = 'Presets', id = Date.now()) {
+        this.type = 'preset';
+        this.text = fieldName;
+        this.id = id;
+
+        this.presets = [];
+        this.onPresetPressCallback = null;
+
+        // Valid scroll offset (Y)
+        this.scrollY = 0;
+
+        // Layout config
+        this.itemMinWidth = 80;
+        this.itemHeight = 60;
+        this.gap = 5;
+        this.headerHeight = 30;
+
+        this.renderProps = {
+            colors: {
+                background: '#1b1717ff',
+                headerText: '#ffffff',
+                itemText: '#000000',
+                itemDefaultColor: '#aaaaaa'
+            },
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null,
+            sx: null,
+            sy: null,
+            // Cache layout for interaction
+            cols: 1,
+            visibleItems: []
+        };
+
+        this._dragLastY = null;
+    }
+
+    /**
+     * Add a preset to the grid
+     * @param {string} name Display name
+     * @param {string} color Hex color
+     * @param {any} data Data to return on press
+     */
+    addPreset(name, color = '#cccccc', data = {}) {
+        this.presets.push({
+            id: Date.now() + Math.random(),
+            name,
+            color,
+            data
+        });
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
+    }
+
+    /**
+     * Callback when a preset is pressed
+     * @param {function} callback (data, preset) => {}
+     */
+    onPresetPress(callback) {
+        this.onPresetPressCallback = callback;
+        return this;
+    }
+
+    _interaction(interaction) {
+        if (interaction.type === 'mousedown') {
+            const { mouseX, mouseY } = interaction;
+
+            // Check if clicking inside content area (below header)
+            if (mouseY > this.renderProps.startY + this.headerHeight) {
+                // Initialize drag
+                this._dragLastY = mouseY;
+
+                // Also check for click on item
+                // We do this on mouseup usually to distinguish drag vs click, 
+                // but for simple touch interfaces, mousedown hit + no minimal move = click.
+                // Let's store potential click target.
+                this._potentialClick = true;
+            }
+
+        } else if (interaction.type === 'mousemove') {
+            if (this._dragLastY !== null && interaction.mouseY) {
+                const dy = interaction.mouseY - this._dragLastY;
+                this._dragLastY = interaction.mouseY;
+
+                if (Math.abs(dy) > 2) this._potentialClick = false; // It's a drag
+
+                this.scrollY += dy;
+                this._clampScroll();
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            }
+
+        } else if (interaction.type === 'mouseup') {
+            const { mouseX, mouseY } = interaction;
+
+            if (this._potentialClick) {
+                // Find hit item
+                // We rely on renderProps.visibleItems which we populated during render
+                // This is efficient as we only check what's on screen.
+
+                const hitItem = this.renderProps.visibleItems.find(item =>
+                    mouseX >= item.x && mouseX <= item.x + item.w &&
+                    mouseY >= item.y && mouseY <= item.y + item.h
+                );
+
+                if (hitItem && this.onPresetPressCallback) {
+                    const preset = this.presets[hitItem.index];
+                    this.onPresetPressCallback(preset.data, preset);
+                }
+            }
+
+            this._dragLastY = null;
+            this._potentialClick = false;
+
+        } else if (interaction.type === 'scroll') {
+            // interaction.deltaY
+            // Scroll usually moves content up (deltaY > 0) -> scrollY decreases
+            this.scrollY -= interaction.deltaY;
+            this._clampScroll();
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        }
+    }
+
+    _clampScroll() {
+        // Max scroll is 0 (top aligned)
+        // Min scroll is -(contentHeight - viewHeight)
+
+        const contentHeight = Math.ceil(this.presets.length / this.renderProps.cols) * (this.itemHeight + this.gap);
+        const viewHeight = this.renderProps.sy - this.headerHeight;
+
+        if (contentHeight < viewHeight) {
+            this.scrollY = 0;
+        } else {
+            const minScroll = -(contentHeight - viewHeight + 20); // 20px padding bottom
+            this.scrollY = Math.min(0, Math.max(minScroll, this.scrollY));
+        }
+    }
+
+    render(contextwindow) {
+        this.renderProps.startX = contextwindow.x;
+        this.renderProps.startY = contextwindow.y;
+        this.renderProps.endX = contextwindow.x2;
+        this.renderProps.endY = contextwindow.y2;
+        this.renderProps.sx = contextwindow.sx;
+        this.renderProps.sy = contextwindow.sy;
+
+        const { x, y, sx, sy } = contextwindow;
+
+        // Background
+        HCW.ctx.fillStyle = this.renderProps.colors.background;
+        HCW.ctx.fillRect(x, y, sx, sy);
+
+        // Header
+        HCW.ctx.fillStyle = this.renderProps.colors.headerText;
+        HCW.ctx.font = "bold 14px Arial";
+        HCW.ctx.textAlign = "center";
+        HCW.ctx.fillText(this.text, x + (sx / 2), y + 20);
+        HCW.ctx.textAlign = "start";
+
+        // Grid Calculation
+        const availWidth = sx;
+        // cols = at least 1, max based on width
+        const cols = Math.max(1, Math.floor(availWidth / this.itemMinWidth));
+        this.renderProps.cols = cols;
+
+        const itemWidth = (availWidth - ((cols - 1) * this.gap)) / cols;
+
+        // Content Area clipping
+        HCW.ctx.save();
+        HCW.ctx.beginPath();
+        HCW.ctx.rect(x, y + this.headerHeight, sx, sy - this.headerHeight);
+        HCW.ctx.clip();
+
+        this.renderProps.visibleItems = [];
+
+        const startY = y + this.headerHeight + this.scrollY;
+
+        this.presets.forEach((preset, index) => {
+            const col = index % cols;
+            const row = Math.floor(index / cols);
+
+            const px = x + (col * (itemWidth + this.gap));
+            const py = startY + (row * (this.itemHeight + this.gap));
+
+            // Optimization: Only draw if visible
+            if (py + this.itemHeight >= y && py <= y + sy) {
+                // Draw Item Box
+                HCW.ctx.fillStyle = preset.color || this.renderProps.colors.itemDefaultColor;
+                HCW.ctx.fillRect(px, py, itemWidth, this.itemHeight);
+
+                // Draw Item Text
+                HCW.ctx.fillStyle = this.renderProps.colors.itemText;
+                HCW.ctx.font = "12px Arial";
+                HCW.ctx.textAlign = "center";
+                // Simple wrapping or truncation could go here, for now just center text
+                HCW.ctx.fillText(preset.name, px + (itemWidth / 2), py + (this.itemHeight / 2) + 4);
+                HCW.ctx.textAlign = "start";
+
+                // Store hit box
+                this.renderProps.visibleItems.push({
+                    index,
+                    x: px,
+                    y: py,
+                    w: itemWidth,
+                    h: this.itemHeight
+                });
+            }
+        });
+
+        HCW.ctx.restore();
+    }
+}
