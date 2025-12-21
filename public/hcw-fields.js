@@ -392,7 +392,8 @@ class HCWPresetField {
                 background: '#1b1717ff',
                 headerText: '#ffffff',
                 itemText: '#000000',
-                itemDefaultColor: '#aaaaaa'
+                itemDefaultColor: '#aaaaaa',
+                itemPressedColor: '#ffffff' // Visual feedback
             },
             startX: null,
             startY: null,
@@ -406,6 +407,7 @@ class HCWPresetField {
         };
 
         this._dragLastY = null;
+        this._pressedIndex = -1; // Track pressed item index
     }
 
     /**
@@ -437,25 +439,30 @@ class HCWPresetField {
     _interaction(interaction) {
         if (interaction.type === 'mousedown') {
             const { mouseX, mouseY } = interaction;
+            this._clickStartY = mouseY;
+            this._dragLastY = mouseY; // Start drag tracking
 
-            // Check if clicking inside content area (below header)
             if (mouseY > this.renderProps.startY + this.headerHeight) {
-                // Initialize drag
-                this._dragLastY = mouseY;
-
-                // Also check for click on item
-                // We do this on mouseup usually to distinguish drag vs click, 
-                // but for simple touch interfaces, mousedown hit + no minimal move = click.
-                // Let's store potential click target.
                 this._potentialClick = true;
+                const hitItem = this._findHitItem(mouseX, mouseY);
+                if (hitItem) {
+                    this._pressedIndex = hitItem.index;
+                    if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                }
             }
 
         } else if (interaction.type === 'mousemove') {
-            if (this._dragLastY !== null && interaction.mouseY) {
-                const dy = interaction.mouseY - this._dragLastY;
-                this._dragLastY = interaction.mouseY;
+            const { mouseX, mouseY } = interaction;
 
-                if (Math.abs(dy) > 2) this._potentialClick = false; // It's a drag
+            // Check total distance moved for click cancellation
+            if (this._potentialClick && Math.abs(mouseY - this._clickStartY) > 5) {
+                this._potentialClick = false;
+                this._pressedIndex = -1;
+            }
+
+            if (this._dragLastY !== null && mouseY) {
+                const dy = mouseY - this._dragLastY;
+                this._dragLastY = mouseY;
 
                 this.scrollY += dy;
                 this._clampScroll();
@@ -463,34 +470,40 @@ class HCWPresetField {
             }
 
         } else if (interaction.type === 'mouseup') {
-            const { mouseX, mouseY } = interaction;
+            // IMPORTANT: HCWTouch._handleMouseUp doesn't send coords.
+            // We rely on the fact that if _potentialClick is still true, 
+            // the user didn't drag away significantly.
 
-            if (this._potentialClick) {
-                // Find hit item
-                // We rely on renderProps.visibleItems which we populated during render
-                // This is efficient as we only check what's on screen.
-
-                const hitItem = this.renderProps.visibleItems.find(item =>
-                    mouseX >= item.x && mouseX <= item.x + item.w &&
-                    mouseY >= item.y && mouseY <= item.y + item.h
-                );
-
-                if (hitItem && this.onPresetPressCallback) {
-                    const preset = this.presets[hitItem.index];
-                    this.onPresetPressCallback(preset.data, preset);
+            if (this._potentialClick && this._pressedIndex !== -1) {
+                const preset = this.presets[this._pressedIndex];
+                if (preset) {
+                    // Fire callback
+                    if (this.onPresetPressCallback) {
+                        this.onPresetPressCallback(preset.data, preset);
+                    } else {
+                        console.warn("HCWPresetField: Clicked presest '" + preset.name + "' but no callback set.");
+                    }
                 }
             }
 
             this._dragLastY = null;
             this._potentialClick = false;
+            this._pressedIndex = -1;
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
 
         } else if (interaction.type === 'scroll') {
-            // interaction.deltaY
-            // Scroll usually moves content up (deltaY > 0) -> scrollY decreases
             this.scrollY -= interaction.deltaY;
             this._clampScroll();
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         }
+    }
+
+    _findHitItem(x, y) {
+        // Find hit item in visible items
+        return this.renderProps.visibleItems.find(item =>
+            x >= item.x && x <= item.x + item.w &&
+            y >= item.y && y <= item.y + item.h
+        );
     }
 
     _clampScroll() {
@@ -500,10 +513,14 @@ class HCWPresetField {
         const contentHeight = Math.ceil(this.presets.length / this.renderProps.cols) * (this.itemHeight + this.gap);
         const viewHeight = this.renderProps.sy - this.headerHeight;
 
-        if (contentHeight < viewHeight) {
+        // If content fits, reset to 0
+        if (contentHeight <= viewHeight) {
             this.scrollY = 0;
         } else {
-            const minScroll = -(contentHeight - viewHeight + 20); // 20px padding bottom
+            // Allow scrolling but clamp to bottom
+            // minScroll is negative. 
+            // We want to be able to scroll until the last item is visible at the bottom.
+            const minScroll = -(contentHeight - viewHeight + 10); // 10px padding
             this.scrollY = Math.min(0, Math.max(minScroll, this.scrollY));
         }
     }
@@ -518,6 +535,16 @@ class HCWPresetField {
 
         const { x, y, sx, sy } = contextwindow;
 
+        // 1. Calculate Grid Dimensions First (Critical for scroll clamping)
+        const availWidth = sx;
+        const cols = Math.max(1, Math.floor(availWidth / this.itemMinWidth));
+        this.renderProps.cols = cols;
+        const itemWidth = (availWidth - ((cols - 1) * this.gap)) / cols;
+
+        // 2. Clamp Scroll based on new dimensions
+        // This prevents items from disappearing offscreen if window expands
+        this._clampScroll();
+
         // Background
         HCW.ctx.fillStyle = this.renderProps.colors.background;
         HCW.ctx.fillRect(x, y, sx, sy);
@@ -528,14 +555,6 @@ class HCWPresetField {
         HCW.ctx.textAlign = "center";
         HCW.ctx.fillText(this.text, x + (sx / 2), y + 20);
         HCW.ctx.textAlign = "start";
-
-        // Grid Calculation
-        const availWidth = sx;
-        // cols = at least 1, max based on width
-        const cols = Math.max(1, Math.floor(availWidth / this.itemMinWidth));
-        this.renderProps.cols = cols;
-
-        const itemWidth = (availWidth - ((cols - 1) * this.gap)) / cols;
 
         // Content Area clipping
         HCW.ctx.save();
@@ -555,20 +574,27 @@ class HCWPresetField {
             const py = startY + (row * (this.itemHeight + this.gap));
 
             // Optimization: Only draw if visible
+            // Check checking overlap with context window
             if (py + this.itemHeight >= y && py <= y + sy) {
+
+                // Determine color (Pressed or Default)
+                let bgColor = preset.color || this.renderProps.colors.itemDefaultColor;
+                if (index === this._pressedIndex) {
+                    bgColor = this.renderProps.colors.itemPressedColor;
+                }
+
                 // Draw Item Box
-                HCW.ctx.fillStyle = preset.color || this.renderProps.colors.itemDefaultColor;
+                HCW.ctx.fillStyle = bgColor;
                 HCW.ctx.fillRect(px, py, itemWidth, this.itemHeight);
 
                 // Draw Item Text
                 HCW.ctx.fillStyle = this.renderProps.colors.itemText;
                 HCW.ctx.font = "12px Arial";
                 HCW.ctx.textAlign = "center";
-                // Simple wrapping or truncation could go here, for now just center text
                 HCW.ctx.fillText(preset.name, px + (itemWidth / 2), py + (this.itemHeight / 2) + 4);
                 HCW.ctx.textAlign = "start";
 
-                // Store hit box
+                // Store hit box (using absolute screen coords)
                 this.renderProps.visibleItems.push({
                     index,
                     x: px,
