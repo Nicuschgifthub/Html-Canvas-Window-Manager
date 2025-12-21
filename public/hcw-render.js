@@ -83,6 +83,5 @@ class HCWRender {
 
             this.drawWindow(window);
         });
-
     }
 }

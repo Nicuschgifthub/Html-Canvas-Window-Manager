@@ -46,9 +46,9 @@ const run = async () => {
 
     const faderFiled = new HCWFaderField('Fader 1', 99321841)
         .onValueChange(faderUpdate)
-        .setDisplayType('byte')
 
     const encoderFiled = new HCWEncoderField('Encoder 1', 99321842)
+        .setDisplayType('byte')
         .onValueChange(faderUpdate)
 
     const simpleWindow = new HCWWindow(200, 200, 200, 200)
