@@ -870,10 +870,12 @@ class HCWNumberField {
             ['4', '5', '6'],
             ['1', '2', '3'],
             ['.', '0', ','],
-            ['<=', 'C', 'ENTER']
+            ['<=', 'C', 'ENTER'],
+            ['<', '>']
         ];
 
         this.parentWindow = null;
+        this.physicalShiftDown = false;
 
         this.renderProps = {
             colors: {
@@ -892,7 +894,8 @@ class HCWNumberField {
             startY: null,
             endX: null,
             endY: null,
-            buttons: []
+            buttons: [],
+            displayArea: null
         };
 
         this._pressedKey = null;
@@ -935,12 +938,15 @@ class HCWNumberField {
                 this.value = this.value.slice(0, this.cursorPos - 1) + this.value.slice(this.cursorPos);
                 this.cursorPos--;
             }
-        } else if (key === 'ArrowLeft') {
+        } else if (key === 'Delete' || key === 'entf') {
+            if (this.cursorPos < this.value.length) {
+                this.value = this.value.slice(0, this.cursorPos) + this.value.slice(this.cursorPos + 1);
+            }
+        } else if (key === 'ArrowLeft' || key === '<') {
             this.cursorPos = Math.max(0, this.cursorPos - 1);
-        } else if (key === 'ArrowRight') {
+        } else if (key === 'ArrowRight' || key === '>') {
             this.cursorPos = Math.min(this.value.length, this.cursorPos + 1);
         } else {
-            // Numbers, dots, commas
             const char = (key === ',') ? '.' : key;
             if (/^[0-9.]$/.test(char) || (key.length === 1 && !isNaN(key))) {
                 this.value = this.value.slice(0, this.cursorPos) + char + this.value.slice(this.cursorPos);
@@ -954,6 +960,13 @@ class HCWNumberField {
             const { mouseX, mouseY } = interaction;
             this._potentialClick = true;
             this._clickStartY = mouseY;
+
+            const da = this.renderProps.displayArea;
+            if (da && mouseX >= da.x && mouseX <= da.x + da.w && mouseY >= da.y && mouseY <= da.y + da.h) {
+                this._setCursorByClick(mouseX);
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                return;
+            }
 
             const hit = this._findHitButton(mouseX, mouseY);
             if (hit) {
@@ -979,8 +992,36 @@ class HCWNumberField {
             this._pressedKey = null;
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         } else if (interaction.type === 'keydown') {
+            if (interaction.key === 'Shift') this.physicalShiftDown = true;
             this._handleInput(interaction.key);
+        } else if (interaction.type === 'keyup') {
+            if (interaction.key === 'Shift') this.physicalShiftDown = false;
         }
+    }
+
+    _setCursorByClick(mouseX) {
+        const da = this.renderProps.displayArea;
+        if (!da) return;
+
+        HCW.ctx.font = "20px Monospace";
+        const textX = da.x + da.w - 10;
+        const fullTextWidth = HCW.ctx.measureText(this.value).width;
+        const textStartX = textX - fullTextWidth;
+
+        let bestPos = 0;
+        let minDiff = Infinity;
+
+        for (let i = 0; i <= this.value.length; i++) {
+            const prefix = this.value.slice(0, i);
+            const prefixWidth = HCW.ctx.measureText(prefix).width;
+            const charX = textStartX + prefixWidth;
+            const diff = Math.abs(mouseX - charX);
+            if (diff < minDiff) {
+                minDiff = diff;
+                bestPos = i;
+            }
+        }
+        this.cursorPos = bestPos;
     }
 
     _findHitButton(x, y) {
@@ -1009,7 +1050,11 @@ class HCWNumberField {
 
         const displayY = y + this.headerHeight;
         HCW.ctx.fillStyle = this.renderProps.colors.displayBg;
-        HCW.ctx.fillRect(x + 5, displayY, sx - 10, this.displayHeight);
+        const daX = x + 5;
+        const daW = sx - 10;
+        const daH = this.displayHeight;
+        HCW.ctx.fillRect(daX, displayY, daW, daH);
+        this.renderProps.displayArea = { x: daX, y: displayY, w: daW, h: daH };
 
         HCW.ctx.fillStyle = this.renderProps.colors.displayText;
         HCW.ctx.font = "20px Monospace";
@@ -1101,11 +1146,12 @@ class HCWKeyboardField {
             ['Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ü'],
             ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä'],
             ['SHIFT', 'Y', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '-'],
-            ['DELETE', '<=', 'SPACE', 'ENTER']
+            ['DELETE', '<=', 'SPACE', '<', '>', 'ENTER']
         ];
 
         this.parentWindow = null;
         this.fgmType = null;
+        this.physicalShiftDown = false;
 
         this.renderProps = {
             colors: {
@@ -1128,7 +1174,8 @@ class HCWKeyboardField {
             startY: null,
             endX: null,
             endY: null,
-            buttons: []
+            buttons: [],
+            displayArea: null
         };
 
         this._pressedKey = null;
@@ -1206,18 +1253,23 @@ class HCWKeyboardField {
         } else if (key === 'DELETE') {
             this.value = "";
             this.cursorPos = 0;
+        } else if (key === 'Delete' || key === 'entf') {
+            if (this.cursorPos < this.value.length) {
+                this.value = this.value.slice(0, this.cursorPos) + this.value.slice(this.cursorPos + 1);
+            }
         } else if (key === 'SPACE' || key === ' ') {
             this.value = this.value.slice(0, this.cursorPos) + " " + this.value.slice(this.cursorPos);
             this.cursorPos++;
         } else if (key === 'SHIFT' || key === 'Shift') {
             this.isUpperCase = !this.isUpperCase;
-        } else if (key === 'ArrowLeft') {
+        } else if (key === 'ArrowLeft' || key === '<') {
             this.cursorPos = Math.max(0, this.cursorPos - 1);
-        } else if (key === 'ArrowRight') {
+        } else if (key === 'ArrowRight' || key === '>') {
             this.cursorPos = Math.min(this.value.length, this.cursorPos + 1);
         } else if (key.length === 1) {
             let char = key;
-            if (this.isUpperCase) {
+            const useCaps = this.isUpperCase || this.physicalShiftDown;
+            if (useCaps) {
                 char = char.toUpperCase();
             } else {
                 char = char.toLowerCase();
@@ -1232,6 +1284,13 @@ class HCWKeyboardField {
             const { mouseX, mouseY } = interaction;
             this._potentialClick = true;
             this._clickStartY = mouseY;
+
+            const da = this.renderProps.displayArea;
+            if (da && mouseX >= da.x && mouseX <= da.x + da.w && mouseY >= da.y && mouseY <= da.y + da.h) {
+                this._setCursorByClick(mouseX);
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                return;
+            }
 
             const hit = this._findHitButton(mouseX, mouseY);
             if (hit) {
@@ -1257,8 +1316,41 @@ class HCWKeyboardField {
             this._pressedKey = null;
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         } else if (interaction.type === 'keydown') {
+            if (interaction.key === 'Shift') this.physicalShiftDown = true;
             this._handleInput(interaction.key);
+        } else if (interaction.type === 'keyup') {
+            if (interaction.key === 'Shift') this.physicalShiftDown = false;
         }
+    }
+
+    _setCursorByClick(mouseX) {
+        const da = this.renderProps.displayArea;
+        if (!da) return;
+
+        HCW.ctx.font = "20px Monospace";
+        const metrics = HCW.ctx.measureText(this.value);
+        let textStartX;
+
+        if (metrics.width > da.w - 10) {
+            textStartX = (da.x + da.w - 10) - metrics.width;
+        } else {
+            textStartX = da.x + 10;
+        }
+
+        let bestPos = 0;
+        let minDiff = Infinity;
+
+        for (let i = 0; i <= this.value.length; i++) {
+            const prefix = this.value.slice(0, i);
+            const prefixWidth = HCW.ctx.measureText(prefix).width;
+            const charX = textStartX + prefixWidth;
+            const diff = Math.abs(mouseX - charX);
+            if (diff < minDiff) {
+                minDiff = diff;
+                bestPos = i;
+            }
+        }
+        this.cursorPos = bestPos;
     }
 
     _findHitButton(x, y) {
@@ -1287,7 +1379,11 @@ class HCWKeyboardField {
 
         const displayY = y + this.headerHeight;
         HCW.ctx.fillStyle = this.renderProps.colors.displayBg;
-        HCW.ctx.fillRect(x + 5, displayY, sx - 10, this.displayHeight);
+        const daX = x + 5;
+        const daW = sx - 10;
+        const daH = this.displayHeight;
+        HCW.ctx.fillRect(daX, displayY, daW, daH);
+        this.renderProps.displayArea = { x: daX, y: displayY, w: daW, h: daH };
 
         HCW.ctx.fillStyle = this.renderProps.colors.displayText;
         HCW.ctx.font = "20px Monospace";
@@ -1340,8 +1436,9 @@ class HCWKeyboardField {
             let totalKeyWeight = 0;
             if (rowIndex === 4) {
                 rowKeys.forEach(k => {
-                    if (k === 'SPACE') totalKeyWeight += 4;
+                    if (k === 'SPACE') totalKeyWeight += 3;
                     else if (k === 'DELETE' || k === 'ENTER') totalKeyWeight += 1.5;
+                    else if (k === '<' || k === '>') totalKeyWeight += 0.7;
                     else totalKeyWeight += 1;
                 });
             } else if (rowIndex === 3) {
@@ -1360,8 +1457,9 @@ class HCWKeyboardField {
             rowKeys.forEach((keyRaw, colIndex) => {
                 let colW = unitW;
                 if (rowIndex === 4) {
-                    if (keyRaw === 'SPACE') colW = unitW * 4;
+                    if (keyRaw === 'SPACE') colW = unitW * 3;
                     else if (keyRaw === 'DELETE' || keyRaw === 'ENTER') colW = unitW * 1.5;
+                    else if (keyRaw === '<' || keyRaw === '>') colW = unitW * 0.7;
                 } else if (rowIndex === 3) {
                     if (keyRaw === 'SHIFT') colW = unitW * 1.5;
                 }

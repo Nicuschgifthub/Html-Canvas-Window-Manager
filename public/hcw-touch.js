@@ -359,9 +359,23 @@ class HCWTouch {
             });
             HCWRender.updateFrame();
 
-            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Backspace', 'Enter'].includes(e.key)) {
+            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Backspace', 'Enter', 'Delete', 'Tab'].includes(e.key)) {
                 e.preventDefault();
             }
+        }
+    }
+
+    static _handleKeyUp(e) {
+        if (HCW.pointer.focusedField && HCW.pointer.focusedField._interaction) {
+            HCW.pointer.focusedField._interaction({
+                type: 'keyup',
+                key: e.key,
+                keyCode: e.keyCode,
+                shiftKey: e.shiftKey,
+                ctrlKey: e.ctrlKey,
+                altKey: e.altKey
+            });
+            HCWRender.updateFrame();
         }
     }
 
@@ -372,6 +386,7 @@ class HCWTouch {
         HCW.canvas.addEventListener('wheel', this._handleWheel);
 
         window.addEventListener('keydown', this._handleKeyDown.bind(this));
+        window.addEventListener('keyup', this._handleKeyUp.bind(this));
 
         HCW.canvas.addEventListener('touchstart', this._handleMouseDown);
         HCW.canvas.addEventListener('touchmove', this._handleMouseMove);
