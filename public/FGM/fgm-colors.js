@@ -3,6 +3,7 @@ class FGMColors {
         return {
             BACKGROUND: "#0e0e0eff",
             ACTIVE: "#00ff4cff",
+            AWAITING: "#c2c505ff",
             MENUS: {
                 SETUP: "#007771ff",
                 IN_OUT: "#000baaff",

@@ -479,10 +479,28 @@ class HCWPreset {
         this.defaultColor = defaultColor;
         this.data = data;
         this.progress = progress;
+        this.parentField = null;
+    }
+
+    getParentField() {
+        return this.parentField;
+    }
+
+    setParentField(field) {
+        this.parentField = field;
+        return this;
+    }
+
+    triggerRender() {
+        if (this.parentField && typeof HCWRender !== 'undefined') {
+            HCWRender.updateFrame();
+        }
     }
 
     toJSON() {
-        return { ...this };
+        const copy = { ...this };
+        delete copy.parentField;
+        return copy;
     }
 
     fromJSON(json) {
@@ -498,11 +516,31 @@ class HCWPreset {
     getData() { return this.data; }
     getProgress() { return this.progress; }
 
-    setName(name) { this.name = name; return this; }
-    setColor(color) { this.color = color; return this; }
-    setDefaultColor(color) { this.defaultColor = color; return this; }
-    setData(data) { this.data = data; return this; }
-    setProgress(progress) { this.progress = progress; return this; }
+    setName(name) {
+        this.name = name;
+        this.triggerRender();
+        return this;
+    }
+    setColor(color) {
+        this.color = color;
+        this.triggerRender();
+        return this;
+    }
+    setDefaultColor(color) {
+        this.defaultColor = color;
+        this.triggerRender();
+        return this;
+    }
+    setData(data) {
+        this.data = data;
+        this.triggerRender();
+        return this;
+    }
+    setProgress(progress) {
+        this.progress = progress;
+        this.triggerRender();
+        return this;
+    }
 
     update(updates = {}) {
         if (updates.name !== undefined) this.name = updates.name;
@@ -510,6 +548,8 @@ class HCWPreset {
         if (updates.data !== undefined) this.data = updates.data;
         if (updates.progress !== undefined) this.progress = updates.progress;
         if (updates.defaultColor !== undefined) this.defaultColor = updates.defaultColor;
+
+        this.triggerRender();
         return this;
     }
 }
@@ -580,7 +620,7 @@ class HCWPresetField {
             const data = typeof json === 'string' ? JSON.parse(json) : json;
             Object.assign(this, data);
             if (data.presets) {
-                this.presets = data.presets.map(p => new HCWPreset().fromJSON(p));
+                this.presets = data.presets.map(p => new HCWPreset().fromJSON(p).setParentField(this));
             }
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         } catch (e) {
@@ -600,8 +640,15 @@ class HCWPresetField {
         return this;
     }
 
-    addPreset(name, color = null, defaultColor = null, data = {}, id = null, progress = null) {
-        const preset = new HCWPreset(name, color, defaultColor, data, id, progress);
+    addPreset(nameOrInstance, color = null, defaultColor = null, data = {}, id = null, progress = null) {
+        let preset;
+        if (nameOrInstance instanceof HCWPreset) {
+            preset = nameOrInstance;
+        } else {
+            preset = new HCWPreset(nameOrInstance, color, defaultColor, data, id, progress);
+        }
+
+        preset.setParentField(this);
         this.presets.push(preset);
         if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         return this;

@@ -3,12 +3,12 @@ class FGMBaseWindows {
         const pageField = new HCWPresetField('Pages', presetId)
             .onPresetPress(FGMKernel.eventPresetClicked)
 
-        pageField.addPreset(`Setup`, null, FGMColors.PAGES.MENUS.SETUP, { _goToPage: FGMPageHandler.PAGE_ENUMS.SETUP }, FGMIds.getNewId());
-        pageField.addPreset(`IN&OUT`, null, FGMColors.PAGES.MENUS.IN_OUT, { _goToPage: FGMPageHandler.PAGE_ENUMS.LINK_SETTINGS }, FGMIds.getNewId());
-        pageField.addPreset(`Fixture Cnt.`, null, FGMColors.PAGES.MENUS.FIXTURE_CONTROL, { _goToPage: FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL }, FGMIds.getNewId());
+        pageField.addPreset(new HCWPreset(`Setup`).setDefaultColor(FGMColors.PAGES.MENUS.SETUP).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.SETUP }));
+        pageField.addPreset(new HCWPreset(`IN&OUT`).setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.LINK_SETTINGS }));
+        pageField.addPreset(new HCWPreset(`Fixture Cnt.`).setDefaultColor(FGMColors.PAGES.MENUS.FIXTURE_CONTROL).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL }));
 
         for (let i = 0; i < pageCount; i++) {
-            pageField.addPreset(`Page ${i}`, null, FGMColors.PAGES.BACKGROUND, { _goToPage: i }, FGMIds.getNewId());
+            pageField.addPreset(new HCWPreset(`Page ${i}`).setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _goToPage: i }));
         }
 
         const newWindow = new HCWWindow(0, 0, 50, 400)
@@ -84,7 +84,7 @@ class FGMBaseWindows {
             .setId(FGMIds.newWindowId())
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
-        panEncoder.setParentWindow(newtiltEncoderWindow);
+        tiltEncoder.setParentWindow(newtiltEncoderWindow);
 
         windowsForThisPage.tiltEncoder = newtiltEncoderWindow;
 
@@ -102,7 +102,7 @@ class FGMBaseWindows {
             .setId(FGMIds.newWindowId())
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
-        panEncoder.setParentWindow(newtiltEncoderWindow);
+        colorPicker.setParentWindow(newColorPickerWindow);
 
         windowsForThisPage.colorPicker = newColorPickerWindow;
 
@@ -110,10 +110,10 @@ class FGMBaseWindows {
 
         const pageActions = new HCWPresetField('Actions', FGMIds.newComponentId())
             .onPresetPress(FGMKernel.eventPresetClicked)
-            .addPreset("Store", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE })
-            .addPreset("Clear Fixture atr.", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_FIXTURE_VALUE_OVERWRITE })
-            .addPreset("Clear All", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_ALL })
-            .addPreset("Edit Name", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.EDIT_NAME })
+            .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE }))
+            .addPreset(new HCWPreset("Clear Fixture atr.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_FIXTURE_VALUE_OVERWRITE }))
+            .addPreset(new HCWPreset("Clear All").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_ALL }))
+            .addPreset(new HCWPreset("Edit Name").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.EDIT_NAME }))
 
         const newPageActionsWindow = new HCWWindow(300, 800, 300, 100)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
@@ -147,6 +147,5 @@ class FGMBaseWindows {
         windowsForThisPage.keyboard = newKeyboardWindow;
 
         return windowsForThisPage;
-
     }
 }

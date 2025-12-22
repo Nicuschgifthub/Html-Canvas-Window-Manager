@@ -19,7 +19,7 @@ class FGMPageHandler {
 
         if (fromPreset == null) return;
 
-        fromPreset.updatePreset(singlePreset.id, { color: FGMColors.PAGES.ACTIVE });
+        singlePreset.setColor(FGMColors.PAGES.ACTIVE);
         fromPreset.updateAllPresets({ color: null }, [singlePreset.id]);
     }
 
