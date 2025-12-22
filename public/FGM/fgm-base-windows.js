@@ -14,6 +14,7 @@ class FGMBaseWindows {
         const newWindow = new HCWWindow(0, 0, 50, 400)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(pageField)
+            .setMinSizes(100, 100)
             .setId(windowId)
             .setPageId(null);
 
@@ -43,6 +44,7 @@ class FGMBaseWindows {
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(dimFader)
             .setHidden(true)
+            .setMinSizes(100, 100)
             .setId(FGMIds.newWindowId())
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
@@ -60,6 +62,7 @@ class FGMBaseWindows {
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(panEncoder)
             .setHidden(true)
+            .setMinSizes(100, 100)
             .setId(FGMIds.newWindowId())
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
@@ -76,6 +79,7 @@ class FGMBaseWindows {
         const newtiltEncoderWindow = new HCWWindow(100, 700, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(tiltEncoder)
+            .setMinSizes(100, 100)
             .setHidden(true)
             .setId(FGMIds.newWindowId())
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
@@ -86,7 +90,7 @@ class FGMBaseWindows {
 
         // Color Picker
 
-        const colorPicker = new HCWColorMapField('Color', FGMIds.newComponentId())
+        const colorPicker = new HCWColorMapField('Color Picker 1', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventColorPickerUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER)
 
@@ -94,12 +98,15 @@ class FGMBaseWindows {
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(colorPicker)
             .setHidden(true)
+            .setMinSizes(200, 200)
             .setId(FGMIds.newWindowId())
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
         panEncoder.setParentWindow(newtiltEncoderWindow);
 
         windowsForThisPage.colorPicker = newColorPickerWindow;
+
+        // 3 Pic actions
 
         return windowsForThisPage;
     }

@@ -1290,7 +1290,7 @@ class HCWColorMapField {
     }
 
     setColor(colors) {
-     // this here
+        // this here
 
     }
 
@@ -1354,29 +1354,32 @@ class HCWColorMapField {
     _interaction(i) {
         const { mouseX, mouseY } = i;
 
+        let mouseDownOnceCalculated = true;
+
         if (i.type === 'mousedown') {
             this.renderProps.active = null;
 
             if (this._hit(this.renderProps.map, mouseX, mouseY)) {
                 this.renderProps.active = { type: 'map' };
-                return;
+                mouseDownOnceCalculated = false;
             }
 
             if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
                 this.renderProps.active = { type: 'value' };
-                return;
+                mouseDownOnceCalculated = false;
             }
 
             for (const k in this.renderProps.sliders) {
                 if (this._hit(this.renderProps.sliders[k], mouseX, mouseY)) {
                     this.renderProps.active = { type: 'slider', key: k };
-                    return;
+                    mouseDownOnceCalculated = false;
                 }
             }
         }
 
-        if (i.type === 'mousemove' && this.renderProps.active) {
+        if (mouseDownOnceCalculated == false || (i.type === 'mousemove' && this.renderProps.active)) {
             const a = this.renderProps.active;
+            mouseDownOnceCalculated = true;
 
             if (a.type === 'map') {
                 const m = this.renderProps.map;
