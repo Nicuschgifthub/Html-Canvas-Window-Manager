@@ -147,7 +147,7 @@ class HCWFaderField {
 
             this.setValue(normalizedVal);
         } else if (interaction.type === 'scroll') {
-            const step = 0.05;
+            const step = 0.04;
             const direction = interaction.deltaY > 0 ? -1 : 1;
             this.setValue(this.value + (step * direction));
         }
@@ -356,7 +356,7 @@ class HCWEncoderField {
             this.renderProps.activeRing = null;
 
         } else if (interaction.type === 'scroll') {
-            const step = 0.05;
+            const step = 0.02;
             const direction = interaction.deltaY > 0 ? -1 : 1;
             this.setValue(this.value + (step * direction));
         }
@@ -492,7 +492,7 @@ class HCWPresetField {
             colors: {
                 background: '#1b1717ff',
                 headerText: '#ffffff',
-                itemText: '#000000',
+                itemText: '#ffffffff',
                 itemDefaultColor: '#aaaaaa',
                 itemPressedColor: '#ffffff'
             },
@@ -1223,6 +1223,8 @@ class HCWColorMapField {
         this._colorMapCanvas = null;
         this._colorMapSize = 0;
 
+        this.mouseDownOnceCalculated = true;
+
         this.renderProps = {
             map: null,
             valueFader: null,
@@ -1289,14 +1291,51 @@ class HCWColorMapField {
         return this;
     }
 
-    setColor(colors) {
-        // this here
-
-    }
-
     getColors() {
         const rgb = this._HCW_hsvToRgb(this.h, this.s, this.v);
         return { ...rgb, ...this.extra };
+    }
+
+    setColor(colors) {
+        if (!colors) return;
+
+        const r = colors.r !== undefined ? colors.r : this.getColors().r;
+        const g = colors.g !== undefined ? colors.g : this.getColors().g;
+        const b = colors.b !== undefined ? colors.b : this.getColors().b;
+        this._rgbToHsv(r, g, b);
+
+        if (colors.white !== undefined) this.extra.white = colors.white;
+        if (colors.amber !== undefined) this.extra.amber = colors.amber;
+        if (colors.uv !== undefined) this.extra.uv = colors.uv;
+
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
+    }
+
+    _rgbToHsv(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const d = max - min;
+
+        let h;
+        const s = max === 0 ? 0 : d / max;
+        const v = max;
+
+        if (d === 0) {
+            h = 0;
+        } else {
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+
+        this.h = h;
+        this.s = s;
+        this.v = v;
     }
 
     _trigger() {
@@ -1351,35 +1390,38 @@ class HCWColorMapField {
         this._colorMapSize = size;
     }
 
-    _interaction(i) {
-        const { mouseX, mouseY } = i;
+    checkMouseLocation(mouseX, mouseY) {
+        this.renderProps.active = null;
 
-        let mouseDownOnceCalculated = true;
-
-        if (i.type === 'mousedown') {
-            this.renderProps.active = null;
-
-            if (this._hit(this.renderProps.map, mouseX, mouseY)) {
-                this.renderProps.active = { type: 'map' };
-                mouseDownOnceCalculated = false;
-            }
-
-            if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
-                this.renderProps.active = { type: 'value' };
-                mouseDownOnceCalculated = false;
-            }
-
-            for (const k in this.renderProps.sliders) {
-                if (this._hit(this.renderProps.sliders[k], mouseX, mouseY)) {
-                    this.renderProps.active = { type: 'slider', key: k };
-                    mouseDownOnceCalculated = false;
-                }
-            }
+        if (this._hit(this.renderProps.map, mouseX, mouseY)) {
+            this.renderProps.active = { type: 'map' };
+            this.mouseDownOnceCalculated = false;
         }
 
-        if (mouseDownOnceCalculated == false || (i.type === 'mousemove' && this.renderProps.active)) {
+        if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
+            this.renderProps.active = { type: 'value' };
+            this.mouseDownOnceCalculated = false;
+        }
+
+        for (const k in this.renderProps.sliders) {
+            if (this._hit(this.renderProps.sliders[k], mouseX, mouseY)) {
+                this.renderProps.active = { type: 'slider', key: k };
+                this.mouseDownOnceCalculated = false;
+            }
+        }
+    }
+
+    _interaction(i) {
+        const { mouseX, mouseY } = i;
+        this.mouseDownOnceCalculated = true;
+
+        if (i.type === 'mousedown') {
+            this.checkMouseLocation(mouseX, mouseY);
+        }
+
+        if (this.mouseDownOnceCalculated == false || (i.type === 'mousemove' && this.renderProps.active)) {
             const a = this.renderProps.active;
-            mouseDownOnceCalculated = true;
+            this.mouseDownOnceCalculated = true;
 
             if (a.type === 'map') {
                 const m = this.renderProps.map;
@@ -1410,9 +1452,40 @@ class HCWColorMapField {
                     this.extra[a.key] = Math.round(t * 255);
                 }
             }
-
             this._trigger();
         }
+
+        /*  Maybe one day i will fix this
+        
+        this.checkMouseLocation(mouseX, mouseY);
+ 
+         if (i.type === 'scroll' && this.renderProps.active?.type === 'slider') {
+             console.log("yes")
+ 
+             const step = 0.02;
+             const direction = i.deltaY > 0 ? -1 : 1;
+ 
+             if (a.key === 'r' || a.key === 'g' || a.key === 'b') {
+                 const rgb = this.getColors();
+                 rgb[a.key] = rgb[a.key] + (step * direction);
+ 
+                 if (rgb[a.key] < 0) {
+                     rgb[a.key] = 0;
+                 }
+ 
+                 if (rgb[a.key] > 255) {
+                     rgb[a.key] = 255;
+                 }
+ 
+                 this._rgbToHsv(rgb.r, rgb.g, rgb.b);
+             } else {
+ 
+             }
+ 
+             this.renderProps.active = null;
+ 
+             this._trigger();
+         } */
 
         if (i.type === 'mouseup') {
             this.renderProps.active = null;

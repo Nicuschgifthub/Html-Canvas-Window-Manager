@@ -21,6 +21,7 @@ class FGMwithHCW {
             .addWindow(baseFixtureControl.panEncoder)
             .addWindow(baseFixtureControl.tiltEncoder)
             .addWindow(baseFixtureControl.colorPicker)
+            .addWindow(baseFixtureControl.programmerActions)
     }
 
     saveShow() {

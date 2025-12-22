@@ -83,4 +83,19 @@ class FGMTypes {
             }
         }
     }
+    static get ACTIONS() {
+        return {
+            BUTTON: {
+                get STORE() {
+                    return 'a_button_store';
+                },
+                get CLEAR_ALL() {
+                    return 'a_button_clear_all';
+                },
+                get CLEAR_FIXTURE_VALUE_OVERWRITE() { // does not unselect them
+                    return 'a_button_store_fixture_values_dontwrite';
+                }
+            }
+        }
+    }
 }

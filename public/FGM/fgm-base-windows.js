@@ -106,7 +106,23 @@ class FGMBaseWindows {
 
         windowsForThisPage.colorPicker = newColorPickerWindow;
 
-        // 3 Pic actions
+        // 3 Simple actions
+
+        const pageActions = new HCWPresetField('Actions', FGMIds.newComponentId())
+            .onPresetPress(FGMKernel.eventPresetClicked)
+            .addPreset("Store", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE })
+            .addPreset("Clear Fixture atr.", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_FIXTURE_VALUE_OVERWRITE })
+            .addPreset("Clear All", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_ALL })
+
+        const newPageActionsWindow = new HCWWindow(300, 800, 300, 100)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(pageActions)
+            .setHidden(true)
+            .setMinSizes(100, 100)
+            .setId(FGMIds.newWindowId())
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        windowsForThisPage.programmerActions = newPageActionsWindow;
 
         return windowsForThisPage;
     }
