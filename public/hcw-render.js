@@ -77,6 +77,8 @@ class HCWRender {
             HCWGridSnap.updateWindows();
         }
 
+        let needsAnimation = false;
+
         HCW.windows.forEach(window => {
 
             window._calculateTouchZones();
@@ -84,6 +86,24 @@ class HCWRender {
             window._calculateContextWindow();
 
             this.drawWindow(window);
+
+            // Check if any field in this window needs animation
+            if (window.contextfields) {
+                window.contextfields.forEach(field => {
+                    const type = (field.getType ? field.getType() : field.type).toUpperCase();
+                    if (type === 'PRESET_FIELD' && field.presets) {
+                        field.presets.forEach(p => {
+                            if (typeof FGMSubKernel !== 'undefined' && FGMSubKernel.initiatorPreset === p) {
+                                needsAnimation = true;
+                            }
+                        });
+                    }
+                });
+            }
         });
+
+        if (needsAnimation) {
+            requestAnimationFrame(() => this.updateFrame());
+        }
     }
 }

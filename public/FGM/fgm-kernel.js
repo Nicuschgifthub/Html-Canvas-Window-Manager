@@ -1,16 +1,22 @@
 class FGMSubKernel {
     static awaitingAction = null;
     static actionData = {};
+    static initiatorPreset = null;
 
-    static setAwaitingAction(actionType, data = {}) {
+    static setAwaitingAction(actionType, data = {}, initiatorPreset = null) {
+        this.clearAwaitingAction(); // Clear any previous action
+
         this.awaitingAction = actionType;
         this.actionData = data;
+        this.initiatorPreset = initiatorPreset;
+
         console.log(`Action set: ${actionType}`, data);
     }
 
     static clearAwaitingAction() {
         this.awaitingAction = null;
         this.actionData = {};
+        this.initiatorPreset = null;
         console.log("Action cleared");
     }
 
@@ -21,6 +27,25 @@ class FGMSubKernel {
 
 
 class FGMKernel {
+    static getAwaitingColor() {
+        if (typeof FGMColors === 'undefined') return '#ffffff';
+
+        const pulse = (Math.sin(Date.now() / 150) + 1) / 2; // 0 to 1
+        const target = FGMColors.PAGES.AWAITING;
+
+        // target is #RRGGBBAA or #RRGGBB
+        const r = parseInt(target.slice(1, 3), 16);
+        const g = parseInt(target.slice(3, 5), 16);
+        const b = parseInt(target.slice(5, 7), 16);
+
+        // Interpolate with black (0,0,0)
+        const fr = Math.round(r * pulse);
+        const fg = Math.round(g * pulse);
+        const fb = Math.round(b * pulse);
+
+        return `rgb(${fr}, ${fg}, ${fb})`;
+    }
+
     static handleAwaitingAction(actionType, fromWindow, fromPreset, data, singlePreset) {
         switch (actionType) {
             case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
@@ -29,10 +54,10 @@ class FGMKernel {
                 FGMSubKernel.actionData.fromWindow = fromWindow;
 
                 FGMWindowManager.openKeyboardForWindow(fromWindow, singlePreset.getName());
+                FGMSubKernel.initiatorPreset = null; // Stop flashing once keyboard is open
                 break;
 
             case FGMTypes.ACTIONS.BUTTON.STORE:
-                // Example Store logic: just update the name for now to show it works
                 fromPreset.updatePreset(singlePreset.getId(), { name: "Stored!" });
                 FGMSubKernel.clearAwaitingAction();
                 break;
@@ -60,10 +85,10 @@ class FGMKernel {
         if (data._programmerAction !== undefined) {
             switch (data._programmerAction) {
                 case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
-                    FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.BUTTON.EDIT_NAME);
+                    FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.BUTTON.EDIT_NAME, {}, singlePreset);
                     break;
                 case FGMTypes.ACTIONS.BUTTON.STORE:
-                    FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.BUTTON.STORE);
+                    FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.BUTTON.STORE, {}, singlePreset);
                     break;
                 default:
                     console.warn("Unhandled programmer action:", data._programmerAction);

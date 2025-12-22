@@ -807,6 +807,18 @@ class HCWPresetField {
                     bgColor = preset.getDefaultColor();
                 }
 
+                const isFlashing = (typeof FGMSubKernel !== 'undefined' && FGMSubKernel.initiatorPreset === preset);
+
+                if (isFlashing) {
+                    if (typeof FGMKernel !== 'undefined' && FGMKernel.getAwaitingColor) {
+                        bgColor = FGMKernel.getAwaitingColor();
+                    } else {
+                        // Fallback
+                        const pulse = (Math.sin(Date.now() / 150) + 1) / 2;
+                        if (pulse > 0.5) bgColor = '#ffffffaa';
+                    }
+                }
+
                 HCW.ctx.fillStyle = bgColor;
                 HCW.ctx.fillRect(px, py, itemWidth, this.itemHeight);
 
