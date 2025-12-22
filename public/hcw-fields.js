@@ -4,7 +4,7 @@ class HCWFaderField {
         this.text = faderText;
         this.id = id;
 
-        this.fgmFaderType = null;
+        this.fgmType = null;
 
         this.value = 0.0; // 0.0 to 1.0
         this.displayType = 'byte'; // 'value', 'byte', 'percent'
@@ -27,18 +27,44 @@ class HCWFaderField {
         };
     }
 
-    getFGMFaderType() {
-        return this.fgmFaderType;
+    getType() {
+        return 'FADER_FIELD';
     }
 
-    setFGMFaderType(type = null) {
-        this.fgmFaderType = type;
+    toJSON() {
+        const copy = { ...this };
+        delete copy.onValueChangeCallback;
+        delete copy.parentWindow;
+        return copy;
+    }
+
+    fromJSON(json) {
+        try {
+            const data = typeof json === 'string' ? JSON.parse(json) : json;
+            Object.assign(this, data);
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } catch (e) {
+            console.error("Failed to restore:", e);
+        }
+        return this;
+    }
+
+    getFGMType() {
+        return this.fgmType;
+    }
+
+    setFGMType(type = null) {
+        this.fgmType = type;
         return this
     }
 
     setParentWindow(win) {
         this.parentWindow = win;
         return this;
+    }
+
+    getParentWindow() {
+        return this.parentWindow;
     }
 
     setLabel(label) {
@@ -167,6 +193,7 @@ class HCWEncoderField {
         this.displayType = 'byte';
         this.onValueChangeCallback = null;
 
+        this.fgmType = null;
         this.parentWindow = null;
 
         this.renderProps = {
@@ -188,9 +215,44 @@ class HCWEncoderField {
         this._lastInteractionAngle = null;
     }
 
+    getType() {
+        return 'PRESET_FIELD';
+    }
+
+    toJSON() {
+        const copy = { ...this };
+        delete copy.onValueChangeCallback;
+        delete copy.parentWindow;
+        return copy;
+    }
+
+    fromJSON(json) {
+        try {
+            const data = typeof json === 'string' ? JSON.parse(json) : json;
+            Object.assign(this, data);
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } catch (e) {
+            console.error("Failed to restore:", e);
+        }
+        return this;
+    }
+
+    getFGMType() {
+        return this.fgmType;
+    }
+
+    setFGMType(type = null) {
+        this.fgmType = type;
+        return this
+    }
+
     setParentWindow(win) {
         this.parentWindow = win;
         return this;
+    }
+
+    getParentWindow() {
+        return this.parentWindow;
     }
 
     setValue(val1, val2 = null) {
@@ -219,7 +281,7 @@ class HCWEncoderField {
 
     _triggerCallback() {
         if (this.onValueChangeCallback) {
-            this.onValueChangeCallback({
+            this.onValueChangeCallback(this.parentWindow, this, {
                 outer: {
                     value: this.value,
                     byte: Math.round(this.value * 255),
@@ -459,23 +521,16 @@ class HCWPresetField {
         const copy = { ...this };
         delete copy.onPresetPressCallback;
         delete copy.parentWindow;
-        // delete copy.renderProps; // Optional
         return copy;
     }
 
-    /**
-     * @param {string|object} json 
-     */
     fromJSON(json) {
         try {
             const data = typeof json === 'string' ? JSON.parse(json) : json;
-
-            // This bulk-assigns all keys from the data to 'this'
             Object.assign(this, data);
-
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         } catch (e) {
-            console.error("Failed to restore HCWPresetField:", e);
+            console.error("Failed to restore:", e);
         }
         return this;
     }
@@ -1154,5 +1209,259 @@ class HCWKeyboardField {
                 currentX += colW + this.gap;
             });
         });
+    }
+}
+
+function HCW_hsvToRgb(h, s, v) {
+    let i = Math.floor(h * 6);
+    let f = h * 6 - i;
+    let p = v * (1 - s);
+    let q = v * (1 - f * s);
+    let t = v * (1 - (1 - f) * s);
+
+    let r, g, b;
+    switch (i % 6) {
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+    }
+
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+
+class HCWColorMapField {
+    constructor(label = 'Color', id = Date.now()) {
+        this.type = 'colormap';
+        this.text = label;
+        this.id = id;
+
+        this.h = 0;
+        this.s = 1;
+        this.v = 1;
+
+        this.extra = { white: 0, amber: 0, uv: 0 };
+        this.fgmType = null;
+        
+        this.onColorChangeCallback = null;
+        this.parentWindow = null;
+
+        this._colorMapCanvas = null;
+        this._colorMapSize = 0;
+
+        this.renderProps = {
+            map: null,
+            valueFader: null,
+            active: null,
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null
+        };
+
+        return this;
+    }
+
+    getType() {
+        return 'COLOR_PICKER_FIELD';
+    }
+
+    toJSON() {
+        const copy = { ...this };
+        delete copy.onValueChangeCallback;
+        delete copy.parentWindow;
+        return copy;
+    }
+
+    fromJSON(json) {
+        try {
+            const data = typeof json === 'string' ? JSON.parse(json) : json;
+            Object.assign(this, data);
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } catch (e) {
+            console.error("Failed to restore:", e);
+        }
+        return this;
+    }
+
+    getFGMType() {
+        return this.fgmType;
+    }
+
+    setFGMType(type = null) {
+        this.fgmType = type;
+        return this
+    }
+
+    setParentWindow(win) {
+        this.parentWindow = win;
+        return this;
+    }
+
+    onValueChange(cb) {
+        this.onColorChangeCallback = cb;
+        return this;
+    }
+
+    getColors() {
+        const rgb = HCW_hsvToRgb(this.h, this.s, this.v);
+        return { ...rgb, ...this.extra };
+    }
+
+    setColors({ r, g, b, white, amber, uv }) {
+        if (white !== undefined) this.extra.white = white;
+        if (amber !== undefined) this.extra.amber = amber;
+        if (uv !== undefined) this.extra.uv = uv;
+
+        if (r !== undefined && g !== undefined && b !== undefined) {
+            this._rgbToHsv(r, g, b);
+        }
+
+        this._trigger();
+        return this;
+    }
+
+    _trigger() {
+        if (this.onColorChangeCallback) {
+            this.onColorChangeCallback(
+                this.parentWindow,
+                this,
+                this.getColors()
+            );
+        }
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+    }
+
+    _ensureColorMap(size) {
+        if (this._colorMapCanvas && this._colorMapSize === size) return;
+
+        const c = document.createElement('canvas');
+        c.width = c.height = size;
+        const ctx = c.getContext('2d');
+
+        for (let y = 0; y < size; y++) {
+            const s = 1 - y / size;
+            for (let x = 0; x < size; x++) {
+                const h = x / size;
+                const { r, g, b } = HCW_hsvToRgb(h, s, 1);
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                ctx.fillRect(x, y, 1, 1);
+            }
+        }
+
+        this._colorMapCanvas = c;
+        this._colorMapSize = size;
+    }
+
+    _interaction(i) {
+        const { mouseX, mouseY } = i;
+
+        if (i.type === 'mousedown') {
+            if (this._hit(this.renderProps.map, mouseX, mouseY)) {
+                this.renderProps.active = 'map';
+            } else if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
+                this.renderProps.active = 'value';
+            }
+        }
+
+        if ((i.type === 'mousemove' || i.type === 'mousedown') && this.renderProps.active) {
+            if (this.renderProps.active === 'map') {
+                const m = this.renderProps.map;
+                this.h = (mouseX - m.x) / m.w;
+                this.s = 1 - ((mouseY - m.y) / m.h);
+                this.h = Math.max(0, Math.min(1, this.h));
+                this.s = Math.max(0, Math.min(1, this.s));
+            } else if (this.renderProps.active === 'value') {
+                const f = this.renderProps.valueFader;
+                this.v = 1 - ((mouseY - f.y) / f.h);
+                this.v = Math.max(0, Math.min(1, this.v));
+            }
+            this._trigger();
+        }
+
+        if (i.type === 'mouseup') {
+            this.renderProps.active = null;
+        }
+    }
+
+    _hit(r, x, y) {
+        if (!r) return false;
+        return x >= r.x && x <= r.x + r.w &&
+            y >= r.y && y <= r.y + r.h;
+    }
+
+    /* ---------- Render ---------- */
+
+    render(w) {
+        this.renderProps.startX = w.x;
+        this.renderProps.startY = w.y;
+        this.renderProps.endX = w.x2;
+        this.renderProps.endY = w.y2;
+
+        const ctx = HCW.ctx;
+
+        const size = Math.min(w.sx - 40, w.sy - 20);
+        this._ensureColorMap(size);
+
+        const mapX = w.x + 10;
+        const mapY = w.y + 10;
+
+        // draw cached map
+        ctx.drawImage(this._colorMapCanvas, mapX, mapY);
+
+        this.renderProps.map = {
+            x: mapX, y: mapY, w: size, h: size
+        };
+
+        // selector
+        ctx.strokeStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(
+            mapX + this.h * size,
+            mapY + (1 - this.s) * size,
+            5, 0, Math.PI * 2
+        );
+        ctx.stroke();
+
+        // value fader
+        const fx = mapX + size + 8;
+        const fh = size;
+
+        ctx.fillStyle = '#333';
+        ctx.fillRect(fx, mapY, 12, fh);
+
+        const vh = this.v * fh;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(fx, mapY + fh - vh, 12, vh);
+
+        this.renderProps.valueFader = {
+            x: fx, y: mapY, w: 12, h: fh
+        };
+    }
+
+    /* ---------- RGB → HSV ---------- */
+
+    _rgbToHsv(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const d = max - min;
+
+        this.v = max;
+        this.s = max === 0 ? 0 : d / max;
+
+        if (d === 0) this.h = 0;
+        else if (max === r) this.h = ((g - b) / d) / 6;
+        else if (max === g) this.h = (2 + (b - r) / d) / 6;
+        else this.h = (4 + (r - g) / d) / 6;
+
+        if (this.h < 0) this.h += 1;
     }
 }

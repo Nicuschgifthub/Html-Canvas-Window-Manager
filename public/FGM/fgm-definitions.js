@@ -68,6 +68,19 @@ class FGMTypes {
                     return 'p_dimmer_main';
                 }
             },
+            POSITION: {
+                get PAN_16Bit() {
+                    return 'p_position_pan_16bit';
+                },
+                get TILT_16Bit() {
+                    return 'p_position_tilt_16bit';
+                }
+            },
+            COLORS: {
+                get COLOR_PICKER() {
+                    return 'p_color_color_picker';
+                },
+            }
         }
     }
 }

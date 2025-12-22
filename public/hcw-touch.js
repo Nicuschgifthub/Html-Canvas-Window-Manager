@@ -72,12 +72,13 @@ class HCWInteraction {
         if (!windows || windows.length === 0) return { window: null, field: null };
         let window = windows[0];
 
-        // Iterate through the window's contextfields to find a match
         if (window.contextfields && window.contextfields.length > 0) {
             for (let i = 0; i < window.contextfields.length; i++) {
                 const field = window.contextfields[i];
                 const rp = field.renderProps;
+
                 if (!rp || rp.startX === null) continue; // Not rendered yet
+                // When renderprops dont exist the element will not have interaction called at all
 
                 if (mouseX >= rp.startX && mouseX <= rp.endX &&
                     mouseY >= rp.startY && mouseY <= rp.endY) {

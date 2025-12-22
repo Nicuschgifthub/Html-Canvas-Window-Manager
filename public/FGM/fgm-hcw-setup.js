@@ -18,6 +18,9 @@ class FGMwithHCW {
         FGMStore.getHCW()
             .addWindow(basePages)
             .addWindow(baseFixtureControl.dimFader)
+            .addWindow(baseFixtureControl.panEncoder)
+            .addWindow(baseFixtureControl.tiltEncoder)
+            .addWindow(baseFixtureControl.colorPicker)
     }
 
     saveShow() {
