@@ -128,7 +128,6 @@ class FGMBaseWindows {
         return windowsForThisPage;
     }
 
-
     static hiddenInputDevices() {
         let windowsForThisPage = {};
 
@@ -138,7 +137,7 @@ class FGMBaseWindows {
             .onEnter(FGMKernel.eventKeyboardOnEnter)
             .setFGMType(FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT)
 
-        const newKeyboardWindow = new HCWWindow(300, 800, 300, 100)
+        const newKeyboardWindow = new HCWWindow(300, 500, 400, 300)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(inputKeyboard)
             .setHidden(true)

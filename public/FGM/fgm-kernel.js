@@ -1,6 +1,17 @@
 class FGMSubKernel {
 
+    static actionsAwait = {
+        from: null,
+        to: null,
+
+
+    }
+
+    static awaitNextActionStep() {
+
+    }
 }
+
 
 class FGMKernel {
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {

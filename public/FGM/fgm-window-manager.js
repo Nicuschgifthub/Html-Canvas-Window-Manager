@@ -24,9 +24,7 @@ class FGMWindowManager {
 
                 contextField.onPresetPress(FGMKernel.eventPresetClicked)
                 break;
-
             default:
-
                 break;
         }
 
