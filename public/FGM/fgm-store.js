@@ -1,6 +1,7 @@
 class FGMStore {
     static HCW_Class = null;
     static FGM_Class = null;
+    static currentPage = null;
 
     static saveHCWClass(HCW) {
         this.HCW_Class = HCW;
@@ -16,5 +17,13 @@ class FGMStore {
 
     static getFGM() {
         return this.FGM_Class;
+    }
+
+    static setCurrentPage(page) {
+        this.currentPage = page;
+    }
+
+    static getCurrentPage() {
+        return this.currentPage;
     }
 }

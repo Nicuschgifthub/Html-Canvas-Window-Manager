@@ -113,6 +113,7 @@ class FGMBaseWindows {
             .addPreset("Store", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE })
             .addPreset("Clear Fixture atr.", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_FIXTURE_VALUE_OVERWRITE })
             .addPreset("Clear All", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_ALL })
+            .addPreset("Edit Name", null, FGMColors.PAGES.BACKGROUND, { _programmerAction: FGMTypes.ACTIONS.BUTTON.EDIT_NAME })
 
         const newPageActionsWindow = new HCWWindow(300, 800, 300, 100)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
@@ -125,5 +126,28 @@ class FGMBaseWindows {
         windowsForThisPage.programmerActions = newPageActionsWindow;
 
         return windowsForThisPage;
+    }
+
+
+    static hiddenInputDevices() {
+        let windowsForThisPage = {};
+
+        // Keyboard
+
+        const inputKeyboard = new HCWKeyboardField('Keyboard 1', FGMIds.newComponentId())
+            .onEnter(FGMKernel.eventKeyboardOnEnter)
+            .setFGMType(FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT)
+
+        const newKeyboardWindow = new HCWWindow(300, 800, 300, 100)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(inputKeyboard)
+            .setHidden(true)
+            .setMinSizes(100, 100)
+            .setId(FGMIds.newWindowId())
+
+        windowsForThisPage.keyboard = newKeyboardWindow;
+
+        return windowsForThisPage;
+
     }
 }

@@ -94,6 +94,14 @@ class FGMTypes {
                 },
                 get CLEAR_FIXTURE_VALUE_OVERWRITE() { // does not unselect them
                     return 'a_button_store_fixture_values_dontwrite';
+                },
+                get EDIT_NAME() {
+                    return 'a_button_edit_name';
+                }
+            },
+            KEYBOARD: {
+                get MAIN_INPUT() {
+                    return 'a_keyboard_main_input-device';
                 }
             }
         }

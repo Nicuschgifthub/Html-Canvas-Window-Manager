@@ -15,6 +15,8 @@ class FGMwithHCW {
 
         const baseFixtureControl = FGMBaseWindows.fixtureControl();
 
+        const hiddenInputs = FGMBaseWindows.hiddenInputDevices();
+
         FGMStore.getHCW()
             .addWindow(basePages)
             .addWindow(baseFixtureControl.dimFader)
@@ -22,6 +24,7 @@ class FGMwithHCW {
             .addWindow(baseFixtureControl.tiltEncoder)
             .addWindow(baseFixtureControl.colorPicker)
             .addWindow(baseFixtureControl.programmerActions)
+            .addWindow(hiddenInputs.keyboard)
     }
 
     saveShow() {

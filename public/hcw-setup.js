@@ -237,6 +237,10 @@ class HCWWindow {
         return this;
     }
 
+    getId() {
+        return this.id;
+    }
+
     setTouchZoneColor(hex) {
         this.touchzonecolor = hex;
         return this;

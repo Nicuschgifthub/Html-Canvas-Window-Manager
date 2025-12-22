@@ -1,8 +1,8 @@
 class FGMPageHandler {
 
-    static pageChange(goToPage, fromPreset, singlePreset, fromWindow) {
-        fromPreset.updatePreset(singlePreset.id, { color: FGMColors.PAGES.ACTIVE });
-        fromPreset.updateAllPresets({ color: null }, [singlePreset.id]);
+    static pageChange(goToPage, fromPreset = null, singlePreset = null, fromWindow = null) {
+
+        FGMStore.setCurrentPage(goToPage);
 
         const windows = FGMStore.getHCW().getWindows();
 
@@ -16,6 +16,15 @@ class FGMPageHandler {
                 window.setHidden(true);
             }
         });
+
+        if (fromPreset == null) return;
+
+        fromPreset.updatePreset(singlePreset.id, { color: FGMColors.PAGES.ACTIVE });
+        fromPreset.updateAllPresets({ color: null }, [singlePreset.id]);
+    }
+
+    static reloadPage() {
+        this.pageChange(FGMStore.getCurrentPage());
     }
 
     static get PAGE_ENUMS() {

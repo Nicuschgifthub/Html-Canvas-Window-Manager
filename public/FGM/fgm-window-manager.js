@@ -39,4 +39,26 @@ class FGMWindowManager {
 
         return window
     }
+
+    static openKeyboardForWindow(window, placeholderString = "") {
+        FGMStore.getHCW()
+            .getWindows().forEach(HCWWindow => {
+                if (HCWWindow.getId() !== window.getId()) {
+                    HCWWindow.setHidden(true);
+                } else {
+                    HCWWindow.setHidden(false);
+                }
+            });
+
+        this.findWindowByFGMType(FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT).setHidden(false).getSingleContextField().setValue(placeholderString);
+    }
+
+    static findWindowByFGMType(FGMType) {
+        return FGMStore.getHCW()
+            .getWindows()
+            .find(HCWWindow => {
+                const field = HCWWindow.getSingleContextField();
+                return field && field.getFGMType() === FGMType;
+            });
+    }
 }

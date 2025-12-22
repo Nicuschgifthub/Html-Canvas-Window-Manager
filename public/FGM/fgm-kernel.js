@@ -36,4 +36,8 @@ class FGMKernel {
         }
 
     }
+
+    static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
+
+    }
 }

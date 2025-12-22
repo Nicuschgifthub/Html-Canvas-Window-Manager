@@ -482,6 +482,7 @@ class HCWPresetField {
         this.scrollY = 0;
 
         this.parentWindow = null;
+        this.fgmType = null;
 
         this.itemMinWidth = 80;
         this.itemHeight = 60;
@@ -512,6 +513,15 @@ class HCWPresetField {
 
     getType() {
         return 'PRESET_FIELD';
+    }
+
+    getFGMType() {
+        return this.fgmType;
+    }
+
+    setFGMType(type = null) {
+        this.fgmType = type;
+        return this;
     }
 
     toJSON() {
@@ -980,6 +990,7 @@ class HCWKeyboardField {
         ];
 
         this.parentWindow = null;
+        this.fgmType = null;
 
         this.renderProps = {
             colors: {
@@ -1008,9 +1019,44 @@ class HCWKeyboardField {
         this._dragLastY = null;
     }
 
+    getType() {
+        return 'FADER_FIELD';
+    }
+
+    toJSON() {
+        const copy = { ...this };
+        delete copy.onEnterCallback;
+        delete copy.parentWindow;
+        return copy;
+    }
+
+    fromJSON(json) {
+        try {
+            const data = typeof json === 'string' ? JSON.parse(json) : json;
+            Object.assign(this, data);
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } catch (e) {
+            console.error("Failed to restore:", e);
+        }
+        return this;
+    }
+
+    getFGMType() {
+        return this.fgmType;
+    }
+
+    setFGMType(type = null) {
+        this.fgmType = type;
+        return this;
+    }
+
     setParentWindow(win) {
         this.parentWindow = win;
         return this;
+    }
+
+    getParentWindow() {
+        return this.parentWindow;
     }
 
     setLabel(label) {
@@ -1056,7 +1102,7 @@ class HCWKeyboardField {
                 const key = this._pressedKey;
                 if (key === 'ENTER') {
                     if (this.onEnterCallback) {
-                        this.onEnterCallback(this.value);
+                        this.onEnterCallback(this.parentWindow, this, this.value);
                     }
                 } else if (key === '<=') {
                     this.value = this.value.slice(0, -1);
