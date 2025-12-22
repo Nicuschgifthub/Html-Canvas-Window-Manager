@@ -24,12 +24,10 @@ class FGMKernel {
     static handleAwaitingAction(actionType, fromWindow, fromPreset, data, singlePreset) {
         switch (actionType) {
             case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
-                // We have the target preset!
                 FGMSubKernel.actionData.targetPreset = singlePreset;
                 FGMSubKernel.actionData.fromPresetField = fromPreset;
                 FGMSubKernel.actionData.fromWindow = fromWindow;
 
-                // Open keyboard
                 FGMWindowManager.openKeyboardForWindow(fromWindow, singlePreset.name);
                 break;
 
@@ -46,7 +44,6 @@ class FGMKernel {
     }
 
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
-        // 1. Check if we are waiting for a target for an action
         const awaitingValue = FGMSubKernel.getAwaitingAction();
 
 
@@ -55,13 +52,11 @@ class FGMKernel {
             return;
         }
 
-        // 2. Handle simple page changes
         if (data._goToPage !== undefined) {
             FGMPageHandler.pageChange(data._goToPage, fromPreset, singlePreset, fromWindow);
             return
         };
 
-        // 3. Handle Programmer Actions (starting an awaiting action)
         if (data._programmerAction !== undefined) {
             switch (data._programmerAction) {
                 case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
@@ -70,7 +65,6 @@ class FGMKernel {
                 case FGMTypes.ACTIONS.BUTTON.STORE:
                     FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.BUTTON.STORE);
                     break;
-                // Add more actions here
                 default:
                     console.warn("Unhandled programmer action:", data._programmerAction);
                     break;
