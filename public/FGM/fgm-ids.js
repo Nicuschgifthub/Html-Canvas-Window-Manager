@@ -27,4 +27,10 @@ class FGMIds {
     static isIdTaken(id) {
         return fgmIdStore.has(id);
     }
+
+    static get DEFINED() {
+        return {
+            PAGE_ONE: 'page_one_001'
+        }
+    }
 }

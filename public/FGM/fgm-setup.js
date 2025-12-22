@@ -2,9 +2,13 @@ class FGMLoadFiles {
     static files() {
         return [
             '/FGM/fgm-ids.js',
+            '/FGM/fgm-store.js',
             '/FGM/fgm-colors.js',
+            '/FGM/fgm-page-handler.js',
+            '/FGM/fgm-window-manager.js',
             '/FGM/fgm-kernel.js',
             '/FGM/fgm-canvas-setup.js',
+            '/FGM/fgm-hcw-setup.js'
         ]
     }
 

@@ -84,8 +84,8 @@ class HCWSetup {
         return this;
     }
 
-    getData() {
-
+    getWindows() {
+        return HCW.windows;
     }
 
     restoreData() {
@@ -131,7 +131,7 @@ class HCWSetup {
 }
 
 class HCWWindow {
-    constructor(x, y, sizeX, sizeY) {
+    constructor(x = 0, y = 0, sizeX = 100, sizeY = 100) {
         this.x = x;
         this.y = y;
         this.sx = sizeX;
@@ -165,6 +165,38 @@ class HCWWindow {
         this._init();
     }
 
+    toJSON() {
+        const copy = { ...this };
+        // delete copy.onPresetPressCallback;
+        delete copy.contextfields;
+        // delete copy.renderProps; // Optional
+        return copy;
+    }
+
+    /**
+     * @param {string|object} json 
+     */
+    fromJSON(json) {
+        try {
+            const data = typeof json === 'string' ? JSON.parse(json) : json;
+
+            Object.assign(this, data);
+
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } catch (e) {
+            console.error("Failed to restore HCWWindow:", e);
+        }
+        return this;
+    }
+
+    getContextId() {
+        this.contextfields[0].id;
+    }
+
+    getSingleContextField() {
+        return this.contextfields[0];
+    }
+
     close() {
         const index = HCW.windows.indexOf(this);
         if (index > -1) {
@@ -174,7 +206,9 @@ class HCWWindow {
     }
 
     addContextField(contextField) {
-        this.contextfields.push(contextField);
+        if (contextField !== null) {
+            this.contextfields.push(contextField);
+        }
         return this;
     }
 

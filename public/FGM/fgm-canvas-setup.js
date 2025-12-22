@@ -1,6 +1,6 @@
 class FGMBaseWindows {
-    static pages(pageCount = 10) {
-        const pageField = new HCWPresetField('Pages', FGMIds.getNewId())
+    static pages(pageCount = 10, windowId = FGMIds.getNewId(), presetId = FGMIds.getNewId()) {
+        const pageField = new HCWPresetField('Pages', presetId)
             .onPresetPress(FGMKernel.eventPresetClicked)
 
         for (let i = 0; i < pageCount; i++) {
@@ -10,10 +10,10 @@ class FGMBaseWindows {
         const newWindow = new HCWWindow(0, 0, 50, 400)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(pageField)
+            .setId(windowId)
 
         pageField.setParentWindow(newWindow);
 
         return newWindow;
     }
-
 }

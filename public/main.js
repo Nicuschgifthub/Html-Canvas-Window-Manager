@@ -1,40 +1,11 @@
 const start = () => {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    new HCWSetup('hcw-canvas')
-        .setGrid(100, 100, 0.1, '#00ff95')
-        .addWindows([
-            FGMBaseWindows.pages()
-        ])
-        .addWindow(keyboardWindow)
-
-
-
-
-
-
-
-
-
-
-
-
-
+    new FGMwithHCW('hcw-canvas')
+        .hcwGrid({
+            everyPixelX: 100,
+            everyPixelY: 100,
+            crosslineLength: 0.1,
+            lineColor: '#00ff95'
+        })
 
 
 
@@ -87,4 +58,4 @@ const start = () => {
 
 setTimeout(() => {
     start();
-}, 1000);
+}, 2000);

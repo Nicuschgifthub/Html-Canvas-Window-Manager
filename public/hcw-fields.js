@@ -440,6 +440,35 @@ class HCWPresetField {
         this._pressedIndex = -1;
     }
 
+    getType() {
+        return 'PRESET_FIELD';
+    }
+
+    toJSON() {
+        const copy = { ...this };
+        delete copy.onPresetPressCallback;
+        delete copy.parentWindow;
+        // delete copy.renderProps; // Optional
+        return copy;
+    }
+
+    /**
+     * @param {string|object} json 
+     */
+    fromJSON(json) {
+        try {
+            const data = typeof json === 'string' ? JSON.parse(json) : json;
+
+            // This bulk-assigns all keys from the data to 'this'
+            Object.assign(this, data);
+
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } catch (e) {
+            console.error("Failed to restore HCWPresetField:", e);
+        }
+        return this;
+    }
+
     setParentWindow(win) {
         this.parentWindow = win;
         return this;
