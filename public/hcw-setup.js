@@ -15,6 +15,7 @@ let HCW = {
         // Contextwindow
         contextwindow: null,
         contextdrag: false,
+        focusedField: null,
 
         // [Global]
         dragging: false,

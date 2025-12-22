@@ -251,7 +251,10 @@ class HCWTouch {
         if (contextHit.field) {
             HCW.pointer.contextdrag = true;
             HCW.pointer.contextwindow = contextHit.field;
+            HCW.pointer.focusedField = contextHit.field; // Set focus
             contextHit.field._interaction({ type: 'mousedown', mouseX, mouseY });
+        } else {
+            // HCW.pointer.focusedField = null;
         }
 
         HCWRender.updateFrame();
@@ -344,11 +347,31 @@ class HCWTouch {
         }
     }
 
+    static _handleKeyDown(e) {
+        if (HCW.pointer.focusedField && HCW.pointer.focusedField._interaction) {
+            HCW.pointer.focusedField._interaction({
+                type: 'keydown',
+                key: e.key,
+                keyCode: e.keyCode,
+                shiftKey: e.shiftKey,
+                ctrlKey: e.ctrlKey,
+                altKey: e.altKey
+            });
+            HCWRender.updateFrame();
+
+            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Backspace', 'Enter'].includes(e.key)) {
+                e.preventDefault();
+            }
+        }
+    }
+
     static setupListener() {
         HCW.canvas.addEventListener('mousedown', this._handleMouseDown);
         HCW.canvas.addEventListener('mousemove', this._handleMouseMove);
         HCW.canvas.addEventListener('mouseup', this._handleMouseUp);
         HCW.canvas.addEventListener('wheel', this._handleWheel);
+
+        window.addEventListener('keydown', this._handleKeyDown.bind(this));
 
         HCW.canvas.addEventListener('touchstart', this._handleMouseDown);
         HCW.canvas.addEventListener('touchmove', this._handleMouseMove);

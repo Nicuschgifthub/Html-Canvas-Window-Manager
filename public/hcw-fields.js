@@ -858,6 +858,7 @@ class HCWNumberField {
         this.id = id;
 
         this.value = "";
+        this.cursorPos = 0;
         this.onEnterCallback = null;
 
         this.headerHeight = 30;
@@ -880,6 +881,7 @@ class HCWNumberField {
                 headerText: '#ffffff',
                 displayBg: '#000000',
                 displayText: '#00ff95',
+                cursorColor: '#00ff95',
                 keyDefault: '#333333',
                 keyActive: '#555555',
                 keyText: '#ffffff',
@@ -910,6 +912,7 @@ class HCWNumberField {
 
     setValue(val) {
         this.value = String(val);
+        this.cursorPos = this.value.length;
         if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         return this;
     }
@@ -917,6 +920,33 @@ class HCWNumberField {
     onEnter(callback) {
         this.onEnterCallback = callback;
         return this;
+    }
+
+    _handleInput(key) {
+        if (key === 'ENTER') {
+            if (this.onEnterCallback) {
+                this.onEnterCallback(this.value);
+            }
+        } else if (key === 'C') {
+            this.value = "";
+            this.cursorPos = 0;
+        } else if (key === '<=' || key === 'Backspace') {
+            if (this.cursorPos > 0) {
+                this.value = this.value.slice(0, this.cursorPos - 1) + this.value.slice(this.cursorPos);
+                this.cursorPos--;
+            }
+        } else if (key === 'ArrowLeft') {
+            this.cursorPos = Math.max(0, this.cursorPos - 1);
+        } else if (key === 'ArrowRight') {
+            this.cursorPos = Math.min(this.value.length, this.cursorPos + 1);
+        } else {
+            // Numbers, dots, commas
+            const char = (key === ',') ? '.' : key;
+            if (/^[0-9.]$/.test(char) || (key.length === 1 && !isNaN(key))) {
+                this.value = this.value.slice(0, this.cursorPos) + char + this.value.slice(this.cursorPos);
+                this.cursorPos++;
+            }
+        }
     }
 
     _interaction(interaction) {
@@ -942,26 +972,14 @@ class HCWNumberField {
         } else if (interaction.type === 'mouseup') {
 
             if (this._potentialClick && this._pressedKey) {
-                const key = this._pressedKey;
-
-                if (key === 'ENTER') {
-                    if (this.onEnterCallback) {
-                        this.onEnterCallback(this.value);
-                    }
-                } else if (key === '.' || key === ',') {
-                    this.value += key;
-                } else if (key === 'C') {
-                    this.value = "";
-                } else if (key === '<=') {
-                    this.value = this.value.slice(0, -1);
-                } else {
-                    this.value += key;
-                }
+                this._handleInput(this._pressedKey);
             }
 
             this._potentialClick = false;
             this._pressedKey = null;
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } else if (interaction.type === 'keydown') {
+            this._handleInput(interaction.key);
         }
     }
 
@@ -996,7 +1014,23 @@ class HCWNumberField {
         HCW.ctx.fillStyle = this.renderProps.colors.displayText;
         HCW.ctx.font = "20px Monospace";
         HCW.ctx.textAlign = "right";
-        HCW.ctx.fillText(this.value, x + sx - 15, displayY + 28);
+
+        const textX = x + sx - 15;
+        const textY = displayY + 28;
+        HCW.ctx.fillText(this.value, textX, textY);
+
+        // Draw Cursor
+        const fullTextWidth = HCW.ctx.measureText(this.value).width;
+        const prefixWidth = HCW.ctx.measureText(this.value.slice(0, this.cursorPos)).width;
+        const cursorX = (textX - fullTextWidth) + prefixWidth;
+
+        HCW.ctx.beginPath();
+        HCW.ctx.moveTo(cursorX, textY - 18);
+        HCW.ctx.lineTo(cursorX, textY + 4);
+        HCW.ctx.strokeStyle = this.renderProps.colors.cursorColor;
+        HCW.ctx.lineWidth = 2;
+        HCW.ctx.stroke();
+
         HCW.ctx.textAlign = "start";
 
         const gridY = displayY + this.displayHeight + 10;
@@ -1054,6 +1088,7 @@ class HCWKeyboardField {
         this.id = id;
 
         this.value = "";
+        this.cursorPos = 0;
         this.onEnterCallback = null;
         this.isUpperCase = true;
 
@@ -1078,6 +1113,7 @@ class HCWKeyboardField {
                 headerText: '#ffffff',
                 displayBg: '#000000',
                 displayText: '#00ff95',
+                cursorColor: '#00ff95',
                 keyDefault: '#333333',
                 keyActive: '#555555',
                 keyText: '#ffffff',
@@ -1147,6 +1183,7 @@ class HCWKeyboardField {
 
     setValue(val) {
         this.value = String(val);
+        this.cursorPos = this.value.length;
         if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         return this;
     }
@@ -1154,6 +1191,40 @@ class HCWKeyboardField {
     onEnter(callback) {
         this.onEnterCallback = callback;
         return this;
+    }
+
+    _handleInput(key) {
+        if (key === 'ENTER' || key === 'Enter') {
+            if (this.onEnterCallback) {
+                this.onEnterCallback(this.parentWindow, this, this.value);
+            }
+        } else if (key === '<=' || key === 'Backspace') {
+            if (this.cursorPos > 0) {
+                this.value = this.value.slice(0, this.cursorPos - 1) + this.value.slice(this.cursorPos);
+                this.cursorPos--;
+            }
+        } else if (key === 'DELETE') {
+            this.value = "";
+            this.cursorPos = 0;
+        } else if (key === 'SPACE' || key === ' ') {
+            this.value = this.value.slice(0, this.cursorPos) + " " + this.value.slice(this.cursorPos);
+            this.cursorPos++;
+        } else if (key === 'SHIFT' || key === 'Shift') {
+            this.isUpperCase = !this.isUpperCase;
+        } else if (key === 'ArrowLeft') {
+            this.cursorPos = Math.max(0, this.cursorPos - 1);
+        } else if (key === 'ArrowRight') {
+            this.cursorPos = Math.min(this.value.length, this.cursorPos + 1);
+        } else if (key.length === 1) {
+            let char = key;
+            if (this.isUpperCase) {
+                char = char.toUpperCase();
+            } else {
+                char = char.toLowerCase();
+            }
+            this.value = this.value.slice(0, this.cursorPos) + char + this.value.slice(this.cursorPos);
+            this.cursorPos++;
+        }
     }
 
     _interaction(interaction) {
@@ -1179,31 +1250,14 @@ class HCWKeyboardField {
         } else if (interaction.type === 'mouseup') {
 
             if (this._potentialClick && this._pressedKey) {
-                const key = this._pressedKey;
-                if (key === 'ENTER') {
-                    if (this.onEnterCallback) {
-                        this.onEnterCallback(this.parentWindow, this, this.value);
-                    }
-                } else if (key === '<=') {
-                    this.value = this.value.slice(0, -1);
-                } else if (key === 'DELETE') {
-                    this.value = "";
-                } else if (key === 'SPACE') {
-                    this.value += " ";
-                } else if (key === 'SHIFT') {
-                    this.isUpperCase = !this.isUpperCase;
-                } else {
-                    if (this.isUpperCase) {
-                        this.value += key.toUpperCase();
-                    } else {
-                        this.value += key.toLowerCase();
-                    }
-                }
+                this._handleInput(this._pressedKey);
             }
 
             this._potentialClick = false;
             this._pressedKey = null;
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        } else if (interaction.type === 'keydown') {
+            this._handleInput(interaction.key);
         }
     }
 
@@ -1241,12 +1295,33 @@ class HCWKeyboardField {
 
         let textToDraw = this.value;
         const metrics = HCW.ctx.measureText(textToDraw);
+        const textY = displayY + 28;
+        let cursorX;
+
         if (metrics.width > sx - 20) {
             HCW.ctx.textAlign = "right";
-            HCW.ctx.fillText(textToDraw, x + sx - 10, displayY + 28);
+            const textX = x + sx - 10;
+            HCW.ctx.fillText(textToDraw, textX, textY);
+
+            const prefixWidth = HCW.ctx.measureText(this.value.slice(0, this.cursorPos)).width;
+            cursorX = (textX - metrics.width) + prefixWidth;
         } else {
-            HCW.ctx.fillText(textToDraw, x + 10, displayY + 28);
+            HCW.ctx.textAlign = "left";
+            const textX = x + 10;
+            HCW.ctx.fillText(textToDraw, textX, textY);
+
+            const prefixWidth = HCW.ctx.measureText(this.value.slice(0, this.cursorPos)).width;
+            cursorX = textX + prefixWidth;
         }
+
+        // Draw Cursor
+        HCW.ctx.beginPath();
+        HCW.ctx.moveTo(cursorX, textY - 18);
+        HCW.ctx.lineTo(cursorX, textY + 4);
+        HCW.ctx.strokeStyle = this.renderProps.colors.cursorColor;
+        HCW.ctx.lineWidth = 2;
+        HCW.ctx.stroke();
+
         HCW.ctx.textAlign = "start";
 
         const gridY = displayY + this.displayHeight + 10;
