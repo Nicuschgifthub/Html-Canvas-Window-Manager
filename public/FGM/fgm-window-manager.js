@@ -100,6 +100,11 @@ class FGMWindowManager {
         keyboardWindow._init();
     }
 
+    static closeKeyboard() {
+        FGMPageHandler.reloadPage();
+        this.findWindowByFGMType(FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT).setHidden(true);
+    }
+
     static findWindowByFGMType(FGMType) {
         return FGMStore.getHCW()
             .getWindows()
