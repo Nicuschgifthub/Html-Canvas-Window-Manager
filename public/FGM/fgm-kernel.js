@@ -28,12 +28,12 @@ class FGMKernel {
                 FGMSubKernel.actionData.fromPresetField = fromPreset;
                 FGMSubKernel.actionData.fromWindow = fromWindow;
 
-                FGMWindowManager.openKeyboardForWindow(fromWindow, singlePreset.name);
+                FGMWindowManager.openKeyboardForWindow(fromWindow, singlePreset.getName());
                 break;
 
             case FGMTypes.ACTIONS.BUTTON.STORE:
                 // Example Store logic: just update the name for now to show it works
-                fromPreset.updatePreset(singlePreset.id, { name: "Stored!" });
+                fromPreset.updatePreset(singlePreset.getId(), { name: "Stored!" });
                 FGMSubKernel.clearAwaitingAction();
                 break;
 
@@ -97,7 +97,7 @@ class FGMKernel {
             const fromPresetField = FGMSubKernel.actionData.fromPresetField;
 
             if (targetPreset && fromPresetField) {
-                fromPresetField.updatePreset(targetPreset.id, { name: string });
+                fromPresetField.updatePreset(targetPreset.getId(), { name: string });
             }
 
             FGMSubKernel.clearAwaitingAction();

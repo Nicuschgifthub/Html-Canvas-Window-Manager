@@ -471,6 +471,49 @@ class HCWEncoderField {
     }
 }
 
+class HCWPreset {
+    constructor(name, color = null, defaultColor = null, data = {}, id = null, progress = null) {
+        this.id = id || (Date.now() + Math.random());
+        this.name = name;
+        this.color = color;
+        this.defaultColor = defaultColor;
+        this.data = data;
+        this.progress = progress;
+    }
+
+    toJSON() {
+        return { ...this };
+    }
+
+    fromJSON(json) {
+        const data = typeof json === 'string' ? JSON.parse(json) : json;
+        Object.assign(this, data);
+        return this;
+    }
+
+    getId() { return this.id; }
+    getName() { return this.name; }
+    getColor() { return this.color; }
+    getDefaultColor() { return this.defaultColor; }
+    getData() { return this.data; }
+    getProgress() { return this.progress; }
+
+    setName(name) { this.name = name; return this; }
+    setColor(color) { this.color = color; return this; }
+    setDefaultColor(color) { this.defaultColor = color; return this; }
+    setData(data) { this.data = data; return this; }
+    setProgress(progress) { this.progress = progress; return this; }
+
+    update(updates = {}) {
+        if (updates.name !== undefined) this.name = updates.name;
+        if (updates.color !== undefined) this.color = updates.color;
+        if (updates.data !== undefined) this.data = updates.data;
+        if (updates.progress !== undefined) this.progress = updates.progress;
+        if (updates.defaultColor !== undefined) this.defaultColor = updates.defaultColor;
+        return this;
+    }
+}
+
 class HCWPresetField {
     constructor(fieldName = 'Presets', id = Date.now()) {
         this.text = fieldName;
@@ -528,6 +571,7 @@ class HCWPresetField {
         const copy = { ...this };
         delete copy.onPresetPressCallback;
         delete copy.parentWindow;
+        copy.presets = this.presets.map(p => p.toJSON());
         return copy;
     }
 
@@ -535,6 +579,9 @@ class HCWPresetField {
         try {
             const data = typeof json === 'string' ? JSON.parse(json) : json;
             Object.assign(this, data);
+            if (data.presets) {
+                this.presets = data.presets.map(p => new HCWPreset().fromJSON(p));
+            }
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         } catch (e) {
             console.error("Failed to restore:", e);
@@ -554,14 +601,8 @@ class HCWPresetField {
     }
 
     addPreset(name, color = null, defaultColor = null, data = {}, id = null, progress = null) {
-        this.presets.push({
-            id: id || (Date.now() + Math.random()),
-            name,
-            defaultColor,
-            color,
-            data,
-            progress
-        });
+        const preset = new HCWPreset(name, color, defaultColor, data, id, progress);
+        this.presets.push(preset);
         if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         return this;
     }
@@ -569,11 +610,7 @@ class HCWPresetField {
     updatePreset(id, updates = {}) {
         const preset = this.presets.find(p => p.id === id);
         if (preset) {
-            if (updates.name !== undefined) preset.name = updates.name;
-            if (updates.color !== undefined) preset.color = updates.color;
-            if (updates.data !== undefined) preset.data = updates.data;
-            if (updates.progress !== undefined) preset.progress = updates.progress;
-            if (updates.defaultColor !== undefined) preset.defaultColor = updates.defaultColor;
+            preset.update(updates);
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         } else {
             console.warn(`HCWPresetField: Preset with id '${id}' not found.`);
@@ -584,10 +621,7 @@ class HCWPresetField {
     updateAllPresets(updates = {}, blacklistIds = []) {
         this.presets.forEach(preset => {
             if (blacklistIds.find(p => p === preset.id)) return;
-            if (updates.name !== undefined) preset.name = updates.name;
-            if (updates.color !== undefined) preset.color = updates.color;
-            if (updates.data !== undefined) preset.data = updates.data;
-            if (updates.progress !== undefined) preset.progress = updates.progress;
+            preset.update(updates);
         });
         if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         return this;
@@ -717,13 +751,13 @@ class HCWPresetField {
 
             if (py + this.itemHeight >= y && py <= y + sy) {
 
-                let bgColor = preset.color || this.renderProps.colors.itemDefaultColor;
+                let bgColor = preset.getColor() || this.renderProps.colors.itemDefaultColor;
                 if (index === this._pressedIndex) {
                     bgColor = this.renderProps.colors.itemPressedColor;
                 }
 
-                if (preset.defaultColor !== null && preset.color == null) {
-                    bgColor = preset.defaultColor;
+                if (preset.getDefaultColor() !== null && preset.getColor() == null) {
+                    bgColor = preset.getDefaultColor();
                 }
 
                 HCW.ctx.fillStyle = bgColor;
@@ -734,15 +768,15 @@ class HCWPresetField {
                 HCW.ctx.textAlign = "center";
 
                 let textY = py + (this.itemHeight / 2) + 4;
-                if (preset.progress !== undefined && preset.progress !== null) {
+                if (preset.getProgress() !== undefined && preset.getProgress() !== null) {
                     textY = py + (this.itemHeight / 2) - 5;
                 }
 
-                HCW.ctx.fillText(preset.name, px + (itemWidth / 2), textY);
+                HCW.ctx.fillText(preset.getName(), px + (itemWidth / 2), textY);
 
-                if (preset.progress !== undefined && preset.progress !== null) {
+                if (preset.getProgress() !== undefined && preset.getProgress() !== null) {
                     const barHeight = 6;
-                    const progress = Math.max(0, Math.min(1, preset.progress));
+                    const progress = Math.max(0, Math.min(1, preset.getProgress()));
 
                     HCW.ctx.fillStyle = "rgba(0,0,0,0.3)";
                     HCW.ctx.fillRect(px, py + this.itemHeight - barHeight, itemWidth, barHeight);
@@ -766,7 +800,6 @@ class HCWPresetField {
                 });
             }
         });
-
         HCW.ctx.restore();
     }
 }
