@@ -90,7 +90,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventColorPickerUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER)
 
-        const newColorPickerWindow = new HCWWindow(300, 500, 200, 200)
+        const newColorPickerWindow = new HCWWindow(300, 500, 300, 300)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(colorPicker)
             .setHidden(true)

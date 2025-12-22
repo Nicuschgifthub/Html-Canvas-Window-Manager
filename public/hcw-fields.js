@@ -1,6 +1,5 @@
 class HCWFaderField {
     constructor(faderText = 'Fader 01', id = Date.now()) {
-        this.type = 'fader';
         this.text = faderText;
         this.id = id;
 
@@ -183,7 +182,6 @@ class HCWFaderField {
 
 class HCWEncoderField {
     constructor(encoderText = 'Encoder', id = Date.now()) {
-        this.type = 'encoder';
         this.text = encoderText;
         this.id = id;
 
@@ -475,7 +473,6 @@ class HCWEncoderField {
 
 class HCWPresetField {
     constructor(fieldName = 'Presets', id = Date.now()) {
-        this.type = 'preset';
         this.text = fieldName;
         this.id = id;
 
@@ -586,10 +583,6 @@ class HCWPresetField {
         return this;
     }
 
-    /**
-     * Callback when a preset is pressed
-     * @param {function} callback (data, preset) => {}
-     */
     onPresetPress(callback) {
         this.onPresetPressCallback = callback;
         return this;
@@ -1212,34 +1205,8 @@ class HCWKeyboardField {
     }
 }
 
-function HCW_hsvToRgb(h, s, v) {
-    let i = Math.floor(h * 6);
-    let f = h * 6 - i;
-    let p = v * (1 - s);
-    let q = v * (1 - f * s);
-    let t = v * (1 - (1 - f) * s);
-
-    let r, g, b;
-    switch (i % 6) {
-        case 0: r = v; g = t; b = p; break;
-        case 1: r = q; g = v; b = p; break;
-        case 2: r = p; g = v; b = t; break;
-        case 3: r = p; g = q; b = v; break;
-        case 4: r = t; g = p; b = v; break;
-        case 5: r = v; g = p; b = q; break;
-    }
-
-    return {
-        r: Math.round(r * 255),
-        g: Math.round(g * 255),
-        b: Math.round(b * 255)
-    };
-}
-
-
 class HCWColorMapField {
-    constructor(label = 'Color', id = Date.now()) {
-        this.type = 'colormap';
+    constructor(label = 'Color 1', id = Date.now()) {
         this.text = label;
         this.id = id;
 
@@ -1249,7 +1216,7 @@ class HCWColorMapField {
 
         this.extra = { white: 0, amber: 0, uv: 0 };
         this.fgmType = null;
-        
+
         this.onColorChangeCallback = null;
         this.parentWindow = null;
 
@@ -1263,19 +1230,25 @@ class HCWColorMapField {
             startX: null,
             startY: null,
             endX: null,
-            endY: null
+            endY: null,
+            sliders: {
+                r: null,
+                g: null,
+                b: null,
+                white: null,
+                amber: null,
+                uv: null
+            }
         };
-
-        return this;
     }
 
     getType() {
-        return 'COLOR_PICKER_FIELD';
+        return 'COLOR_MAP_FIELD';
     }
 
     toJSON() {
         const copy = { ...this };
-        delete copy.onValueChangeCallback;
+        delete copy.onColorChangeCallback;
         delete copy.parentWindow;
         return copy;
     }
@@ -1297,7 +1270,7 @@ class HCWColorMapField {
 
     setFGMType(type = null) {
         this.fgmType = type;
-        return this
+        return this;
     }
 
     setParentWindow(win) {
@@ -1310,33 +1283,51 @@ class HCWColorMapField {
         return this;
     }
 
-    getColors() {
-        const rgb = HCW_hsvToRgb(this.h, this.s, this.v);
-        return { ...rgb, ...this.extra };
+    setLabel(label) {
+        this.text = label;
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        return this;
     }
 
-    setColors({ r, g, b, white, amber, uv }) {
-        if (white !== undefined) this.extra.white = white;
-        if (amber !== undefined) this.extra.amber = amber;
-        if (uv !== undefined) this.extra.uv = uv;
+    setColor(colors) {
+     // this here
 
-        if (r !== undefined && g !== undefined && b !== undefined) {
-            this._rgbToHsv(r, g, b);
-        }
+    }
 
-        this._trigger();
-        return this;
+    getColors() {
+        const rgb = this._HCW_hsvToRgb(this.h, this.s, this.v);
+        return { ...rgb, ...this.extra };
     }
 
     _trigger() {
         if (this.onColorChangeCallback) {
-            this.onColorChangeCallback(
-                this.parentWindow,
-                this,
-                this.getColors()
-            );
+            this.onColorChangeCallback(this.parentWindow, this, this.getColors());
         }
         if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+    }
+
+    _HCW_hsvToRgb(h, s, v) {
+        let i = Math.floor(h * 6);
+        let f = h * 6 - i;
+        let p = v * (1 - s);
+        let q = v * (1 - f * s);
+        let t = v * (1 - (1 - f) * s);
+
+        let r, g, b;
+        switch (i % 6) {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            case 5: r = v; g = p; b = q; break;
+        }
+
+        return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255)
+        };
     }
 
     _ensureColorMap(size) {
@@ -1350,7 +1341,7 @@ class HCWColorMapField {
             const s = 1 - y / size;
             for (let x = 0; x < size; x++) {
                 const h = x / size;
-                const { r, g, b } = HCW_hsvToRgb(h, s, 1);
+                const { r, g, b } = this._HCW_hsvToRgb(h, s, 1);
                 ctx.fillStyle = `rgb(${r},${g},${b})`;
                 ctx.fillRect(x, y, 1, 1);
             }
@@ -1364,25 +1355,59 @@ class HCWColorMapField {
         const { mouseX, mouseY } = i;
 
         if (i.type === 'mousedown') {
+            this.renderProps.active = null;
+
             if (this._hit(this.renderProps.map, mouseX, mouseY)) {
-                this.renderProps.active = 'map';
-            } else if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
-                this.renderProps.active = 'value';
+                this.renderProps.active = { type: 'map' };
+                return;
+            }
+
+            if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
+                this.renderProps.active = { type: 'value' };
+                return;
+            }
+
+            for (const k in this.renderProps.sliders) {
+                if (this._hit(this.renderProps.sliders[k], mouseX, mouseY)) {
+                    this.renderProps.active = { type: 'slider', key: k };
+                    return;
+                }
             }
         }
 
-        if ((i.type === 'mousemove' || i.type === 'mousedown') && this.renderProps.active) {
-            if (this.renderProps.active === 'map') {
+        if (i.type === 'mousemove' && this.renderProps.active) {
+            const a = this.renderProps.active;
+
+            if (a.type === 'map') {
                 const m = this.renderProps.map;
                 this.h = (mouseX - m.x) / m.w;
                 this.s = 1 - ((mouseY - m.y) / m.h);
                 this.h = Math.max(0, Math.min(1, this.h));
                 this.s = Math.max(0, Math.min(1, this.s));
-            } else if (this.renderProps.active === 'value') {
-                const f = this.renderProps.valueFader;
-                this.v = 1 - ((mouseY - f.y) / f.h);
-                this.v = Math.max(0, Math.min(1, this.v));
             }
+
+            else if (a.type === 'value') {
+                const f = this.renderProps.valueFader;
+                let t = 1 - ((mouseY - f.y) / f.h);
+                this.v = Math.max(0, Math.min(1, t));
+            }
+
+            else if (a.type === 'slider') {
+                const r = this.renderProps.sliders[a.key];
+
+                if (a.key === 'r' || a.key === 'g' || a.key === 'b') {
+                    let t = (mouseX - r.x) / r.w;
+                    t = Math.max(0, Math.min(1, t));
+                    const rgb = this.getColors();
+                    rgb[a.key] = Math.round(t * 255);
+                    this._rgbToHsv(rgb.r, rgb.g, rgb.b);
+                } else {
+                    let t = 1 - ((mouseY - r.y) / r.h);
+                    t = Math.max(0, Math.min(1, t));
+                    this.extra[a.key] = Math.round(t * 255);
+                }
+            }
+
             this._trigger();
         }
 
@@ -1392,12 +1417,8 @@ class HCWColorMapField {
     }
 
     _hit(r, x, y) {
-        if (!r) return false;
-        return x >= r.x && x <= r.x + r.w &&
-            y >= r.y && y <= r.y + r.h;
+        return r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
     }
-
-    /* ---------- Render ---------- */
 
     render(w) {
         this.renderProps.startX = w.x;
@@ -1405,48 +1426,99 @@ class HCWColorMapField {
         this.renderProps.endX = w.x2;
         this.renderProps.endY = w.y2;
 
+        // w.y += 10
+
         const ctx = HCW.ctx;
+        const pad = 8;
+        const labelW = 14;
+        let vSliderW = 12;
 
-        const size = Math.min(w.sx - 40, w.sy - 20);
-        this._ensureColorMap(size);
+        const innerW = w.sx - pad * 2;
+        const innerH = w.sy - pad * 2;
 
-        const mapX = w.x + 10;
-        const mapY = w.y + 10;
+        const topH = Math.floor(innerH * 0.7);
+        const bottomH = innerH - topH - pad;
 
-        // draw cached map
+        const mapSize = Math.min(
+            topH,
+            innerW - (vSliderW + pad) * 4
+        );
+
+        this._ensureColorMap(mapSize);
+
+        const mapX = w.x + pad;
+        const mapY = w.y + pad;
+
         ctx.drawImage(this._colorMapCanvas, mapX, mapY);
+        this.renderProps.map = { x: mapX, y: mapY, w: mapSize, h: mapSize };
 
-        this.renderProps.map = {
-            x: mapX, y: mapY, w: size, h: size
-        };
-
-        // selector
-        ctx.strokeStyle = '#ffffff';
+        ctx.strokeStyle = '#fff';
         ctx.beginPath();
         ctx.arc(
-            mapX + this.h * size,
-            mapY + (1 - this.s) * size,
+            mapX + this.h * mapSize,
+            mapY + (1 - this.s) * mapSize,
             5, 0, Math.PI * 2
         );
         ctx.stroke();
 
-        // value fader
-        const fx = mapX + size + 8;
-        const fh = size;
+        const baseX = mapX + mapSize + pad;
+        const vKeys = ['value', 'white', 'amber', 'uv'];
+        const vColors = ['#fff', '#ddd', '#ffb000', '#8000ff'];
 
-        ctx.fillStyle = '#333';
-        ctx.fillRect(fx, mapY, 12, fh);
+        vKeys.forEach((k, i) => {
+            const mapDistance = this.renderProps.map.x + this.renderProps.map.w;
+            const spaceForVFaders = this.renderProps.endX - mapDistance;
+            const sliderNewSize = (spaceForVFaders - (vKeys.length * pad + pad)) / (vKeys.length);
 
-        const vh = this.v * fh;
+            vSliderW = sliderNewSize;
+
+            const x = baseX + i * (vSliderW + pad);
+            ctx.fillStyle = '#222';
+            ctx.fillRect(x, mapY, vSliderW, mapSize);
+
+            const val = k === 'value' ? this.v * 255 : this.extra[k];
+            const h = (val / 255) * mapSize;
+
+            ctx.fillStyle = vColors[i];
+            ctx.fillRect(x, mapY + mapSize - h, vSliderW, h);
+
+            const rect = { x, y: mapY, w: vSliderW, h: mapSize };
+            if (k === 'value') this.renderProps.valueFader = rect;
+            else this.renderProps.sliders[k] = rect;
+        });
+
+        let sy = mapY + mapSize + pad;
+        // const sliderHSize = (sy - this.renderProps.endY / 3) - 3 * pad + pad;
+
+        const sh = Math.max(8, bottomH / 4);
+        const sw = innerW - labelW;
+
+        const rgb = this.getColors();
+        this.renderProps.sliders.r =
+            this._drawHSlider(ctx, 'R', mapX + labelW, sy, sw, sh, rgb.r, '#ff4444'); sy += sh + pad;
+        this.renderProps.sliders.g =
+            this._drawHSlider(ctx, 'G', mapX + labelW, sy, sw, sh, rgb.g, '#44ff44'); sy += sh + pad;
+        this.renderProps.sliders.b =
+            this._drawHSlider(ctx, 'B', mapX + labelW, sy, sw, sh, rgb.b, '#4444ff');
+
         ctx.fillStyle = '#fff';
-        ctx.fillRect(fx, mapY + fh - vh, 12, vh);
-
-        this.renderProps.valueFader = {
-            x: fx, y: mapY, w: 12, h: fh
-        };
+        ctx.font = '10px Arial';
+        ctx.fillText(this.text, this.renderProps.startX + pad, this.renderProps.startY + pad);
     }
 
-    /* ---------- RGB → HSV ---------- */
+    _drawHSlider(ctx, label, x, y, w, h, value, color) {
+        ctx.fillStyle = '#222';
+        ctx.fillRect(x, y, w, h);
+
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, (value / 255) * w, h);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px Arial';
+        ctx.fillText(label, x - 10, y + h - 1);
+
+        return { x, y, w, h };
+    }
 
     _rgbToHsv(r, g, b) {
         r /= 255; g /= 255; b /= 255;
