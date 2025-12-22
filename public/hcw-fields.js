@@ -4,6 +4,8 @@ class HCWFaderField {
         this.text = faderText;
         this.id = id;
 
+        this.fgmFaderType = null;
+
         this.value = 0.0; // 0.0 to 1.0
         this.displayType = 'byte'; // 'value', 'byte', 'percent'
         this.onValueChangeCallback = null;
@@ -23,6 +25,15 @@ class HCWFaderField {
             sx: null,
             sy: null
         };
+    }
+
+    getFGMFaderType() {
+        return this.fgmFaderType;
+    }
+
+    setFGMFaderType(type = null) {
+        this.fgmFaderType = type;
+        return this
     }
 
     setParentWindow(win) {
@@ -46,7 +57,7 @@ class HCWFaderField {
 
         if (oldVal !== this.value) {
             if (this.onValueChangeCallback) {
-                this.onValueChangeCallback({
+                this.onValueChangeCallback(this.parentWindow, this, {
                     value: this.value,
                     byte: Math.round(this.value * 255),
                     percent: Math.round(this.value * 100)
@@ -480,18 +491,11 @@ class HCWPresetField {
         return this;
     }
 
-    /**
-     * Add a preset to the grid
-     * @param {string} name Display name
-     * @param {string} color Hex color
-     * @param {any} data Data to return on press
-     * @param {any} id Optional custom ID (defaults to auto-generated)
-     * @param {number} progress Optional progress (0.0 - 1.0)
-     */
-    addPreset(name, color = '#cccccc', data = {}, id = null, progress = null) {
+    addPreset(name, color = null, defaultColor = null, data = {}, id = null, progress = null) {
         this.presets.push({
             id: id || (Date.now() + Math.random()),
             name,
+            defaultColor,
             color,
             data,
             progress
@@ -500,11 +504,6 @@ class HCWPresetField {
         return this;
     }
 
-    /**
-     * Update an existing preset by ID
-     * @param {any} id ID of the preset to update
-     * @param {object} updates Object containing fields to update { name, color, data, progress }
-     */
     updatePreset(id, updates = {}) {
         const preset = this.presets.find(p => p.id === id);
         if (preset) {
@@ -512,7 +511,7 @@ class HCWPresetField {
             if (updates.color !== undefined) preset.color = updates.color;
             if (updates.data !== undefined) preset.data = updates.data;
             if (updates.progress !== undefined) preset.progress = updates.progress;
-
+            if (updates.defaultColor !== undefined) preset.defaultColor = updates.defaultColor;
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         } else {
             console.warn(`HCWPresetField: Preset with id '${id}' not found.`);
@@ -520,10 +519,6 @@ class HCWPresetField {
         return this;
     }
 
-    /**
-     * Update all existing presets
-     * @param {object} updates Object containing fields to update { name, color, data, progress }
-     */
     updateAllPresets(updates = {}, blacklistIds = []) {
         this.presets.forEach(preset => {
             if (blacklistIds.find(p => p === preset.id)) return;
@@ -667,6 +662,10 @@ class HCWPresetField {
                 let bgColor = preset.color || this.renderProps.colors.itemDefaultColor;
                 if (index === this._pressedIndex) {
                     bgColor = this.renderProps.colors.itemPressedColor;
+                }
+
+                if (preset.defaultColor !== null && preset.color == null) {
+                    bgColor = preset.defaultColor;
                 }
 
                 HCW.ctx.fillStyle = bgColor;

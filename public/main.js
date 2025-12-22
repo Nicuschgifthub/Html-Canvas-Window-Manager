@@ -1,4 +1,20 @@
 const start = () => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     new FGMwithHCW('hcw-canvas')
         .hcwGrid({
             everyPixelX: 100,
@@ -6,30 +22,7 @@ const start = () => {
             crosslineLength: 0.1,
             lineColor: '#00ff95'
         })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        .loadInital();
 
 
 

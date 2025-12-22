@@ -59,3 +59,15 @@ class DmxConvert {
         return parseFloat((total / 65535).toFixed(5));
     }
 }
+
+class FGMTypes {
+    static get PROGRAMMER() {
+        return {
+            DIMMERS: {
+                get MAIN() {
+                    return 'p_dimmer_main';
+                }
+            },
+        }
+    }
+}

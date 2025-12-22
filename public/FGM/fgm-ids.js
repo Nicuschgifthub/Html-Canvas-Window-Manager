@@ -1,36 +1,56 @@
 let fgmIdStore = new Set();
 
 class FGMIds {
-    static _counter = 0;
-    static _lastTimestamp = 0;
+    static _registry = {};
 
-    static getNewId(prefix = 'id') {
+    static _generate(prefix) {
         let timestamp = Date.now();
 
-        if (timestamp === this._lastTimestamp) {
-            this._counter++;
-        } else {
-            this._counter = 0;
-            this._lastTimestamp = timestamp;
+        if (!this._registry[prefix]) {
+            this._registry[prefix] = { counter: 0, lastTimestamp: 0 };
         }
 
-        const newId = `${prefix}-${timestamp}-${this._counter}`;
+        const state = this._registry[prefix];
+
+        if (timestamp === state.lastTimestamp) {
+            state.counter++;
+        } else {
+            state.counter = 0;
+            state.lastTimestamp = timestamp;
+        }
+
+        const newId = `${prefix}-${timestamp}-${state.counter}`;
 
         if (fgmIdStore.has(newId)) {
-            return this.getNewId(prefix);
+            return this._generate(prefix);
         }
 
         fgmIdStore.add(newId);
         return newId;
     }
 
+    static getNewId(prefix = 'id') {
+        return this._generate(prefix);
+    }
+
+    static newWindowId(prefix = 'window') {
+        return this._generate(prefix);
+    }
+
+    static newPageId() {
+        return this._generate('page');
+    }
+
+    static newComponentId() {
+        return this._generate('comp');
+    }
+
     static isIdTaken(id) {
         return fgmIdStore.has(id);
     }
 
-    static get DEFINED() {
-        return {
-            PAGE_ONE: 'page_one_001'
-        }
+    static resetStore() {
+        fgmIdStore.clear();
+        this._registry = {};
     }
 }

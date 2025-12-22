@@ -157,12 +157,22 @@ class HCWWindow {
         this.scrollindexratio = 1.2;
 
         this.hidden = false;
+        this.pageId = null;
 
         this.temp = {};
 
         this.data = {};
 
         this._init();
+    }
+
+    setPageId(pageId) {
+        this.pageId = pageId;
+        return this;
+    }
+
+    getPageId() {
+        return this.pageId;
     }
 
     toJSON() {

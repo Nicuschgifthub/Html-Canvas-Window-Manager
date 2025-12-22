@@ -14,7 +14,7 @@ class FGMStore {
         return this.HCW_Class;
     }
 
-    static getHCW() {
+    static getFGM() {
         return this.FGM_Class;
     }
 }
