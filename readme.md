@@ -1,21 +1,22 @@
-# HTML Canvas Window Manager
+# Old HTML Canvas Window Manager
 
-A lightweight HTML website featuring a canvas-based window manager. It allows creating draggable and resizable windows directly on the canvas.
+Was a lightweight HTML website featuring a canvas-based window manager. Its now on the way of transformation to my new web app.
 
-## Features
+The repo name in the future will be Web Based Fixture Console (FGM using HCW's)
+
+## HCW Features only
 
 - Create multiple windows on the canvas
 - Drag windows around freely
 - Resize windows dynamically
-- (Upcoming) Buttons, input fields, and more interactive elements
 
 ## Usage
 
-Install all packages and run it via node.js open the site in the browser
+Install express and run it via node.js open the site in the browser
 
 ## Planned Updates
 
-- Rewrite everything to be a browser based Fixture console via ArtNet
+- Currently rewriting everything to be a browser based Fixture console via ArtNet
 
 ## Current Status of the Fixture control
 
@@ -27,4 +28,4 @@ Install all packages and run it via node.js open the site in the browser
 
 ## NOTICE
 
-All my commits have no meaning, i will update this repo to be the Fixture console via ArtNet (Browser Based) only
+All my commits are called "update" since this will be moved to a new repo after the first version of my Fixture console via ArtNet (Browser Based) is ready.
