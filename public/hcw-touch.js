@@ -235,6 +235,7 @@ class HCWTouch {
             HCW.pointer._windowPressCandidate = windowParts.window;
             HCW.pointer._windowPressStartX = mouseX;
             HCW.pointer._windowPressStartY = mouseY;
+            FGMKernel.eventWindowClicked(windowParts.window);
         }
 
         if (HCWInteraction.touchZoneTop(windowParts) && !HCWInteraction.touchZoneRight(windowParts)) {

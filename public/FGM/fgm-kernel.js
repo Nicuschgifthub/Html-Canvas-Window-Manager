@@ -100,6 +100,16 @@ class FGMArtNetLogic {
         }
     }
 
+    static handleWindowClick(window) {
+        const artNetWin = this.getArtNetConfigWindow();
+        if (artNetWin && !artNetWin.getHiddenStatus() &&
+            window.getSingleContextField().getId() !== artNetWin.getSingleContextField().getId() &&
+            window.getSingleContextField().getFGMType() !== FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) {
+            artNetWin.setHidden();
+            FGMWindowManager.closeKeyboard();
+        }
+    }
+
     static addNode() {
         FGMStore.addArtNetNode();
         FGMArtNetLogic.refreshTable();
@@ -136,8 +146,13 @@ class FGMArtNetLogic {
         FGMArtNetLogic.refreshTable();
     }
 
+
+    static getArtNetConfigWindow() {
+        return FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
+    }
+
     static handleBackgroundClick() {
-        const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
+        const artNetWin = this.getArtNetConfigWindow();
         if (artNetWin && !artNetWin.getHiddenStatus()) {
             artNetWin.setHidden(true);
             FGMWindowManager.closeKeyboard();
@@ -244,6 +259,10 @@ class FGMKernel {
 
     static eventBackgroundClicked() {
         FGMArtNetLogic.handleBackgroundClick();
+    }
+
+    static eventWindowClicked(window) {
+        FGMArtNetLogic.handleWindowClick(window);
     }
 
     static eventColorPickerUpdate(fromWindow, fromColorPicker, data) {

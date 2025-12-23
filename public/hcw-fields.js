@@ -7,6 +7,10 @@ class HCWBaseField {
         this.renderProps = {};
     }
 
+    getId() {
+        return this.id;
+    }
+
     getLabel() {
         return this.text;
     }

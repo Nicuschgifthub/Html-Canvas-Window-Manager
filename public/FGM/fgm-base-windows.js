@@ -68,9 +68,9 @@ class FGMBaseWindows {
             .setFGMType(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS);
 
         const artNetWindow = new HCWWindow(300, 200, 500, 400)
-            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.QUICK_INPUT)
             .addContextField(tableField)
-            .setHidden(true) // Hidden by default
+            .setHidden(true)
             .setMinSizes(300, 200)
             .setId(FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
 

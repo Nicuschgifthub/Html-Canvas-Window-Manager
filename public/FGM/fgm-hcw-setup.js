@@ -13,7 +13,6 @@ class FGMwithHCW {
     async loadInital() {
         FGMKernel.eventInit();
 
-        // Initialize Library
         try {
             const response = await fetch('/FGM/fixture-library.json');
             const libraryData = await response.json();

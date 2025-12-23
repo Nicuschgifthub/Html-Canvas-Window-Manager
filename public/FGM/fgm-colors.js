@@ -13,7 +13,8 @@ class FGMColors {
     }
     static get TOUCHZONE() {
         return {
-            BACKGROUND: "#1b1b1bff"
+            BACKGROUND: "#1b1b1bff",
+            QUICK_INPUT: "#c2c505ff" // This window will be open until the user has input a value
         }
     }
 }
