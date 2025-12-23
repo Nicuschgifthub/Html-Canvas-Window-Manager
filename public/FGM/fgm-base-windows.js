@@ -105,7 +105,7 @@ class FGMBaseWindows {
 
         const panEncoder = new HCWEncoderField('Pan', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventEncoderUpdate)
-            .setFGMType(FGMTypes.PROGRAMMER.POSITION.PAN_16Bit)
+            .setFGMType(FGMTypes.PROGRAMMER.POSITION.PAN_ENCODER)
 
         const newPanEncoderWindow = new HCWWindow(100, 500, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
@@ -124,7 +124,7 @@ class FGMBaseWindows {
 
         const tiltEncoder = new HCWEncoderField('Tilt', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventEncoderUpdate)
-            .setFGMType(FGMTypes.PROGRAMMER.POSITION.TILT_16Bit)
+            .setFGMType(FGMTypes.PROGRAMMER.POSITION.TILT_ENCODER)
 
         const newtiltEncoderWindow = new HCWWindow(100, 700, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)

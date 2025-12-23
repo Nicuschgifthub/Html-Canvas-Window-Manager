@@ -8,14 +8,20 @@
                 "channel": 0
             },
             {
-                "type": "PAN",
-                "channel": 1,
-                "fineChannel": 2
+                "type": "PAN8BIT",
+                "channel": 1
             },
             {
-                "type": "TILT",
-                "channel": 3,
-                "fineChannel": 4
+                "type": "PAN16BIT",
+                "channel": 2
+            },
+            {
+                "type": "TILT8BIT",
+                "channel": 3
+            },
+             {
+                "type": "TILT16BIT",
+                "channel": 4
             },
             {
                 "type": "COLOR_R",

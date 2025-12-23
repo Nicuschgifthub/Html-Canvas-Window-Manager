@@ -170,10 +170,14 @@ class FGMInputHandlers {
 
     static handleEncoder(fromEncoder, data) {
         const type = fromEncoder.getFGMType();
-        if (type) {
-            // we use the outer value * 255 for the 0-255 logic range
-            // including the fine precision from the inner ring
-            FGMProgrammer.setAttributeValue(type, data.outer.value * 255);
+        if (!type) return;
+        if (type == FGMTypes.PROGRAMMER.POSITION.PAN_ENCODER) {
+            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.PAN_8Bit, data.outer.value * 255);
+            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.PAN_16Bit, data.inner.value * 255);
+        }
+        if (type == FGMTypes.PROGRAMMER.POSITION.TILT_ENCODER) {
+            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.TILT_8Bit, data.outer.value * 255);
+            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.TILT_16Bit, data.inner.value * 255);
         }
     }
 

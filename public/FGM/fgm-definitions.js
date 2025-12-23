@@ -114,24 +114,36 @@ class FGMTypes {
         return {
             DIMMERS: {
                 get MAIN() {
-                    return 'p_dimmer_main';
+                    return 'DIMMER';
                 }
             },
             POSITION: {
+                get PAN_ENCODER() {
+                    return 'p_position_pan';
+                },
+                get TILT_ENCODER() {
+                    return 'p_position_tilt';
+                },
+                get PAN_8Bit() {
+                    return 'PAN8BIT';
+                },
                 get PAN_16Bit() {
-                    return 'p_position_pan_16bit';
+                    return 'PAN16BIT';
+                },
+                get TILT_8Bit() {
+                    return 'TILT8BIT';
                 },
                 get TILT_16Bit() {
-                    return 'p_position_tilt_16bit';
+                    return 'TILT16BIT';
                 }
             },
             COLORS: {
-                get COLOR_R() { return 'p_color_r'; },
-                get COLOR_G() { return 'p_color_g'; },
-                get COLOR_B() { return 'p_color_b'; },
-                get COLOR_W() { return 'p_color_w'; },
-                get COLOR_A() { return 'p_color_a'; },
-                get COLOR_U() { return 'p_color_u'; },
+                get COLOR_R() { return 'COLOR_R'; },
+                get COLOR_G() { return 'COLOR_G'; },
+                get COLOR_B() { return 'COLOR_B'; },
+                get COLOR_W() { return 'COLOR_W'; },
+                get COLOR_A() { return 'COLOR_A'; },
+                get COLOR_U() { return 'COLOR_U'; },
                 get COLOR_PICKER() {
                     return 'p_color_color_picker';
                 },
