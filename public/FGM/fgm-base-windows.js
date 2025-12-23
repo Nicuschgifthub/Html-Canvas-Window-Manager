@@ -45,8 +45,7 @@ class FGMBaseWindows {
             });
 
         inOutSettings.addPreset(new HCWPreset("ArtNet").setData({ _open: "ARTNET" }).setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT));
-        // inOutSettings.addPreset(new HCWPreset("Fixture Patch").setData({ _open: "FIXTURE_PATCH" }).setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT));
-
+   
         const newTriggerWindow = new HCWWindow(100, 0, 500, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(inOutSettings)
@@ -194,9 +193,9 @@ class FGMBaseWindows {
 
         const pageActions = new HCWPresetField('Actions', FGMIds.newComponentId())
             .onPresetPress(FGMKernel.eventPresetClicked)
-            .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE }))
-            .addPreset(new HCWPreset("Clear Fixture atr.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_FIXTURE_VALUE_OVERWRITE }))
-            .addPreset(new HCWPreset("Clear All").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_ALL }))
+            // .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE }))
+            // .addPreset(new HCWPreset("Clear Fixture atr.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_FIXTURE_VALUE_OVERWRITE }))
+            // .addPreset(new HCWPreset("Clear All").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_ALL }))
             .addPreset(new HCWPreset("Edit Name").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.EDIT_NAME }))
 
         const newPageActionsWindow = new HCWWindow(300, 800, 300, 100)
