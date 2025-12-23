@@ -27,8 +27,8 @@ class FGMProgrammer {
         this.selection.forEach(fid => {
             if (!this.data[fid]) this.data[fid] = {};
             this.data[fid][attributeType] = value;
-            // Notify the fixture instance
-            const fixture = this.getSelectedFixture().find(f => f.getId() === fid);
+
+            const fixture = FGMStore.getPatchedFixtures().find(f => f.getId() === fid);
             if (fixture) {
                 fixture.updateProgrammerValue(attributeType, value);
             }
@@ -46,7 +46,7 @@ class FGMProgrammer {
     static clearProgrammer() {
         this.data = {};
         this.selection.forEach(fid => {
-            const fixture = FGMStore.getSelectedFixture().find(f => f.getId() === fid);
+            const fixture = FGMStore.getPatchedFixtures().find(f => f.getId() === fid);
             // Logic to clear values if needed
         });
     }
