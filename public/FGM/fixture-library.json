@@ -1,0 +1,78 @@
+[
+    {
+        "name": "VegaZoom Wash Beam",
+        "shortName": "VegaZoom",
+        "functions": [
+            {
+                "type": "DIMMER",
+                "channel": 0
+            },
+            {
+                "type": "PAN",
+                "channel": 1,
+                "fineChannel": 2
+            },
+            {
+                "type": "TILT",
+                "channel": 3,
+                "fineChannel": 4
+            },
+            {
+                "type": "COLOR_R",
+                "channel": 5
+            },
+            {
+                "type": "COLOR_G",
+                "channel": 6
+            },
+            {
+                "type": "COLOR_B",
+                "channel": 7
+            },
+            {
+                "type": "COLOR_W",
+                "channel": 8
+            },
+            {
+                "type": "COLOR_A",
+                "channel": 9
+            },
+            {
+                "type": "COLOR_U",
+                "channel": 10
+            }
+        ]
+    },
+    {
+        "name": "Generic Dimmer",
+        "shortName": "Dimmer",
+        "functions": [
+            {
+                "type": "DIMMER",
+                "channel": 0
+            }
+        ]
+    },
+    {
+        "name": "RGB Par",
+        "shortName": "RGB",
+        "functions": [
+            {
+                "type": "DIMMER",
+                "channel": 0
+            },
+            {
+                "type": "COLOR_R",
+                "channel": 1
+            },
+            {
+                "type": "COLOR_G",
+                "channel": 2
+            },
+            {
+                "type": "COLOR_B",
+                "channel": 3
+            }
+        ]
+    }
+]

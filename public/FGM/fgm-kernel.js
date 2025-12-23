@@ -147,20 +147,31 @@ class FGMArtNetLogic {
 
 class FGMInputHandlers {
     static handleFader(fromFader, data) {
-        if (fromFader.getFGMType() == FGMTypes.PROGRAMMER.DIMMERS.MAIN) {
-            console.log("main Dimmer", data);
+        const type = fromFader.getFGMType();
+        if (type) {
+            FGMProgrammer.setAttributeValue(type, data.value * 255);
         }
     }
 
     static handleEncoder(fromEncoder, data) {
         const type = fromEncoder.getFGMType();
-        if (type == FGMTypes.PROGRAMMER.POSITION.PAN_16Bit) console.log("Pan", data);
-        if (type == FGMTypes.PROGRAMMER.POSITION.TILT_16Bit) console.log("Tilt", data);
+        if (type) {
+            // we use the outer value * 255 for the 0-255 logic range
+            // including the fine precision from the inner ring
+            FGMProgrammer.setAttributeValue(type, data.outer.value * 255);
+        }
     }
 
     static handleColorPicker(fromColorPicker, data) {
-        if (fromColorPicker.getFGMType() == FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
-            console.log("Color Picker", data);
+        const type = fromColorPicker.getFGMType();
+        if (type === FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
+            // Split the color object into individual attribute updates
+            if (data.r !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_R, data.r);
+            if (data.g !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_G, data.g);
+            if (data.b !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_B, data.b);
+            if (data.white !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_W, data.white);
+            if (data.amber !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_A, data.amber);
+            if (data.uv !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_U, data.uv);
         }
     }
 }

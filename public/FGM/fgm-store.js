@@ -5,6 +5,8 @@ class FGMStore {
     static artNetNodes = [
         { name: "MyArtNetNode", ip: "127.0.0.1", subnet: "255.0.0.0", universe: "0:0:1" }
     ];
+    static patchedFixtures = [];
+
     static saveHCWClass(HCW) {
         this.HCW_Class = HCW;
     }
@@ -52,5 +54,13 @@ class FGMStore {
         if (this.artNetNodes[index]) {
             this.artNetNodes.splice(index, 1);
         }
+    }
+
+    static getPatchedFixtures() {
+        return this.patchedFixtures;
+    }
+
+    static addPatchedFixture(fixture) {
+        this.patchedFixtures.push(fixture);
     }
 }

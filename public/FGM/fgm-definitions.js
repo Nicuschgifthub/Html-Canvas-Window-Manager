@@ -60,6 +60,46 @@ class DmxConvert {
     }
 }
 
+class FGMFixtureFunctionDefinition {
+    constructor(type, label, is16Bit = false) {
+        this.type = type;
+        this.label = label;
+        this.is16Bit = is16Bit;
+        this.logicRange = [0, 255];
+    }
+}
+
+class FGMFixtureFunctionDefinitions {
+    static get MAP() {
+        return {
+            DIMMER: this.DIMMER,
+            PAN: this.PAN,
+            TILT: this.TILT,
+            COLOR_R: this.COLOR_R,
+            COLOR_G: this.COLOR_G,
+            COLOR_B: this.COLOR_B,
+            COLOR_W: this.COLOR_W,
+            COLOR_A: this.COLOR_A,
+            COLOR_U: this.COLOR_U
+        }
+    }
+
+    static getDefinitionByType(type) {
+        return this.MAP[type] || null;
+    }
+
+    static get DIMMER() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.DIMMERS.MAIN, "Dimmer"); }
+    static get PAN() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.POSITION.PAN_16Bit, "Pan", true); }
+    static get TILT() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.POSITION.TILT_16Bit, "Tilt", true); }
+
+    static get COLOR_R() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_R, "Red"); }
+    static get COLOR_G() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_G, "Green"); }
+    static get COLOR_B() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_B, "Blue"); }
+    static get COLOR_W() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_W, "White"); }
+    static get COLOR_A() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_A, "Amber"); }
+    static get COLOR_U() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_U, "UV"); }
+}
+
 class FGMTypes {
     static get RENDER() {
         return {
@@ -86,6 +126,12 @@ class FGMTypes {
                 }
             },
             COLORS: {
+                get COLOR_R() { return 'p_color_r'; },
+                get COLOR_G() { return 'p_color_g'; },
+                get COLOR_B() { return 'p_color_b'; },
+                get COLOR_W() { return 'p_color_w'; },
+                get COLOR_A() { return 'p_color_a'; },
+                get COLOR_U() { return 'p_color_u'; },
                 get COLOR_PICKER() {
                     return 'p_color_color_picker';
                 },

@@ -1,71 +1,103 @@
+class FGMFixtureFunction {
+    constructor(definition, channel, fineChannel = null) {
+        this.definition = definition;
+        this.channel = channel; // 0-indexed offset from fixture start
+        this.fineChannel = fineChannel;
+        this.value = 0; // Logic value 0-255
+    }
+
+    setLogicValue(val) {
+        this.value = Math.max(0, Math.min(255, val));
+    }
+
+    getLogicValue() {
+        return this.value;
+    }
+
+    /**
+     * @returns {Object} { offset: value } mapping
+     */
+    getDmxValues() {
+        const out = {};
+        if (this.definition.is16Bit && this.fineChannel !== null) {
+            const total = Math.round((this.value / 255) * 65535);
+            out[this.channel] = (total >> 8) & 0xFF;
+            out[this.fineChannel] = total & 0xFF;
+        } else {
+            out[this.channel] = Math.max(0, Math.min(255, Math.round(this.value)));
+        }
+        return out;
+    }
+}
+
 class FGMFixtureGroup {
     constructor(ugId) {
-
+        this.id = ugId;
+        this.fixtures = [];
     }
 }
 
 class FGMFixture {
     constructor(uId) {
-
         this.infos = {
             id: uId,
-            text: "Fixture 1",
+            text: "Fixture " + uId,
         }
 
         this.dmx = {
-            address: 0
+            address: 1 // 1-512
         }
 
-        this.functions = {
-            DIMMER: null,
-            SHUTTER: null,
-            COLOR_WHEEL_1: null,
-            COLOR_WHEEL_2: null,
-            GOBO_WHEEL_STATIC_1: null,
-            GOBO_WHEEL_STATIC_2: null,
-            GOBO_WHEEL_DYNAMIC_1: null,
-            GOBO_WHEEL_DYNAMIC_2: null,
-            GOBO_WHEEL_ROTATION_1: null,
-            GOBO_WHEEL_ROTATION_2: null,
-            ZOOM: null,
-            FOCUS: null,
-            COLOR_R: null,
-            COLOR_G: null,
-            COLOR_B: null,
-            COLOR_WHITE: null,
-            COLOR_AMBER: null,
-            COLOR_UV: null,
-            PAN_8Bit: null,
-            PAN_16Bit: null,
-            TILT_8Bit: null,
-            TILT_16Bit: null,
-            FROST: null,
-            PRISM_1: null,
-            PRISM_2: null,
-            PRISM_3: null,
-            PRISM_4: null,
-            BEAMSHAPER_BLADE_1: null,
-            BEAMSHAPER_BLADE_2: null,
-            BEAMSHAPER_BLADE_3: null,
-            BEAMSHAPER_BLADE_4: null,
-
-            _SETTINGS: [
-                { label: "Test", channel: null, holdForSeconds: null, _active: false, description: "This is a Test channel" }
-            ]
-        }
+        this.functions = [];
     }
 
+    addFunction(func) {
+        this.functions.push(func);
+        return this;
+    }
+
+    loadProfile(profile) {
+        if (!profile || !profile.functions) return;
+        this.setLabel(profile.name);
+        this.functions = [];
+        profile.functions.forEach(f => {
+            const def = FGMFixtureFunctionDefinitions.getDefinitionByType(f.type);
+            if (def) {
+                this.addFunction(new FGMFixtureFunction(def, f.channel, f.fineChannel));
+            }
+        });
+        return this;
+    }
+
+    setDmxAddress(addr) {
+        this.dmx.address = addr;
+        return this;
+    }
+
+    getFunctions() {
+        return this.functions;
+    }
+
+    updateProgrammerValue(type, value) {
+        const func = this.functions.find(f => f.definition.type === type);
+        if (func) {
+            func.setLogicValue(value);
+        }
+    }
 
     getId() {
-
+        return this.infos.id;
     }
 
-    setId() {
-
+    setId(id) {
+        this.infos.id = id;
     }
 
-    setLabel() {
-
+    setLabel(label) {
+        this.infos.text = label;
     }
 
+    getLabel() {
+        return this.infos.text;
+    }
 }
