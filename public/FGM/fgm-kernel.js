@@ -43,42 +43,32 @@ class FGMAwaitingActions {
         return `rgb(${fr}, ${fg}, ${fb})`;
     }
 
-    static handle(actionType, fromWindow, fromPreset, data, singlePreset) {
-        switch (actionType) {
+    static handle(actionStore) {
+        switch (actionStore.getAction()) {
             case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
-                if (singlePreset) {
-                    FGMSubAction.actionData.targetPreset = singlePreset;
-                    FGMSubAction.actionData.fromPresetField = fromPreset;
-                    FGMSubAction.actionData.fromWindow = fromWindow;
-                    FGMWindowManager.openKeyboardForWindow(fromWindow, singlePreset.getName());
-                } else {
-                    FGMSubAction.actionData.targetWindow = fromWindow;
-                    FGMSubAction.actionData.fromWindow = fromWindow;
-                    FGMWindowManager.openKeyboardForWindow(fromWindow, fromWindow.getSingleContextField().getLabel());
+                if (actionStore.getWindow() && actionStore.getWindow().getSingleContextField().getFGMType() == FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) return;
+                if (actionStore.getWindow() && actionStore.getSinglePreset()) {
+                    FGMSubAction.actionData.targetPreset = actionStore.getSinglePreset();
+                    FGMSubAction.actionData.fromSinglePreset = actionStore.getSinglePreset();
+                    FGMSubAction.actionData.fromWindow = actionStore.getWindow();
+                    FGMWindowManager.openKeyboardForWindow(actionStore.getWindow(), actionStore.getSinglePreset().getName());
+                } else if (actionStore.getWindow()) {
+                    FGMSubAction.actionData.targetWindow = actionStore.getWindow();
+                    FGMSubAction.actionData.fromWindow = actionStore.getWindow();
+                    FGMWindowManager.openKeyboardForWindow(actionStore.getWindow(), actionStore.getWindow().getSingleContextField().getLabel());
                 }
                 FGMSubAction.initiatorPreset = null;
-                break;
-
-            case FGMTypes.ACTIONS.BUTTON.STORE:
-                if (singlePreset) {
-                    fromPreset.updatePreset(singlePreset.getId(), { name: "Stored!" });
-                }
-                FGMSubAction.clearAwaitingAction();
-                break;
-
-            default:
-                FGMSubAction.clearAwaitingAction();
                 break;
         }
     }
 
     static processKeyboardNameEdit(string) {
         const targetPreset = FGMSubAction.actionData.targetPreset;
-        const fromPresetField = FGMSubAction.actionData.fromPresetField;
+        const fromSinglePreset = FGMSubAction.actionData.fromSinglePreset;
         const targetWindow = FGMSubAction.actionData.targetWindow;
 
-        if (targetPreset && fromPresetField) {
-            fromPresetField.updatePreset(targetPreset.getId(), { name: string });
+        if (targetPreset && fromSinglePreset) {
+            fromSinglePreset.setLabel(string);
         } else if (targetWindow) {
             targetWindow.getSingleContextField().setLabel(string);
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
@@ -146,7 +136,6 @@ class FGMArtNetLogic {
         FGMArtNetLogic.refreshTable();
     }
 
-
     static getArtNetConfigWindow() {
         return FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
     }
@@ -208,17 +197,16 @@ class FGMKernel {
         FGMAwaitingActions.handle(...args);
     }
 
-    static eventWindowClicked(fromWindow) {
-        const awaitingValue = FGMSubAction.getAwaitingAction();
-        if (awaitingValue === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
-            FGMKernel.handleAwaitingAction(awaitingValue, fromWindow, null, {}, null);
-        }
-    }
-
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
         const awaitingValue = FGMSubAction.getAwaitingAction();
         if (awaitingValue) {
-            FGMKernel.handleAwaitingAction(awaitingValue, fromWindow, fromPreset, data, singlePreset);
+            FGMKernel.handleAwaitingAction(
+                new FGMHandleAwaitActionStore()
+                    .setAction(awaitingValue)
+                    .setWindow(fromWindow)
+                    .setSinglePreset(singlePreset)
+                    .setData(data))
+
             return;
         }
 
@@ -266,6 +254,15 @@ class FGMKernel {
     }
 
     static eventWindowClicked(window) {
+        const awaitingValue = FGMSubAction.getAwaitingAction();
+
+        if (awaitingValue === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
+            FGMKernel.handleAwaitingAction(
+                new FGMHandleAwaitActionStore()
+                    .setAction(awaitingValue)
+                    .setWindow(window));
+            return;
+        }
         FGMArtNetLogic.handleWindowClick(window);
     }
 

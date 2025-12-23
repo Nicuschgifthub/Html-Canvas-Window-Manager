@@ -4,7 +4,6 @@ class FGMBaseWindows {
             .onPresetPress(FGMKernel.eventPresetClicked)
 
         pageField.addPreset(new HCWPreset(`Setup`).setDefaultColor(FGMColors.PAGES.MENUS.SETUP).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.SETUP }));
-        pageField.addPreset(new HCWPreset(`IN&OUT`).setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.LINK_SETTINGS }));
         pageField.addPreset(new HCWPreset(`Fixture Cnt.`).setDefaultColor(FGMColors.PAGES.MENUS.FIXTURE_CONTROL).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL }));
 
         for (let i = 0; i < pageCount; i++) {
@@ -32,14 +31,21 @@ class FGMBaseWindows {
         let windowsForThisPage = [];
 
         const inOutSettings = new HCWPresetField('Config', FGMIds.newComponentId())
-            .onPresetPress((win, field, data) => {
-                const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
-                if (artNetWin) {
-                    artNetWin.setHidden(false);
+            .onPresetPress((win, presetField, data, preset) => {
+                const presetData_open = preset.getData()._open;
+
+                if (presetData_open == "ARTNET") {
+                    const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
+                    if (artNetWin) {
+                        artNetWin.setHidden(false);
+                    }
+
+                    return;
                 }
             });
 
-        inOutSettings.addPreset(new HCWPreset("ArtNet").setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT));
+        inOutSettings.addPreset(new HCWPreset("ArtNet").setData({ _open: "ARTNET" }).setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT));
+        // inOutSettings.addPreset(new HCWPreset("Fixture Patch").setData({ _open: "FIXTURE_PATCH" }).setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT));
 
         const newTriggerWindow = new HCWWindow(100, 0, 500, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
@@ -47,12 +53,38 @@ class FGMBaseWindows {
             .setHidden(true)
             .setMinSizes(100, 50)
             .setId(FGMIds.newWindowId())
-            .setPageId(FGMPageHandler.PAGE_ENUMS.LINK_SETTINGS);
+            .setPageId(FGMPageHandler.PAGE_ENUMS.SETUP);
 
         inOutSettings.setParentWindow(newTriggerWindow);
         windowsForThisPage.trigger = newTriggerWindow;
 
         return windowsForThisPage;
+    }
+
+    static fixtureTable() {
+        const nodes = FGMStore.getPatchedFixtures();
+
+        // const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe]);
+
+        const tableField = new HCWTableField('Patched Fixtures', FGMIds.newComponentId())
+            .setHeaders(['uid', 'ShortName', 'Label', 'Address', 'Universe'])
+            // .setRows(rows)
+            .onCellClick(FGMKernel.eventTableCellClicked)
+            .onDeleteRow(FGMKernel.eventDeleteArtNetNode)
+            // .onAddRow(FGMKernel.eventAddArtNetNode.bind(FGMKernel))
+            .setFGMType(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG);
+
+        const fixtureTableWindow = new HCWWindow(800, 0, 500, 600)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(tableField)
+            .setHidden(true)
+            .setMinSizes(300, 200)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.SETUP)
+            .setId(FGMIds.DEFAULT.WINDOWS.FIXTURE_LIST_CONFIG);
+
+        tableField.setParentWindow(fixtureTableWindow);
+
+        return fixtureTableWindow;
     }
 
     static artNetSettings() {
@@ -186,7 +218,7 @@ class FGMBaseWindows {
 
         // Keyboard
 
-        const inputKeyboard = new HCWKeyboardField('Keyboard 1', FGMIds.newComponentId())
+        const inputKeyboard = new HCWKeyboardField('Keyboard', FGMIds.newComponentId())
             .onEnter(FGMKernel.eventKeyboardOnEnter)
             .setFGMType(FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT)
 

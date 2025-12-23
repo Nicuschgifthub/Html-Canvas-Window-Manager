@@ -477,7 +477,7 @@ class HCWPreset {
     getData() { return this.data; }
     getProgress() { return this.progress; }
 
-    setName(name) {
+    setLabel(name) {
         this.name = name;
         this.triggerRender();
         return this;
@@ -1067,6 +1067,7 @@ class HCWKeyboardField extends HCWBaseField {
         this.value = "";
         this.cursorPos = 0;
         this.onEnterCallback = null;
+        this.onValueChangeCallback = null;
         this.isUpperCase = true;
 
         this.headerHeight = 30;
@@ -1128,6 +1129,11 @@ class HCWKeyboardField extends HCWBaseField {
         return this;
     }
 
+    onValueChange(callback) {
+        this.onValueChangeCallback = callback;
+        return this;
+    }
+
     _handleInput(key) {
         if (key === 'ENTER' || key === 'Enter') {
             if (this.onEnterCallback) {
@@ -1164,6 +1170,10 @@ class HCWKeyboardField extends HCWBaseField {
             }
             this.value = this.value.slice(0, this.cursorPos) + char + this.value.slice(this.cursorPos);
             this.cursorPos++;
+        }
+
+        if (this.onValueChangeCallback) {
+            this.onValueChangeCallback(this.parentWindow, this, this.value);
         }
     }
 
@@ -1986,6 +1996,136 @@ class HCWTableField extends HCWBaseField {
                 };
             }
         }
+        ctx.textAlign = 'start';
+    }
+}
+
+class HCWSearchField extends HCWBaseField {
+    constructor(fieldName = 'Search', id = Date.now()) {
+        super(fieldName, id);
+
+        this.searchValue = "";
+        this.results = [];
+        this.onResultClickCallback = null;
+        this.onSearchRequestCallback = null;
+
+        this.headerHeight = 40;
+        this.resultItemHeight = 45;
+        this.gap = 5;
+
+        this.renderProps = {
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null,
+            resultButtons: []
+        };
+    }
+
+    setSearchValue(val) {
+        this.searchValue = val;
+        this.updateFrame();
+        return this;
+    }
+
+    setResults(results) {
+        this.results = results.slice(0, 5);
+        this.updateFrame();
+        return this;
+    }
+
+    onResultClick(cb) {
+        this.onResultClickCallback = cb;
+        return this;
+    }
+
+    onSearchRequest(cb) {
+        this.onSearchRequestCallback = cb;
+        return this;
+    }
+
+    getType() {
+        return 'SEARCH_FIELD';
+    }
+
+    _interaction(interaction) {
+        if (interaction.type === 'mousedown') {
+            const { mouseX, mouseY } = interaction;
+
+            const hitResult = this.renderProps.resultButtons.find(b =>
+                mouseX >= b.x && mouseX <= b.x + b.w &&
+                mouseY >= b.y && mouseY <= b.y + b.h
+            );
+
+            if (hitResult && this.onResultClickCallback) {
+                this.onResultClickCallback(this.parentWindow, this, hitResult.result);
+                return;
+            }
+
+            // If clicked anywhere else, request to open search (keyboard)
+            if (this.onSearchRequestCallback) {
+                this.onSearchRequestCallback(this.parentWindow, this);
+            }
+        }
+    }
+
+    render(w) {
+        this.renderProps.startX = w.x;
+        this.renderProps.startY = w.y;
+        this.renderProps.endX = w.x2;
+        this.renderProps.endY = w.y2;
+        this.renderProps.resultButtons = [];
+
+        const ctx = HCW.ctx;
+        if (!ctx) return;
+
+        const pad = 10;
+
+        // Background
+        ctx.fillStyle = '#1b1717';
+        ctx.fillRect(w.x, w.y, w.sx, w.sy);
+
+        // Header / Search Display
+        ctx.fillStyle = '#333';
+        ctx.fillRect(w.x + pad, w.y + pad, w.sx - pad * 2, this.headerHeight);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(this.searchValue || "Click to search...", w.x + pad + 10, w.y + pad + this.headerHeight / 2 + 6);
+
+        // Results
+        ctx.font = '14px Arial';
+        let currentY = w.y + pad + this.headerHeight + this.gap + 10;
+
+        this.results.forEach((result, index) => {
+            if (currentY + this.resultItemHeight > w.y2) return;
+
+            const rx = w.x + pad;
+            const rw = w.sx - pad * 2;
+            const rh = this.resultItemHeight;
+
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(rx, currentY, rw, rh);
+
+            ctx.fillStyle = '#00ff95';
+            ctx.font = 'bold 13px Arial';
+            ctx.fillText(result.name || "Unknown Fixture", rx + 10, currentY + 18);
+
+            ctx.fillStyle = '#bbb';
+            ctx.font = '11px Arial';
+            ctx.fillText(result.shortName || result.type || rx + 10, currentY + 35);
+
+            this.renderProps.resultButtons.push({
+                x: rx,
+                y: currentY,
+                w: rw,
+                h: rh,
+                result: result
+            });
+
+            currentY += rh + this.gap;
+        });
 
         ctx.textAlign = 'start';
     }

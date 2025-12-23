@@ -30,6 +30,8 @@ class FGMwithHCW {
         const inOutWindows = FGMBaseWindows.inOut();
         const artNetSettings = FGMBaseWindows.artNetSettings();
 
+        const fixtureTable = FGMBaseWindows.fixtureTable();
+
         FGMStore.getHCW()
             .addWindow(basePages)
             .addWindow(baseFixtureControl.dimFader)
@@ -40,6 +42,7 @@ class FGMwithHCW {
             .addWindow(inOutWindows.trigger)
             .addWindow(artNetSettings)
             .addWindow(hiddenInputs.keyboard)
+            .addWindow(fixtureTable)
     }
 
     saveShow() {
