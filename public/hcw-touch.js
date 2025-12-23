@@ -259,8 +259,10 @@ class HCWTouch {
             HCW.pointer.contextwindow = contextHit.field;
             HCW.pointer.focusedField = contextHit.field; // Set focus
             contextHit.field._interaction({ type: 'mousedown', mouseX, mouseY });
-        } else {
-            // HCW.pointer.focusedField = null;
+        } else if (!windowParts.window) {
+            if (typeof FGMKernel !== 'undefined' && FGMKernel.eventBackgroundClicked) {
+                FGMKernel.eventBackgroundClicked(mouseX, mouseY);
+            }
         }
 
         HCWRender.updateFrame();

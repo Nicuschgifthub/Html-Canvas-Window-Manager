@@ -148,6 +148,38 @@ class FGMKernel {
 
             FGMSubKernel.clearAwaitingAction();
             FGMWindowManager.closeKeyboard();
+        } else if (actionType === FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS) {
+            const data = FGMSubKernel.actionData;
+            if (data.targetField && data.rowIndex !== undefined) {
+                data.targetField.updateCellValue(data.rowIndex, data.colIndex, string);
+
+                // Update store
+                const fields = ['name', 'ip', 'subnet', 'universe'];
+                const fieldName = fields[data.colIndex];
+                if (fieldName) {
+                    FGMStore.updateArtNetNode(data.rowIndex, fieldName, string);
+                }
+            }
+            FGMSubKernel.clearAwaitingAction();
+            FGMWindowManager.closeKeyboard();
+        }
+    }
+
+    static eventTableCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
+        FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS, {
+            targetWindow: fromWindow,
+            targetField: fromTable,
+            rowIndex: rowIndex,
+            colIndex: colIndex
+        });
+        FGMWindowManager.openKeyboardForWindow(fromWindow, value);
+    }
+
+    static eventBackgroundClicked() {
+        const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
+        if (artNetWin && !artNetWin.getHiddenStatus()) {
+            artNetWin.setHidden(true);
+            FGMWindowManager.closeKeyboard();
         }
     }
 

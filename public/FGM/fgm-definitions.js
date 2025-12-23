@@ -112,6 +112,11 @@ class FGMTypes {
                 get MAIN_INPUT() {
                     return 'a_keyboard_main_input-device';
                 }
+            },
+            WINDOW: {
+                get ARTNET_SETTINGS() {
+                    return 'w_artnet_settings';
+                }
             }
         }
     }

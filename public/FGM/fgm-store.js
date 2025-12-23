@@ -26,4 +26,18 @@ class FGMStore {
     static getCurrentPage() {
         return this.currentPage;
     }
+
+    static artNetNodes = [
+        { name: "MyArtNetNode", ip: "127.0.0.1", subnet: "255.0.0.0", universe: "0:0:1" }
+    ];
+
+    static getArtNetNodes() {
+        return this.artNetNodes;
+    }
+
+    static updateArtNetNode(index, field, value) {
+        if (this.artNetNodes[index]) {
+            this.artNetNodes[index][field] = value;
+        }
+    }
 }

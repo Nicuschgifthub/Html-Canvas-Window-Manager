@@ -1756,3 +1756,145 @@ class HCWColorMapField extends HCWBaseField {
         if (this.h < 0) this.h += 1;
     }
 }
+
+class HCWTableField extends HCWBaseField {
+    constructor(fieldName = 'Settings', id = Date.now()) {
+        super(fieldName, id);
+
+        this.headers = [];
+        this.rows = [];
+        this.onCellClickCallback = null;
+
+        this.rowHeight = 35;
+        this.headerHeight = 40;
+
+        this.renderProps = {
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null,
+            cells: []
+        };
+    }
+
+    setHeaders(headers) {
+        this.headers = headers;
+        this.updateFrame();
+        return this;
+    }
+
+    setRows(rows) {
+        this.rows = rows;
+        this.updateFrame();
+        return this;
+    }
+
+    onCellClick(cb) {
+        this.onCellClickCallback = cb;
+        return this;
+    }
+
+    getType() {
+        return 'TABLE_FIELD';
+    }
+
+    _interaction(interaction) {
+        if (interaction.type === 'mousedown') {
+            const { mouseX, mouseY } = interaction;
+            const hitCell = this.renderProps.cells.find(c =>
+                mouseX >= c.x && mouseX <= c.x + c.w &&
+                mouseY >= c.y && mouseY <= c.y + c.h
+            );
+
+            if (hitCell && this.onCellClickCallback) {
+                this.onCellClickCallback(this.parentWindow, this, hitCell.rowIndex, hitCell.colIndex, hitCell.value);
+            }
+        }
+    }
+
+    updateCellValue(rowIndex, colIndex, newValue) {
+        if (this.rows[rowIndex] && this.rows[rowIndex][colIndex] !== undefined) {
+            this.rows[rowIndex][colIndex] = newValue;
+            this.updateFrame();
+        }
+    }
+
+    render(w) {
+        this.renderProps.startX = w.x;
+        this.renderProps.startY = w.y;
+        this.renderProps.endX = w.x2;
+        this.renderProps.endY = w.y2;
+        this.renderProps.cells = [];
+
+        const ctx = HCW.ctx;
+        if (!ctx) return;
+
+        const pad = 10;
+        const availableW = w.sx - pad * 2;
+        const colW = availableW / (this.headers.length || 1);
+
+        // Background
+        ctx.fillStyle = '#1e1e1e';
+        ctx.fillRect(w.x, w.y, w.sx, w.sy);
+
+        // Header
+        ctx.fillStyle = '#333';
+        ctx.fillRect(w.x, w.y, w.sx, this.headerHeight);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+
+        this.headers.forEach((header, i) => {
+            const x = w.x + pad + i * colW;
+            ctx.fillText(header, x + colW / 2, w.y + this.headerHeight / 2 + 5);
+        });
+
+        // Rows
+        ctx.font = '13px Arial';
+        this.rows.forEach((row, rowIndex) => {
+            const rowY = w.y + this.headerHeight + rowIndex * this.rowHeight;
+            if (rowY + this.rowHeight > w.y2) return;
+
+            // Zebra striping
+            ctx.fillStyle = rowIndex % 2 === 0 ? '#252525' : '#1e1e1e';
+            ctx.fillRect(w.x, rowY, w.sx, this.rowHeight);
+
+            row.forEach((cell, colIndex) => {
+                const cellX = w.x + pad + colIndex * colW;
+
+                ctx.fillStyle = '#bbb';
+                ctx.fillText(cell, cellX + colW / 2, rowY + this.rowHeight / 2 + 5);
+
+                this.renderProps.cells.push({
+                    x: cellX,
+                    y: rowY,
+                    w: colW,
+                    h: this.rowHeight,
+                    rowIndex,
+                    colIndex,
+                    value: cell
+                });
+            });
+
+            // Grid lines
+            ctx.strokeStyle = '#333';
+            ctx.beginPath();
+            ctx.moveTo(w.x, rowY + this.rowHeight);
+            ctx.lineTo(w.x2, rowY + this.rowHeight);
+            ctx.stroke();
+        });
+
+        // Vertical separators
+        ctx.strokeStyle = '#333';
+        for (let i = 1; i < this.headers.length; i++) {
+            const x = w.x + pad + i * colW;
+            ctx.beginPath();
+            ctx.moveTo(x, w.y);
+            ctx.lineTo(x, w.y2);
+            ctx.stroke();
+        }
+
+        ctx.textAlign = 'start';
+    }
+}

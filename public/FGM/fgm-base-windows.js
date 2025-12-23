@@ -29,7 +29,52 @@ class FGMBaseWindows {
     }
 
     static inOut() {
+        let windowsForThisPage = [];
 
+        const inOutSettings = new HCWPresetField('Config', FGMIds.newComponentId())
+            .onPresetPress((win, field, data) => {
+                const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
+                if (artNetWin) {
+                    artNetWin.setHidden(false);
+                }
+            });
+
+        inOutSettings.addPreset(new HCWPreset("ArtNet").setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT));
+
+        const newTriggerWindow = new HCWWindow(100, 0, 500, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(inOutSettings)
+            .setHidden(true)
+            .setMinSizes(100, 50)
+            .setId(FGMIds.newWindowId())
+            .setPageId(FGMPageHandler.PAGE_ENUMS.LINK_SETTINGS);
+
+        inOutSettings.setParentWindow(newTriggerWindow);
+        windowsForThisPage.trigger = newTriggerWindow;
+
+        return windowsForThisPage;
+    }
+
+    static artNetSettings() {
+        const nodes = FGMStore.getArtNetNodes();
+        const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe]);
+
+        const tableField = new HCWTableField('ArtNet Address Settings', FGMIds.newComponentId())
+            .setHeaders(['Name', 'IP Address', 'Subnet Mask', 'Universe'])
+            .setRows(rows)
+            .onCellClick(FGMKernel.eventTableCellClicked)
+            .setFGMType(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS);
+
+        const artNetWindow = new HCWWindow(300, 200, 500, 300)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(tableField)
+            .setHidden(true) // Hidden by default
+            .setMinSizes(300, 200)
+            .setId(FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
+
+        tableField.setParentWindow(artNetWindow);
+
+        return artNetWindow;
     }
 
     static fixtureControl() {

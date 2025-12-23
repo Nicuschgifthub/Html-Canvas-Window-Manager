@@ -53,4 +53,14 @@ class FGMIds {
         fgmIdStore.clear();
         this._registry = {};
     }
+
+    static get DEFAULT() {
+        return {
+            WINDOWS: {
+                get ART_NET_CONFIG() {
+                    return 'd_w_art_net_config';
+                }
+            }
+        }
+    }
 }
