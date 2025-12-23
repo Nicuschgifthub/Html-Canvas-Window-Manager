@@ -11,6 +11,7 @@ class FGMLoadFiles {
             '/FGM/fgm-page-handler.js',
             '/FGM/fgm-window-manager.js',
             '/FGM/fmg-kernel-classes.js',
+            '/FGM/fgm-action-handlers.js',
             '/FGM/fgm-kernel.js',
             '/FGM/fgm-base-windows.js',
             '/FGM/fgm-hcw-setup.js'

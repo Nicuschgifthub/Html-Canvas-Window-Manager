@@ -44,38 +44,10 @@ class FGMAwaitingActions {
     }
 
     static handle(actionStore) {
-        switch (actionStore.getAction()) {
-            case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
-                if (actionStore.getWindow() && actionStore.getWindow().getSingleContextField().getFGMType() == FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) return;
-                if (actionStore.getWindow() && actionStore.getSinglePreset()) {
-                    FGMSubAction.actionData.targetPreset = actionStore.getSinglePreset();
-                    FGMSubAction.actionData.fromSinglePreset = actionStore.getSinglePreset();
-                    FGMSubAction.actionData.fromWindow = actionStore.getWindow();
-                    FGMWindowManager.openKeyboardForWindow(actionStore.getWindow(), actionStore.getSinglePreset().getName());
-                } else if (actionStore.getWindow()) {
-                    FGMSubAction.actionData.targetWindow = actionStore.getWindow();
-                    FGMSubAction.actionData.fromWindow = actionStore.getWindow();
-                    FGMWindowManager.openKeyboardForWindow(actionStore.getWindow(), actionStore.getWindow().getSingleContextField().getLabel());
-                }
-                FGMSubAction.initiatorPreset = null;
-                break;
+        const handler = FGMActionRegistry.getHandler(actionStore.getAction());
+        if (handler) {
+            handler.handleInteraction(actionStore);
         }
-    }
-
-    static processKeyboardNameEdit(string) {
-        const targetPreset = FGMSubAction.actionData.targetPreset;
-        const fromSinglePreset = FGMSubAction.actionData.fromSinglePreset;
-        const targetWindow = FGMSubAction.actionData.targetWindow;
-
-        if (targetPreset && fromSinglePreset) {
-            fromSinglePreset.setLabel(string);
-        } else if (targetWindow) {
-            targetWindow.getSingleContextField().setLabel(string);
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        }
-
-        FGMSubAction.clearAwaitingAction();
-        FGMWindowManager.closeKeyboard();
     }
 }
 
@@ -230,10 +202,10 @@ class FGMKernel {
 
     static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
         const actionType = FGMSubAction.getAwaitingAction();
-        if (actionType === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
-            FGMAwaitingActions.processKeyboardNameEdit(string);
-        } else if (actionType === FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS) {
-            FGMArtNetLogic.handleKeyboardSave(string);
+        const handler = FGMActionRegistry.getHandler(actionType);
+
+        if (handler) {
+            handler.handleKeyboardEnter(string);
         }
     }
 
@@ -256,13 +228,18 @@ class FGMKernel {
     static eventWindowClicked(window) {
         const awaitingValue = FGMSubAction.getAwaitingAction();
 
-        if (awaitingValue === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
-            FGMKernel.handleAwaitingAction(
-                new FGMHandleAwaitActionStore()
-                    .setAction(awaitingValue)
-                    .setWindow(window));
-            return;
+        if (awaitingValue) {
+            const handler = FGMActionRegistry.getHandler(awaitingValue);
+            if (handler) {
+                handler.handleInteraction(
+                    new FGMHandleAwaitActionStore()
+                        .setAction(awaitingValue)
+                        .setWindow(window)
+                );
+                return;
+            }
         }
+
         FGMArtNetLogic.handleWindowClick(window);
     }
 
