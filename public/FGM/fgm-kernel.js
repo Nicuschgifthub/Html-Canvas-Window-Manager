@@ -49,22 +49,39 @@ class FGMKernel {
     static handleAwaitingAction(actionType, fromWindow, fromPreset, data, singlePreset) {
         switch (actionType) {
             case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
-                FGMSubKernel.actionData.targetPreset = singlePreset;
-                FGMSubKernel.actionData.fromPresetField = fromPreset;
-                FGMSubKernel.actionData.fromWindow = fromWindow;
-
-                FGMWindowManager.openKeyboardForWindow(fromWindow, singlePreset.getName());
+                if (singlePreset) {
+                    FGMSubKernel.actionData.targetPreset = singlePreset;
+                    FGMSubKernel.actionData.fromPresetField = fromPreset;
+                    FGMSubKernel.actionData.fromWindow = fromWindow;
+                    FGMWindowManager.openKeyboardForWindow(fromWindow, singlePreset.getName());
+                } else {
+                    // Renaming the window itself
+                    FGMSubKernel.actionData.targetWindow = fromWindow;
+                    FGMSubKernel.actionData.fromWindow = fromWindow;
+                    FGMWindowManager.openKeyboardForWindow(fromWindow, fromWindow.getSingleContextField().getLabel());
+                }
                 FGMSubKernel.initiatorPreset = null; // Stop flashing once keyboard is open
                 break;
 
             case FGMTypes.ACTIONS.BUTTON.STORE:
-                fromPreset.updatePreset(singlePreset.getId(), { name: "Stored!" });
+                if (singlePreset) {
+                    fromPreset.updatePreset(singlePreset.getId(), { name: "Stored!" });
+                }
                 FGMSubKernel.clearAwaitingAction();
                 break;
 
             default:
                 FGMSubKernel.clearAwaitingAction();
                 break;
+        }
+    }
+
+    // all events
+
+    static eventWindowClicked(fromWindow) {
+        const awaitingValue = FGMSubKernel.getAwaitingAction();
+        if (awaitingValue === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
+            FGMKernel.handleAwaitingAction(awaitingValue, fromWindow, null, {}, null);
         }
     }
 
@@ -120,9 +137,13 @@ class FGMKernel {
         if (actionType === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
             const targetPreset = FGMSubKernel.actionData.targetPreset;
             const fromPresetField = FGMSubKernel.actionData.fromPresetField;
+            const targetWindow = FGMSubKernel.actionData.targetWindow;
 
             if (targetPreset && fromPresetField) {
                 fromPresetField.updatePreset(targetPreset.getId(), { name: string });
+            } else if (targetWindow) {
+                targetWindow.getSingleContextField().setLabel(string);
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
             }
 
             FGMSubKernel.clearAwaitingAction();

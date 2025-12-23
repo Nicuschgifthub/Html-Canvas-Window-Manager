@@ -15,6 +15,10 @@ class FGMPageHandler {
             if (window.getPageId() !== null) {
                 window.setHidden(true);
             }
+
+            if (window.getPageId() == FGMTypes.RENDER.PAGES.RENDER_ALWAYS) {
+                window.setHidden(false);
+            }
         });
 
         if (fromPreset == null) return;

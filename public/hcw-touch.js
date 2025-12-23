@@ -231,6 +231,12 @@ class HCWTouch {
 
         const windowParts = HCWInteraction.getWindowPartByCords(mouseX, mouseY);
 
+        if (windowParts.window) {
+            HCW.pointer._windowPressCandidate = windowParts.window;
+            HCW.pointer._windowPressStartX = mouseX;
+            HCW.pointer._windowPressStartY = mouseY;
+        }
+
         if (HCWInteraction.touchZoneTop(windowParts) && !HCWInteraction.touchZoneRight(windowParts)) {
             HCWWindowActions.moveStart(windowParts.window, mouseX, mouseY);
         }
@@ -325,6 +331,30 @@ class HCWTouch {
             if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
                 HCWWindow.resolveCollisions(win);
             }
+        }
+
+        // Check for Resize Ends (Down)
+        if (HCWWindowActions.getDownResizeWindow()) {
+            const win = HCWWindowActions.getDownResizeWindow();
+            HCWWindowActions.downResize.end();
+            if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
+                HCWWindow.resolveCollisions(win);
+            }
+        }
+
+        // Check for Window Press (Renaming etc)
+        if (HCW.pointer._windowPressCandidate) {
+            const { mouseX, mouseY } = HCWTouch._eventMouseToCords(e);
+            const dist = Math.sqrt(Math.pow(mouseX - HCW.pointer._windowPressStartX, 2) + Math.pow(mouseY - HCW.pointer._windowPressStartY, 2));
+
+            if (dist < 5) {
+                const contextHit = HCWInteraction.getContextHitByCords(mouseX, mouseY);
+                // Trigger window press if we didn't hit a specific field item
+                if (!contextHit.field && HCW.pointer._windowPressCandidate.onPressCallback) {
+                    HCW.pointer._windowPressCandidate.onPressCallback(HCW.pointer._windowPressCandidate);
+                }
+            }
+            HCW.pointer._windowPressCandidate = null;
         }
 
         if (HCW.pointer.contextdrag && HCW.pointer.contextwindow) {

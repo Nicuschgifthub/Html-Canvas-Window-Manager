@@ -21,6 +21,10 @@ let HCW = {
         dragging: false,
         lastMouseX: null,
         lastMouseY: null,
+
+        _windowPressCandidate: null,
+        _windowPressStartX: null,
+        _windowPressStartY: null,
     },
     background: {
         color: '#000000'
@@ -163,6 +167,7 @@ class HCWWindow {
         this.temp = {};
 
         this.data = {};
+        this.onPressCallback = null;
 
         this._init();
     }
@@ -206,6 +211,11 @@ class HCWWindow {
 
     getSingleContextField() {
         return this.contextfields[0];
+    }
+
+    onPress(callback) {
+        this.onPressCallback = callback;
+        return this;
     }
 
     close() {

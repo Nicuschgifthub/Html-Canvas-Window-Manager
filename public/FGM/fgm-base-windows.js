@@ -16,7 +16,8 @@ class FGMBaseWindows {
             .addContextField(pageField)
             .setMinSizes(100, 100)
             .setId(windowId)
-            .setPageId(null);
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMTypes.RENDER.PAGES.RENDER_ALWAYS);
 
         pageField.setParentWindow(newWindow);
 
@@ -24,7 +25,7 @@ class FGMBaseWindows {
     }
 
     static setupPage() {
-        return
+        return;
     }
 
     static inOut() {
@@ -46,6 +47,7 @@ class FGMBaseWindows {
             .setHidden(true)
             .setMinSizes(100, 100)
             .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
         dimFader.setParentWindow(newFaderWindow);
@@ -64,6 +66,7 @@ class FGMBaseWindows {
             .setHidden(true)
             .setMinSizes(100, 100)
             .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
         panEncoder.setParentWindow(newPanEncoderWindow);
@@ -82,6 +85,7 @@ class FGMBaseWindows {
             .setMinSizes(100, 100)
             .setHidden(true)
             .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
         tiltEncoder.setParentWindow(newtiltEncoderWindow);
@@ -100,6 +104,7 @@ class FGMBaseWindows {
             .setHidden(true)
             .setMinSizes(200, 200)
             .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
         colorPicker.setParentWindow(newColorPickerWindow);
@@ -121,6 +126,7 @@ class FGMBaseWindows {
             .setHidden(true)
             .setMinSizes(100, 100)
             .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
             .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
 
         windowsForThisPage.programmerActions = newPageActionsWindow;

@@ -24,6 +24,13 @@ class HCWFaderField {
             sx: null,
             sy: null
         };
+
+        this._potentialClick = false;
+        this._clickStartY = 0;
+    }
+
+    getLabel() {
+        return this.text;
     }
 
     getType() {
@@ -213,6 +220,10 @@ class HCWEncoderField {
         this._lastInteractionAngle = null;
     }
 
+    getLabel() {
+        return this.text;
+    }
+
     getType() {
         return 'PRESET_FIELD';
     }
@@ -246,6 +257,11 @@ class HCWEncoderField {
 
     setParentWindow(win) {
         this.parentWindow = win;
+        return this;
+    }
+
+    onFieldPress(callback) {
+        this.onFieldPressCallback = callback;
         return this;
     }
 
@@ -482,6 +498,10 @@ class HCWPreset {
         this.parentField = null;
     }
 
+    getLabel() {
+        return this.name;
+    }
+
     getParentField() {
         return this.parentField;
     }
@@ -563,7 +583,6 @@ class HCWPresetField {
         this.onPresetPressCallback = null;
 
         this.scrollY = 0;
-
         this.parentWindow = null;
         this.fgmType = null;
 
@@ -592,6 +611,10 @@ class HCWPresetField {
 
         this._dragLastY = null;
         this._pressedIndex = -1;
+    }
+
+    getLabel() {
+        return this.text;
     }
 
     getType() {
@@ -727,7 +750,6 @@ class HCWPresetField {
             this._potentialClick = false;
             this._pressedIndex = -1;
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-
         } else if (interaction.type === 'scroll') {
             this.scrollY -= interaction.deltaY;
             this._clampScroll();
@@ -912,6 +934,10 @@ class HCWNumberField {
 
         this._pressedKey = null;
         this._dragLastY = null;
+    }
+
+    getLabel() {
+        return this.text;
     }
 
     setParentWindow(win) {
@@ -1192,6 +1218,10 @@ class HCWKeyboardField {
 
         this._pressedKey = null;
         this._dragLastY = null;
+    }
+
+    getLabel() {
+        return this.text;
     }
 
     getType() {
@@ -1553,6 +1583,10 @@ class HCWColorMapField {
                 uv: null
             }
         };
+    }
+
+    getLabel() {
+        return this.text;
     }
 
     getType() {

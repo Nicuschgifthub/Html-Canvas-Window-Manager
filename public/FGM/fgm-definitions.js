@@ -61,6 +61,15 @@ class DmxConvert {
 }
 
 class FGMTypes {
+    static get RENDER() {
+        return {
+            PAGES: {
+                get RENDER_ALWAYS() {
+                    return 'r_settings_render_always';
+                }
+            }
+        }
+    }
     static get PROGRAMMER() {
         return {
             DIMMERS: {
