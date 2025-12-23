@@ -737,7 +737,7 @@ class HCWPresetField extends HCWBaseField {
                     bgColor = preset.getDefaultColor();
                 }
 
-                const isFlashing = (typeof FGMSubKernel !== 'undefined' && FGMSubKernel.initiatorPreset === preset);
+                const isFlashing = (typeof FGMSubAction !== 'undefined' && FGMSubAction.initiatorPreset === preset);
 
                 if (isFlashing) {
                     if (typeof FGMKernel !== 'undefined' && FGMKernel.getAwaitingColor) {

@@ -93,7 +93,7 @@ class HCWRender {
                     const type = (field.getType ? field.getType() : field.type).toUpperCase();
                     if (type === 'PRESET_FIELD' && field.presets) {
                         field.presets.forEach(p => {
-                            if (typeof FGMSubKernel !== 'undefined' && FGMSubKernel.initiatorPreset === p) {
+                            if (typeof FGMSubAction !== 'undefined' && FGMSubAction.initiatorPreset === p) {
                                 needsAnimation = true;
                             }
                         });

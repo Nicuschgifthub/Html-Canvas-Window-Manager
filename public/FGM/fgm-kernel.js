@@ -1,10 +1,10 @@
-class FGMSubKernel {
+class FGMSubAction {
     static awaitingAction = null;
     static actionData = {};
     static initiatorPreset = null;
 
     static setAwaitingAction(actionType, data = {}, initiatorPreset = null) {
-        this.clearAwaitingAction(); // Clear any previous action
+        this.clearAwaitingAction();
 
         this.awaitingAction = actionType;
         this.actionData = data;
@@ -25,20 +25,17 @@ class FGMSubKernel {
     }
 }
 
-
-class FGMKernel {
+class FGMAwaitingActions {
     static getAwaitingColor() {
         if (typeof FGMColors === 'undefined') return '#ffffff';
 
-        const pulse = (Math.sin(Date.now() / 150) + 1) / 2; // 0 to 1
+        const pulse = (Math.sin(Date.now() / 150) + 1) / 2;
         const target = FGMColors.PAGES.AWAITING;
 
-        // target is #RRGGBBAA or #RRGGBB
         const r = parseInt(target.slice(1, 3), 16);
         const g = parseInt(target.slice(3, 5), 16);
         const b = parseInt(target.slice(5, 7), 16);
 
-        // Interpolate with black (0,0,0)
         const fr = Math.round(r * pulse);
         const fg = Math.round(g * pulse);
         const fb = Math.round(b * pulse);
@@ -46,127 +43,54 @@ class FGMKernel {
         return `rgb(${fr}, ${fg}, ${fb})`;
     }
 
-    static handleAwaitingAction(actionType, fromWindow, fromPreset, data, singlePreset) {
+    static handle(actionType, fromWindow, fromPreset, data, singlePreset) {
         switch (actionType) {
             case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
                 if (singlePreset) {
-                    FGMSubKernel.actionData.targetPreset = singlePreset;
-                    FGMSubKernel.actionData.fromPresetField = fromPreset;
-                    FGMSubKernel.actionData.fromWindow = fromWindow;
+                    FGMSubAction.actionData.targetPreset = singlePreset;
+                    FGMSubAction.actionData.fromPresetField = fromPreset;
+                    FGMSubAction.actionData.fromWindow = fromWindow;
                     FGMWindowManager.openKeyboardForWindow(fromWindow, singlePreset.getName());
                 } else {
-                    // Renaming the window itself
-                    FGMSubKernel.actionData.targetWindow = fromWindow;
-                    FGMSubKernel.actionData.fromWindow = fromWindow;
+                    FGMSubAction.actionData.targetWindow = fromWindow;
+                    FGMSubAction.actionData.fromWindow = fromWindow;
                     FGMWindowManager.openKeyboardForWindow(fromWindow, fromWindow.getSingleContextField().getLabel());
                 }
-                FGMSubKernel.initiatorPreset = null; // Stop flashing once keyboard is open
+                FGMSubAction.initiatorPreset = null;
                 break;
 
             case FGMTypes.ACTIONS.BUTTON.STORE:
                 if (singlePreset) {
                     fromPreset.updatePreset(singlePreset.getId(), { name: "Stored!" });
                 }
-                FGMSubKernel.clearAwaitingAction();
+                FGMSubAction.clearAwaitingAction();
                 break;
 
             default:
-                FGMSubKernel.clearAwaitingAction();
+                FGMSubAction.clearAwaitingAction();
                 break;
         }
     }
 
-    // all events
+    static processKeyboardNameEdit(string) {
+        const targetPreset = FGMSubAction.actionData.targetPreset;
+        const fromPresetField = FGMSubAction.actionData.fromPresetField;
+        const targetWindow = FGMSubAction.actionData.targetWindow;
 
-    static eventWindowClicked(fromWindow) {
-        const awaitingValue = FGMSubKernel.getAwaitingAction();
-        if (awaitingValue === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
-            FGMKernel.handleAwaitingAction(awaitingValue, fromWindow, null, {}, null);
+        if (targetPreset && fromPresetField) {
+            fromPresetField.updatePreset(targetPreset.getId(), { name: string });
+        } else if (targetWindow) {
+            targetWindow.getSingleContextField().setLabel(string);
+            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         }
+
+        FGMSubAction.clearAwaitingAction();
+        FGMWindowManager.closeKeyboard();
     }
+}
 
-    static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
-        const awaitingValue = FGMSubKernel.getAwaitingAction();
-
-
-        if (awaitingValue) {
-            FGMKernel.handleAwaitingAction(awaitingValue, fromWindow, fromPreset, data, singlePreset);
-            return;
-        }
-
-        if (data._goToPage !== undefined) {
-            FGMPageHandler.pageChange(data._goToPage, fromPreset, singlePreset, fromWindow);
-            return
-        };
-
-        if (data._programmerAction !== undefined) {
-            switch (data._programmerAction) {
-                case FGMTypes.ACTIONS.BUTTON.EDIT_NAME:
-                    FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.BUTTON.EDIT_NAME, {}, singlePreset);
-                    break;
-                case FGMTypes.ACTIONS.BUTTON.STORE:
-                    FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.BUTTON.STORE, {}, singlePreset);
-                    break;
-                default:
-                    console.warn("Unhandled programmer action:", data._programmerAction);
-                    break;
-            }
-            return;
-        }
-    }
-
-    static eventFaderUpdate(fromWindow, fromFader, data) {
-        if (fromFader.getFGMType() == FGMTypes.PROGRAMMER.DIMMERS.MAIN) {
-            console.log("main Dimmer", data)
-        }
-    }
-
-    static eventEncoderUpdate(fromWindow, fromEncoder, data) {
-        if (fromEncoder.getFGMType() == FGMTypes.PROGRAMMER.POSITION.PAN_16Bit) {
-            console.log("Pan", data)
-        }
-
-        if (fromEncoder.getFGMType() == FGMTypes.PROGRAMMER.POSITION.TILT_16Bit) {
-            console.log("Tilt", data)
-        }
-    }
-
-    static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
-        const actionType = FGMSubKernel.getAwaitingAction();
-
-        if (actionType === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
-            const targetPreset = FGMSubKernel.actionData.targetPreset;
-            const fromPresetField = FGMSubKernel.actionData.fromPresetField;
-            const targetWindow = FGMSubKernel.actionData.targetWindow;
-
-            if (targetPreset && fromPresetField) {
-                fromPresetField.updatePreset(targetPreset.getId(), { name: string });
-            } else if (targetWindow) {
-                targetWindow.getSingleContextField().setLabel(string);
-                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-            }
-
-            FGMSubKernel.clearAwaitingAction();
-            FGMWindowManager.closeKeyboard();
-        } else if (actionType === FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS) {
-            const data = FGMSubKernel.actionData;
-            if (data.targetField && data.rowIndex !== undefined) {
-                data.targetField.updateCellValue(data.rowIndex, data.colIndex, string);
-
-                // Update store
-                const fields = ['name', 'ip', 'subnet', 'universe'];
-                const fieldName = fields[data.colIndex];
-                if (fieldName) {
-                    FGMStore.updateArtNetNode(data.rowIndex, fieldName, string);
-                }
-            }
-            FGMSubKernel.clearAwaitingAction();
-            FGMWindowManager.closeKeyboard();
-            FGMKernel._refreshArtNetTable();
-        }
-    }
-
-    static _refreshArtNetTable() {
+class FGMArtNetLogic {
+    static refreshTable() {
         const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
         if (artNetWin) {
             const tableField = artNetWin.getSingleContextField();
@@ -176,18 +100,18 @@ class FGMKernel {
         }
     }
 
-    static eventAddArtNetNode() {
+    static addNode() {
         FGMStore.addArtNetNode();
-        FGMKernel._refreshArtNetTable();
+        FGMArtNetLogic.refreshTable();
     }
 
-    static eventDeleteArtNetNode(fromWindow, fromTable, rowIndex) {
+    static deleteNode(rowIndex) {
         FGMStore.deleteArtNetNode(rowIndex);
-        FGMKernel._refreshArtNetTable();
+        FGMArtNetLogic.refreshTable();
     }
 
-    static eventTableCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
-        FGMSubKernel.setAwaitingAction(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS, {
+    static handleCellClick(fromWindow, fromTable, rowIndex, colIndex, value) {
+        FGMSubAction.setAwaitingAction(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS, {
             targetWindow: fromWindow,
             targetField: fromTable,
             rowIndex: rowIndex,
@@ -196,17 +120,122 @@ class FGMKernel {
         FGMWindowManager.openKeyboardForWindow(fromWindow, value);
     }
 
-    static eventBackgroundClicked() {
+    static handleKeyboardSave(string) {
+        const data = FGMSubAction.actionData;
+        if (data.targetField && data.rowIndex !== undefined) {
+            data.targetField.updateCellValue(data.rowIndex, data.colIndex, string);
+
+            const fields = ['name', 'ip', 'subnet', 'universe'];
+            const fieldName = fields[data.colIndex];
+            if (fieldName) {
+                FGMStore.updateArtNetNode(data.rowIndex, fieldName, string);
+            }
+        }
+        FGMSubAction.clearAwaitingAction();
+        FGMWindowManager.closeKeyboard();
+        FGMArtNetLogic.refreshTable();
+    }
+
+    static handleBackgroundClick() {
         const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
         if (artNetWin && !artNetWin.getHiddenStatus()) {
             artNetWin.setHidden(true);
             FGMWindowManager.closeKeyboard();
         }
     }
+}
+
+class FGMInputHandlers {
+    static handleFader(fromFader, data) {
+        if (fromFader.getFGMType() == FGMTypes.PROGRAMMER.DIMMERS.MAIN) {
+            console.log("main Dimmer", data);
+        }
+    }
+
+    static handleEncoder(fromEncoder, data) {
+        const type = fromEncoder.getFGMType();
+        if (type == FGMTypes.PROGRAMMER.POSITION.PAN_16Bit) console.log("Pan", data);
+        if (type == FGMTypes.PROGRAMMER.POSITION.TILT_16Bit) console.log("Tilt", data);
+    }
+
+    static handleColorPicker(fromColorPicker, data) {
+        if (fromColorPicker.getFGMType() == FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
+            console.log("Color Picker", data);
+        }
+    }
+}
+
+class FGMKernel {
+    static eventInit() {
+        console.log("FGMKernel initialized");
+    }
+
+    static getAwaitingColor() {
+        return FGMAwaitingActions.getAwaitingColor();
+    }
+
+    static handleAwaitingAction(...args) {
+        FGMAwaitingActions.handle(...args);
+    }
+
+    static eventWindowClicked(fromWindow) {
+        const awaitingValue = FGMSubAction.getAwaitingAction();
+        if (awaitingValue === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
+            FGMKernel.handleAwaitingAction(awaitingValue, fromWindow, null, {}, null);
+        }
+    }
+
+    static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
+        const awaitingValue = FGMSubAction.getAwaitingAction();
+        if (awaitingValue) {
+            FGMKernel.handleAwaitingAction(awaitingValue, fromWindow, fromPreset, data, singlePreset);
+            return;
+        }
+
+        if (data._goToPage !== undefined) {
+            FGMPageHandler.pageChange(data._goToPage, fromPreset, singlePreset, fromWindow);
+            return;
+        }
+
+        if (data._programmerAction !== undefined) {
+            FGMSubAction.setAwaitingAction(data._programmerAction, {}, singlePreset);
+        }
+    }
+
+    static eventFaderUpdate(fromWindow, fromFader, data) {
+        FGMInputHandlers.handleFader(fromFader, data);
+    }
+
+    static eventEncoderUpdate(fromWindow, fromEncoder, data) {
+        FGMInputHandlers.handleEncoder(fromEncoder, data);
+    }
+
+    static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
+        const actionType = FGMSubAction.getAwaitingAction();
+        if (actionType === FGMTypes.ACTIONS.BUTTON.EDIT_NAME) {
+            FGMAwaitingActions.processKeyboardNameEdit(string);
+        } else if (actionType === FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS) {
+            FGMArtNetLogic.handleKeyboardSave(string);
+        }
+    }
+
+    static eventAddArtNetNode() {
+        FGMArtNetLogic.addNode();
+    }
+
+    static eventDeleteArtNetNode(fromWindow, fromTable, rowIndex) {
+        FGMArtNetLogic.deleteNode(rowIndex);
+    }
+
+    static eventTableCellClicked(...args) {
+        FGMArtNetLogic.handleCellClick(...args);
+    }
+
+    static eventBackgroundClicked() {
+        FGMArtNetLogic.handleBackgroundClick();
+    }
 
     static eventColorPickerUpdate(fromWindow, fromColorPicker, data) {
-        if (fromColorPicker.getFGMType() == FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
-            console.log("Color Picker", data)
-        }
+        FGMInputHandlers.handleColorPicker(fromColorPicker, data);
     }
 }

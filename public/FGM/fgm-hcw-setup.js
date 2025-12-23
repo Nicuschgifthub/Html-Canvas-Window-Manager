@@ -11,6 +11,8 @@ class FGMwithHCW {
     }
 
     loadInital() {
+        FGMKernel.eventInit();
+
         const basePages = FGMBaseWindows.pageView(10);
         const baseFixtureControl = FGMBaseWindows.fixtureControl();
 
