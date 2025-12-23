@@ -194,7 +194,7 @@ class FGMKernel {
     /** @param {HCWWindow} fromWindow @param {HCWPresetField} fromPreset @param {Object} data @param {HCWPreset} singlePreset */
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
 
-        console.log(singlePreset);
+        console.log('[Kernel] eventPresetClicked - singlePreset:', singlePreset?.getName());
         // Emit event to event bus
         const event = FGMEventBus.emit(FGMEventTypes.PRESET_CLICKED, {
             window: fromWindow,
@@ -206,12 +206,15 @@ class FGMKernel {
 
         // If event was handled and propagation stopped, return early
         if (event.isPropagationStopped()) {
+            console.log('[Kernel] Event propagation stopped');
             return;
         }
 
         // Backward compatibility: handle awaiting actions
         const awaitingValue = FGMSubAction.getAwaitingAction();
         if (awaitingValue) {
+            console.log('[Kernel] Awaiting action detected:', awaitingValue);
+            console.log('[Kernel] Creating action store with singlePreset:', singlePreset?.getName());
             FGMKernel.handleAwaitingAction(
                 new FGMHandleAwaitActionStore()
                     .setAction(awaitingValue)

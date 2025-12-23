@@ -10,7 +10,6 @@ class FGMEditNameModule extends FGMFeatureModule {
     init() {
         console.log('[EditNameModule] Initializing...');
 
-        // Register action handler for edit name
         this.registerAction(FGMTypes.ACTIONS.BUTTON.EDIT_NAME, {
             handleInteraction: (actionStore) => this.handleInteraction(actionStore),
             handleKeyboardEnter: (value) => this.handleKeyboardEnter(value)
@@ -25,8 +24,6 @@ class FGMEditNameModule extends FGMFeatureModule {
 
         if (!window) return;
         if (window.getSingleContextField().getFGMType() === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) return;
-
-        console.dir(actionStore, { depth: null })
 
         if (singlePreset) {
             FGMSubAction.actionData.targetPreset = singlePreset;
