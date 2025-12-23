@@ -206,7 +206,11 @@ class HCWWindow {
     }
 
     getContextId() {
-        this.contextfields[0].id;
+        return this.contextfields[0]?.id;
+    }
+
+    getContextFields() {
+        return this.contextfields;
     }
 
     getSingleContextField() {

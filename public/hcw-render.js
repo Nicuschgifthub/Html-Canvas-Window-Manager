@@ -1,10 +1,12 @@
 class HCWCanvasDraw {
     static drawRect(x, y, sx, sy, color = '#ffffff') {
+        if (!HCW.ctx) return;
         HCW.ctx.fillStyle = color;
         HCW.ctx.fillRect(x, y, sx, sy);
     }
 
     static drawBackground(color = '#000000') {
+        if (!HCW.ctx || !HCW.canvas) return;
         HCW.ctx.fillStyle = color;
         HCW.ctx.fillRect(0, 0, HCW.canvas.width, HCW.canvas.height);
     }
@@ -70,6 +72,7 @@ class HCWRender {
     }
 
     static updateFrame() {
+        if (!HCW.ctx || !HCW.canvas) return;
         HCWCanvasDraw.drawBackground(HCW.background.color);
 
         if (HCW.grid.pointDistanceX !== null) {

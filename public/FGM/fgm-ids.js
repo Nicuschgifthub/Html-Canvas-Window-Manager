@@ -59,6 +59,12 @@ class FGMIds {
             WINDOWS: {
                 get ART_NET_CONFIG() {
                     return 'd_w_art_net_config';
+                },
+                get PATCH_WINDOW() {
+                    return 'd_w_patch_window';
+                },
+                get FIXTURE_LIST_CONFIG() {
+                    return 'd_w_fixture_list_config';
                 }
             }
         }

@@ -3,6 +3,7 @@ class FGMLoadFiles {
         return [
             '/FGM/fgm-ids.js',
             '/FGM/fgm-definitions.js',
+            '/FGM/fgm-library.js',
             '/FGM/fgm-store.js',
             '/FGM/fgm-fixtures.js',
             '/FGM/fgm-programmer.js',

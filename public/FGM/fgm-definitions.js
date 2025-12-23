@@ -162,6 +162,18 @@ class FGMTypes {
             WINDOW: {
                 get ARTNET_SETTINGS() {
                     return 'w_artnet_settings';
+                },
+                get PATCH_SEARCH() {
+                    return 'w_patch_search';
+                },
+                get PATCH_CELL_CLICK() {
+                    return 'w_patch_cell_click';
+                },
+                get FIXTURE_LIST_EDIT() {
+                    return 'w_fixture_list_edit';
+                },
+                get FIXTURE_LIST_CONFIG() {
+                    return 'w_fixture_list_config';
                 }
             }
         }

@@ -6,6 +6,15 @@ class FGMStore {
         { name: "MyArtNetNode", ip: "127.0.0.1", subnet: "255.0.0.0", universe: "0:0:1" }
     ];
     static patchedFixtures = [];
+    static library = null;
+
+    static setLibrary(lib) {
+        this.library = lib;
+    }
+
+    static getLibrary() {
+        return this.library;
+    }
 
     static saveHCWClass(HCW) {
         this.HCW_Class = HCW;
@@ -62,5 +71,29 @@ class FGMStore {
 
     static addPatchedFixture(fixture) {
         this.patchedFixtures.push(fixture);
+    }
+
+    static updateFixtureMetadata(id, updates = {}) {
+        const fixture = this.patchedFixtures.find(f => f.getId() === id);
+        if (!fixture) {
+            console.error(`FGMStore: Fixture with ID ${id} not found.`);
+            return false;
+        }
+
+        if (updates.id !== undefined && updates.id !== id) {
+            // Check for duplicate ID
+            const exists = this.patchedFixtures.find(f => f.getId() === updates.id);
+            if (exists) {
+                console.warn(`FGMStore: Duplicate ID ${updates.id} rejected.`);
+                return false;
+            }
+            fixture.setId(updates.id);
+        }
+
+        if (updates.label !== undefined) {
+            fixture.setLabel(updates.label);
+        }
+
+        return true;
     }
 }

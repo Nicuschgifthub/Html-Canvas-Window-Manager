@@ -1766,6 +1766,7 @@ class HCWTableField extends HCWBaseField {
         this.onCellClickCallback = null;
         this.onDeleteRowCallback = null;
         this.onAddRowCallback = null;
+        this.addRowLabel = '+ Add New Element';
 
         this.rowHeight = 35;
         this.headerHeight = 40;
@@ -1806,6 +1807,11 @@ class HCWTableField extends HCWBaseField {
 
     onAddRow(cb) {
         this.onAddRowCallback = cb;
+        return this;
+    }
+
+    setAddRowLabel(label) {
+        this.addRowLabel = label;
         return this;
     }
 
@@ -1966,7 +1972,7 @@ class HCWTableField extends HCWBaseField {
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 14px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('+ Add New Node', addBtnX + addBtnW / 2, addBtnY + this.addBtnHeight / 2 + 5);
+                ctx.fillText(this.addRowLabel, addBtnX + addBtnW / 2, addBtnY + this.addBtnHeight / 2 + 5);
 
                 this.renderProps.addButton = {
                     x: addBtnX,
