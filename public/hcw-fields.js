@@ -1764,16 +1764,21 @@ class HCWTableField extends HCWBaseField {
         this.headers = [];
         this.rows = [];
         this.onCellClickCallback = null;
+        this.onDeleteRowCallback = null;
+        this.onAddRowCallback = null;
 
         this.rowHeight = 35;
         this.headerHeight = 40;
+        this.addBtnHeight = 40;
 
         this.renderProps = {
             startX: null,
             startY: null,
             endX: null,
             endY: null,
-            cells: []
+            cells: [],
+            deleteButtons: [],
+            addButton: null
         };
     }
 
@@ -1794,6 +1799,16 @@ class HCWTableField extends HCWBaseField {
         return this;
     }
 
+    onDeleteRow(cb) {
+        this.onDeleteRowCallback = cb;
+        return this;
+    }
+
+    onAddRow(cb) {
+        this.onAddRowCallback = cb;
+        return this;
+    }
+
     getType() {
         return 'TABLE_FIELD';
     }
@@ -1801,6 +1816,7 @@ class HCWTableField extends HCWBaseField {
     _interaction(interaction) {
         if (interaction.type === 'mousedown') {
             const { mouseX, mouseY } = interaction;
+
             const hitCell = this.renderProps.cells.find(c =>
                 mouseX >= c.x && mouseX <= c.x + c.w &&
                 mouseY >= c.y && mouseY <= c.y + c.h
@@ -1808,6 +1824,24 @@ class HCWTableField extends HCWBaseField {
 
             if (hitCell && this.onCellClickCallback) {
                 this.onCellClickCallback(this.parentWindow, this, hitCell.rowIndex, hitCell.colIndex, hitCell.value);
+                return;
+            }
+
+            const hitDelete = this.renderProps.deleteButtons.find(b =>
+                mouseX >= b.x && mouseX <= b.x + b.w &&
+                mouseY >= b.y && mouseY <= b.y + b.h
+            );
+
+            if (hitDelete && this.onDeleteRowCallback) {
+                this.onDeleteRowCallback(this.parentWindow, this, hitDelete.rowIndex);
+                return;
+            }
+
+            const hitAdd = this.renderProps.addButton;
+            if (hitAdd && this.onAddRowCallback &&
+                mouseX >= hitAdd.x && mouseX <= hitAdd.x + hitAdd.w &&
+                mouseY >= hitAdd.y && mouseY <= hitAdd.y + hitAdd.h) {
+                this.onAddRowCallback(this.parentWindow, this);
             }
         }
     }
@@ -1825,12 +1859,15 @@ class HCWTableField extends HCWBaseField {
         this.renderProps.endX = w.x2;
         this.renderProps.endY = w.y2;
         this.renderProps.cells = [];
+        this.renderProps.deleteButtons = [];
+        this.renderProps.addButton = null;
 
         const ctx = HCW.ctx;
         if (!ctx) return;
 
         const pad = 10;
-        const availableW = w.sx - pad * 2;
+        const deleteColW = this.onDeleteRowCallback ? 40 : 0;
+        const availableW = w.sx - pad * 2 - deleteColW;
         const colW = availableW / (this.headers.length || 1);
 
         // Background
@@ -1877,6 +1914,28 @@ class HCWTableField extends HCWBaseField {
                 });
             });
 
+            // Delete Button
+            if (this.onDeleteRowCallback) {
+                const delX = w.x2 - pad - deleteColW + 5;
+                const delY = rowY + 5;
+                const delW = deleteColW - 10;
+                const delH = this.rowHeight - 10;
+
+                ctx.fillStyle = '#770000';
+                ctx.fillRect(delX, delY, delW, delH);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText('X', delX + delW / 2, delY + delH / 2 + 5);
+
+                this.renderProps.deleteButtons.push({
+                    x: delX,
+                    y: delY,
+                    w: delW,
+                    h: delH,
+                    rowIndex
+                });
+            }
+
             // Grid lines
             ctx.strokeStyle = '#333';
             ctx.beginPath();
@@ -1893,6 +1952,29 @@ class HCWTableField extends HCWBaseField {
             ctx.moveTo(x, w.y);
             ctx.lineTo(x, w.y2);
             ctx.stroke();
+        }
+
+        // Add Button at the bottom
+        if (this.onAddRowCallback) {
+            const addBtnY = w.y + this.headerHeight + this.rows.length * this.rowHeight + 10;
+            if (addBtnY + this.addBtnHeight <= w.y2) {
+                const addBtnX = w.x + pad;
+                const addBtnW = w.sx - pad * 2;
+
+                ctx.fillStyle = '#006600';
+                ctx.fillRect(addBtnX, addBtnY, addBtnW, this.addBtnHeight);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('+ Add New Node', addBtnX + addBtnW / 2, addBtnY + this.addBtnHeight / 2 + 5);
+
+                this.renderProps.addButton = {
+                    x: addBtnX,
+                    y: addBtnY,
+                    w: addBtnW,
+                    h: this.addBtnHeight
+                };
+            }
         }
 
         ctx.textAlign = 'start';

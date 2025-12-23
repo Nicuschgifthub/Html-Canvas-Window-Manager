@@ -63,9 +63,11 @@ class FGMBaseWindows {
             .setHeaders(['Name', 'IP Address', 'Subnet Mask', 'Universe'])
             .setRows(rows)
             .onCellClick(FGMKernel.eventTableCellClicked)
+            .onDeleteRow(FGMKernel.eventDeleteArtNetNode)
+            .onAddRow(FGMKernel.eventAddArtNetNode.bind(FGMKernel))
             .setFGMType(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS);
 
-        const artNetWindow = new HCWWindow(300, 200, 500, 300)
+        const artNetWindow = new HCWWindow(300, 200, 500, 400)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(tableField)
             .setHidden(true) // Hidden by default

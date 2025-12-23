@@ -162,7 +162,28 @@ class FGMKernel {
             }
             FGMSubKernel.clearAwaitingAction();
             FGMWindowManager.closeKeyboard();
+            FGMKernel._refreshArtNetTable();
         }
+    }
+
+    static _refreshArtNetTable() {
+        const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
+        if (artNetWin) {
+            const tableField = artNetWin.getSingleContextField();
+            const nodes = FGMStore.getArtNetNodes();
+            const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe]);
+            tableField.setRows(rows);
+        }
+    }
+
+    static eventAddArtNetNode() {
+        FGMStore.addArtNetNode();
+        FGMKernel._refreshArtNetTable();
+    }
+
+    static eventDeleteArtNetNode(fromWindow, fromTable, rowIndex) {
+        FGMStore.deleteArtNetNode(rowIndex);
+        FGMKernel._refreshArtNetTable();
     }
 
     static eventTableCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
