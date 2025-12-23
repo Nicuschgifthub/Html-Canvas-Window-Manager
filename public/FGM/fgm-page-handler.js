@@ -1,9 +1,7 @@
 class FGMPageHandler {
-
     static pageChange(goToPage, fromPreset = null, singlePreset = null, fromWindow = null) {
 
         FGMStore.setCurrentPage(goToPage);
-
         const windows = FGMStore.getHCW().getWindows();
 
         windows.forEach(window => {

@@ -1,15 +1,75 @@
-class HCWFaderField {
-    constructor(faderText = 'Fader 01', id = Date.now()) {
-        this.text = faderText;
+class HCWBaseField {
+    constructor(text, id = Date.now()) {
+        this.text = text;
         this.id = id;
-
         this.fgmType = null;
+        this.parentWindow = null;
+        this.renderProps = {};
+    }
+
+    getLabel() {
+        return this.text;
+    }
+
+    setLabel(label) {
+        this.text = label;
+        this.updateFrame();
+        return this;
+    }
+
+    getFGMType() {
+        return this.fgmType;
+    }
+
+    setFGMType(type = null) {
+        this.fgmType = type;
+        return this;
+    }
+
+    setParentWindow(win) {
+        this.parentWindow = win;
+        return this;
+    }
+
+    getParentWindow() {
+        return this.parentWindow;
+    }
+
+    updateFrame() {
+        if (typeof HCWRender !== 'undefined') {
+            HCWRender.updateFrame();
+        }
+    }
+
+    getExcludedJSONKeys() {
+        return ['parentWindow', 'onValueChangeCallback', 'onPresetPressCallback', 'onEnterCallback', 'onColorChangeCallback'];
+    }
+
+    toJSON() {
+        const copy = { ...this };
+        this.getExcludedJSONKeys().forEach(key => delete copy[key]);
+        return copy;
+    }
+
+    fromJSON(json) {
+        try {
+            const data = typeof json === 'string' ? JSON.parse(json) : json;
+            Object.assign(this, data);
+            this.updateFrame();
+        } catch (e) {
+            console.error("Failed to restore field:", e);
+        }
+        return this;
+    }
+}
+
+class HCWFaderField extends HCWBaseField {
+    constructor(faderText = 'Fader 01', id = Date.now()) {
+        super(faderText, id);
 
         this.value = 0.0; // 0.0 to 1.0
         this.displayType = 'byte'; // 'value', 'byte', 'percent'
         this.onValueChangeCallback = null;
-
-        this.parentWindow = null;
 
         this.renderProps = {
             colors: {
@@ -29,60 +89,10 @@ class HCWFaderField {
         this._clickStartY = 0;
     }
 
-    getLabel() {
-        return this.text;
-    }
-
     getType() {
         return 'FADER_FIELD';
     }
 
-    toJSON() {
-        const copy = { ...this };
-        delete copy.onValueChangeCallback;
-        delete copy.parentWindow;
-        return copy;
-    }
-
-    fromJSON(json) {
-        try {
-            const data = typeof json === 'string' ? JSON.parse(json) : json;
-            Object.assign(this, data);
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        } catch (e) {
-            console.error("Failed to restore:", e);
-        }
-        return this;
-    }
-
-    getFGMType() {
-        return this.fgmType;
-    }
-
-    setFGMType(type = null) {
-        this.fgmType = type;
-        return this
-    }
-
-    setParentWindow(win) {
-        this.parentWindow = win;
-        return this;
-    }
-
-    getParentWindow() {
-        return this.parentWindow;
-    }
-
-    setLabel(label) {
-        this.text = label;
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        return this;
-    }
-
-    /**
-     * Set the fader value (0.0 - 1.0)
-     * @param {number} val 
-     */
     setValue(val) {
         const oldVal = this.value;
         this.value = Math.max(0, Math.min(1, val));
@@ -95,39 +105,23 @@ class HCWFaderField {
                     percent: Math.round(this.value * 100)
                 });
             }
-            if (typeof HCWRender !== 'undefined') {
-                HCWRender.updateFrame();
-            }
+            this.updateFrame();
         }
         return this;
     }
 
-    /**
-     * Set the value display type
-     * @param {'value'|'byte'|'percent'} type 
-     */
     setDisplayType(type) {
         if (['value', 'byte', 'percent'].includes(type)) {
             this.displayType = type;
-            if (typeof HCWRender !== 'undefined') {
-                HCWRender.updateFrame();
-            }
+            this.updateFrame();
         }
         return this;
     }
 
-    /**
-     * Get the current value
-     * @returns {number}
-     */
     getValue() {
         return this.value;
     }
 
-    /**
-     * Register a callback for when the value changes
-     * @param {function} callback 
-     */
     onValueChange(callback) {
         this.onValueChangeCallback = callback;
         return this;
@@ -187,19 +181,15 @@ class HCWFaderField {
     }
 }
 
-class HCWEncoderField {
+class HCWEncoderField extends HCWBaseField {
     constructor(encoderText = 'Encoder', id = Date.now()) {
-        this.text = encoderText;
-        this.id = id;
+        super(encoderText, id);
 
         this.value = 0.0;
         this.value2 = 0.0;
 
         this.displayType = 'byte';
         this.onValueChangeCallback = null;
-
-        this.fgmType = null;
-        this.parentWindow = null;
 
         this.renderProps = {
             colors: {
@@ -220,53 +210,13 @@ class HCWEncoderField {
         this._lastInteractionAngle = null;
     }
 
-    getLabel() {
-        return this.text;
-    }
-
     getType() {
-        return 'PRESET_FIELD';
-    }
-
-    toJSON() {
-        const copy = { ...this };
-        delete copy.onValueChangeCallback;
-        delete copy.parentWindow;
-        return copy;
-    }
-
-    fromJSON(json) {
-        try {
-            const data = typeof json === 'string' ? JSON.parse(json) : json;
-            Object.assign(this, data);
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        } catch (e) {
-            console.error("Failed to restore:", e);
-        }
-        return this;
-    }
-
-    getFGMType() {
-        return this.fgmType;
-    }
-
-    setFGMType(type = null) {
-        this.fgmType = type;
-        return this
-    }
-
-    setParentWindow(win) {
-        this.parentWindow = win;
-        return this;
+        return 'ENCODER_FIELD';
     }
 
     onFieldPress(callback) {
         this.onFieldPressCallback = callback;
         return this;
-    }
-
-    getParentWindow() {
-        return this.parentWindow;
     }
 
     setValue(val1, val2 = null) {
@@ -286,10 +236,7 @@ class HCWEncoderField {
         this.value2 = Math.max(0, Math.min(1, v2));
 
         this._triggerCallback();
-
-        if (typeof HCWRender !== 'undefined') {
-            HCWRender.updateFrame();
-        }
+        this.updateFrame();
         return this;
     }
 
@@ -311,20 +258,10 @@ class HCWEncoderField {
         }
     }
 
-    setLabel(name) {
-        this.text = name;
-        if (typeof HCWRender !== 'undefined') {
-            HCWRender.updateFrame();
-        }
-        return this;
-    }
-
     setDisplayType(type) {
         if (['value', 'byte', 'percent'].includes(type)) {
             this.displayType = type;
-            if (typeof HCWRender !== 'undefined') {
-                HCWRender.updateFrame();
-            }
+            this.updateFrame();
         }
         return this;
     }
@@ -574,17 +511,14 @@ class HCWPreset {
     }
 }
 
-class HCWPresetField {
+class HCWPresetField extends HCWBaseField {
     constructor(fieldName = 'Presets', id = Date.now()) {
-        this.text = fieldName;
-        this.id = id;
+        super(fieldName, id);
 
         this.presets = [];
         this.onPresetPressCallback = null;
 
         this.scrollY = 0;
-        this.parentWindow = null;
-        this.fgmType = null;
 
         this.itemMinWidth = 80;
         this.itemHeight = 60;
@@ -613,27 +547,12 @@ class HCWPresetField {
         this._pressedIndex = -1;
     }
 
-    getLabel() {
-        return this.text;
-    }
-
     getType() {
         return 'PRESET_FIELD';
     }
 
-    getFGMType() {
-        return this.fgmType;
-    }
-
-    setFGMType(type = null) {
-        this.fgmType = type;
-        return this;
-    }
-
     toJSON() {
-        const copy = { ...this };
-        delete copy.onPresetPressCallback;
-        delete copy.parentWindow;
+        const copy = super.toJSON();
         copy.presets = this.presets.map(p => p.toJSON());
         return copy;
     }
@@ -645,21 +564,10 @@ class HCWPresetField {
             if (data.presets) {
                 this.presets = data.presets.map(p => new HCWPreset().fromJSON(p).setParentField(this));
             }
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            this.updateFrame();
         } catch (e) {
-            console.error("Failed to restore:", e);
+            console.error("Failed to restore field:", e);
         }
-        return this;
-    }
-
-    setParentWindow(win) {
-        this.parentWindow = win;
-        return this;
-    }
-
-    setLabel(label) {
-        this.text = label;
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         return this;
     }
 
@@ -673,7 +581,7 @@ class HCWPresetField {
 
         preset.setParentField(this);
         this.presets.push(preset);
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        this.updateFrame();
         return this;
     }
 
@@ -681,7 +589,7 @@ class HCWPresetField {
         const preset = this.presets.find(p => p.id === id);
         if (preset) {
             preset.update(updates);
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            this.updateFrame();
         } else {
             console.warn(`HCWPresetField: Preset with id '${id}' not found.`);
         }
@@ -693,7 +601,7 @@ class HCWPresetField {
             if (blacklistIds.find(p => p === preset.id)) return;
             preset.update(updates);
         });
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        this.updateFrame();
         return this;
     }
 
@@ -885,11 +793,10 @@ class HCWPresetField {
     }
 }
 
-class HCWNumberField {
+class HCWNumberField extends HCWBaseField {
     constructor(fieldName = 'Numpad', id = Date.now()) {
+        super(fieldName, id);
         this.type = 'numpad';
-        this.text = fieldName;
-        this.id = id;
 
         this.value = "";
         this.cursorPos = 0;
@@ -908,7 +815,6 @@ class HCWNumberField {
             ['<', '>']
         ];
 
-        this.parentWindow = null;
         this.physicalShiftDown = false;
 
         this.renderProps = {
@@ -936,25 +842,10 @@ class HCWNumberField {
         this._dragLastY = null;
     }
 
-    getLabel() {
-        return this.text;
-    }
-
-    setParentWindow(win) {
-        this.parentWindow = win;
-        return this;
-    }
-
-    setLabel(label) {
-        this.text = label;
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        return this;
-    }
-
     setValue(val) {
         this.value = String(val);
         this.cursorPos = this.value.length;
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        this.updateFrame();
         return this;
     }
 
@@ -1002,14 +893,14 @@ class HCWNumberField {
             const da = this.renderProps.displayArea;
             if (da && mouseX >= da.x && mouseX <= da.x + da.w && mouseY >= da.y && mouseY <= da.y + da.h) {
                 this._setCursorByClick(mouseX);
-                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                this.updateFrame();
                 return;
             }
 
             const hit = this._findHitButton(mouseX, mouseY);
             if (hit) {
                 this._pressedKey = hit.key;
-                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                this.updateFrame();
             }
 
         } else if (interaction.type === 'mousemove') {
@@ -1017,7 +908,7 @@ class HCWNumberField {
             if (this._potentialClick && Math.abs(mouseY - this._clickStartY) > 5) {
                 this._potentialClick = false;
                 this._pressedKey = null;
-                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                this.updateFrame();
             }
 
         } else if (interaction.type === 'mouseup') {
@@ -1028,7 +919,7 @@ class HCWNumberField {
 
             this._potentialClick = false;
             this._pressedKey = null;
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            this.updateFrame();
         } else if (interaction.type === 'keydown') {
             if (interaction.key === 'Shift') this.physicalShiftDown = true;
             this._handleInput(interaction.key);
@@ -1164,11 +1055,10 @@ class HCWNumberField {
     }
 }
 
-class HCWKeyboardField {
+class HCWKeyboardField extends HCWBaseField {
     constructor(fieldName = 'Keyboard', id = Date.now()) {
+        super(fieldName, id);
         this.type = 'keyboard';
-        this.text = fieldName;
-        this.id = id;
 
         this.value = "";
         this.cursorPos = 0;
@@ -1187,8 +1077,6 @@ class HCWKeyboardField {
             ['DELETE', '<=', 'SPACE', '<', '>', 'ENTER']
         ];
 
-        this.parentWindow = null;
-        this.fgmType = null;
         this.physicalShiftDown = false;
 
         this.renderProps = {
@@ -1220,60 +1108,14 @@ class HCWKeyboardField {
         this._dragLastY = null;
     }
 
-    getLabel() {
-        return this.text;
-    }
-
     getType() {
-        return 'FADER_FIELD';
-    }
-
-    toJSON() {
-        const copy = { ...this };
-        delete copy.onEnterCallback;
-        delete copy.parentWindow;
-        return copy;
-    }
-
-    fromJSON(json) {
-        try {
-            const data = typeof json === 'string' ? JSON.parse(json) : json;
-            Object.assign(this, data);
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        } catch (e) {
-            console.error("Failed to restore:", e);
-        }
-        return this;
-    }
-
-    getFGMType() {
-        return this.fgmType;
-    }
-
-    setFGMType(type = null) {
-        this.fgmType = type;
-        return this;
-    }
-
-    setParentWindow(win) {
-        this.parentWindow = win;
-        return this;
-    }
-
-    getParentWindow() {
-        return this.parentWindow;
-    }
-
-    setLabel(label) {
-        this.text = label;
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        return this;
+        return 'KEYBOARD_FIELD';
     }
 
     setValue(val) {
         this.value = String(val);
         this.cursorPos = this.value.length;
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        this.updateFrame();
         return this;
     }
 
@@ -1330,14 +1172,14 @@ class HCWKeyboardField {
             const da = this.renderProps.displayArea;
             if (da && mouseX >= da.x && mouseX <= da.x + da.w && mouseY >= da.y && mouseY <= da.y + da.h) {
                 this._setCursorByClick(mouseX);
-                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                this.updateFrame();
                 return;
             }
 
             const hit = this._findHitButton(mouseX, mouseY);
             if (hit) {
                 this._pressedKey = hit.key;
-                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                this.updateFrame();
             }
 
         } else if (interaction.type === 'mousemove') {
@@ -1345,7 +1187,7 @@ class HCWKeyboardField {
             if (this._potentialClick && Math.abs(mouseY - this._clickStartY) > 5) {
                 this._potentialClick = false;
                 this._pressedKey = null;
-                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+                this.updateFrame();
             }
 
         } else if (interaction.type === 'mouseup') {
@@ -1356,7 +1198,7 @@ class HCWKeyboardField {
 
             this._potentialClick = false;
             this._pressedKey = null;
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+            this.updateFrame();
         } else if (interaction.type === 'keydown') {
             if (interaction.key === 'Shift') this.physicalShiftDown = true;
             this._handleInput(interaction.key);
@@ -1546,10 +1388,9 @@ class HCWKeyboardField {
     }
 }
 
-class HCWColorMapField {
+class HCWColorMapField extends HCWBaseField {
     constructor(label = 'Color 1', id = Date.now()) {
-        this.text = label;
-        this.id = id;
+        super(label, id);
 
         this.h = 0;
         this.s = 1;
@@ -1559,7 +1400,6 @@ class HCWColorMapField {
         this.fgmType = null;
 
         this.onColorChangeCallback = null;
-        this.parentWindow = null;
 
         this._colorMapCanvas = null;
         this._colorMapSize = 0;
@@ -1585,54 +1425,12 @@ class HCWColorMapField {
         };
     }
 
-    getLabel() {
-        return this.text;
-    }
-
     getType() {
         return 'COLOR_MAP_FIELD';
     }
 
-    toJSON() {
-        const copy = { ...this };
-        delete copy.onColorChangeCallback;
-        delete copy.parentWindow;
-        return copy;
-    }
-
-    fromJSON(json) {
-        try {
-            const data = typeof json === 'string' ? JSON.parse(json) : json;
-            Object.assign(this, data);
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        } catch (e) {
-            console.error("Failed to restore:", e);
-        }
-        return this;
-    }
-
-    getFGMType() {
-        return this.fgmType;
-    }
-
-    setFGMType(type = null) {
-        this.fgmType = type;
-        return this;
-    }
-
-    setParentWindow(win) {
-        this.parentWindow = win;
-        return this;
-    }
-
     onValueChange(cb) {
         this.onColorChangeCallback = cb;
-        return this;
-    }
-
-    setLabel(label) {
-        this.text = label;
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         return this;
     }
 
@@ -1653,7 +1451,7 @@ class HCWColorMapField {
         if (colors.amber !== undefined) this.extra.amber = colors.amber;
         if (colors.uv !== undefined) this.extra.uv = colors.uv;
 
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        this.updateFrame();
         return this;
     }
 
@@ -1687,7 +1485,7 @@ class HCWColorMapField {
         if (this.onColorChangeCallback) {
             this.onColorChangeCallback(this.parentWindow, this, this.getColors());
         }
-        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+        this.updateFrame();
     }
 
     _HCW_hsvToRgb(h, s, v) {
