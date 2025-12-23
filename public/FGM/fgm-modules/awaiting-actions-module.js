@@ -10,22 +10,20 @@ class FGMAwaitingActionsModule extends FGMFeatureModule {
     init() {
         console.log('[AwaitingActionsModule] Initializing...');
 
-        // Register handler for preset clicks when there's an awaiting action
         this.on(FGMEventTypes.PRESET_CLICKED, {
             filter: (event) => {
                 return FGMSubAction.getAwaitingAction() !== null;
             },
             handler: (event) => this.handlePresetClickWithAwaitingAction(event),
-            priority: 100 // Very high priority to handle before other handlers
+            priority: 100
         });
 
-        // Register handler for window clicks when there's an awaiting action
         this.on(FGMEventTypes.WINDOW_CLICKED, {
             filter: (event) => {
                 return FGMSubAction.getAwaitingAction() !== null;
             },
             handler: (event) => this.handleWindowClickWithAwaitingAction(event),
-            priority: 100 // Very high priority
+            priority: 100
         });
 
         console.log('[AwaitingActionsModule] Initialized');
@@ -46,7 +44,6 @@ class FGMAwaitingActionsModule extends FGMFeatureModule {
             );
         }
 
-        // Stop propagation so other handlers don't process this
         event.stopPropagation();
     }
 
@@ -63,7 +60,6 @@ class FGMAwaitingActionsModule extends FGMFeatureModule {
             );
         }
 
-        // Stop propagation
         event.stopPropagation();
     }
 }

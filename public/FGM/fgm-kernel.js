@@ -178,8 +178,6 @@ class FGMInputHandlers {
 class FGMKernel {
     static eventInit() {
         console.log("FGMKernel initialized");
-
-        // Emit system init event
         FGMEventBus.emit(FGMEventTypes.INIT, {});
     }
 
@@ -193,7 +191,6 @@ class FGMKernel {
 
     /** @param {HCWWindow} fromWindow @param {HCWPresetField} fromPreset @param {Object} data @param {HCWPreset} singlePreset */
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
-        // Emit event to event bus - modules will handle it
         FGMEventBus.emit(FGMEventTypes.PRESET_CLICKED, {
             window: fromWindow,
             field: fromPreset,
@@ -205,7 +202,6 @@ class FGMKernel {
 
     /** @param {HCWWindow} fromWindow @param {HCWFaderField} fromFader @param {Object} data */
     static eventFaderUpdate(fromWindow, fromFader, data) {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.FADER_UPDATE, {
             window: fromWindow,
             field: fromFader,
@@ -215,7 +211,6 @@ class FGMKernel {
 
     /** @param {HCWWindow} fromWindow @param {HCWEncoderField} fromEncoder @param {Object} data */
     static eventEncoderUpdate(fromWindow, fromEncoder, data) {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.ENCODER_UPDATE, {
             window: fromWindow,
             field: fromEncoder,
@@ -225,14 +220,12 @@ class FGMKernel {
 
     /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable @param {String} string */
     static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
-        // Emit event to event bus - modules will handle it
         FGMEventBus.emit(FGMEventTypes.KEYBOARD_ENTER, {
             window: fromWindow,
             field: fromKeyboard,
             value: string
         });
 
-        // Action handlers still need to be called for keyboard input
         const actionType = FGMSubAction.getAwaitingAction();
         const handler = FGMActionRegistry.getHandler(actionType);
 
@@ -242,7 +235,6 @@ class FGMKernel {
     }
 
     static eventAddArtNetNode() {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.TABLE_ROW_ADDED, {
             field: { getFGMType: () => FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS }
         });
@@ -250,7 +242,6 @@ class FGMKernel {
 
     /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable */
     static eventDeleteArtNetNode(fromWindow, fromTable, rowIndex) {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.TABLE_ROW_DELETED, {
             window: fromWindow,
             field: fromTable,
@@ -259,7 +250,6 @@ class FGMKernel {
     }
 
     static eventTableArtNetCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.TABLE_CELL_CLICKED, {
             window: fromWindow,
             field: fromTable,
@@ -270,20 +260,17 @@ class FGMKernel {
     }
 
     static eventBackgroundClicked() {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.BACKGROUND_CLICKED, {});
     }
 
     /** @param {HCWWindow} window */
     static eventWindowClicked(window) {
-        // Emit event to event bus - modules will handle it
         FGMEventBus.emit(FGMEventTypes.WINDOW_CLICKED, {
             window: window
         });
     }
 
     static eventColorPickerUpdate(fromWindow, fromColorPicker, data) {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.COLOR_PICKER_UPDATE, {
             window: fromWindow,
             field: fromColorPicker,
@@ -292,7 +279,6 @@ class FGMKernel {
     }
 
     static eventTableFixturePatchCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.TABLE_CELL_CLICKED, {
             window: fromWindow,
             field: fromTable,
@@ -303,7 +289,6 @@ class FGMKernel {
     }
 
     static eventDeleteFixturePatchCell(fromWindow, fromTable, rowIndex, colIndex, value) {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.TABLE_ROW_DELETED, {
             window: fromWindow,
             field: fromTable,
@@ -314,7 +299,6 @@ class FGMKernel {
     }
 
     static eventAddFixturePatchCell() {
-        // Emit event to event bus
         FGMEventBus.emit(FGMEventTypes.TABLE_ROW_ADDED, {
             field: { getFGMType: () => FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG }
         });

@@ -10,10 +10,8 @@ class FGMPageModule extends FGMFeatureModule {
     init() {
         console.log('[PageModule] Initializing...');
 
-        // Register handler for preset clicks that trigger page changes
         this.on(FGMEventTypes.PRESET_CLICKED, {
             filter: (event) => {
-                // Don't handle if there's an awaiting action - let the action handler deal with it
                 if (FGMSubAction.getAwaitingAction()) {
                     return false;
                 }
@@ -21,13 +19,11 @@ class FGMPageModule extends FGMFeatureModule {
                 return data?._goToPage !== undefined;
             },
             handler: (event) => this.handlePageChange(event),
-            priority: 20 // Higher priority to handle before other preset handlers
+            priority: 20
         });
 
-        // Register handler for preset clicks that trigger programmer actions
         this.on(FGMEventTypes.PRESET_CLICKED, {
             filter: (event) => {
-                // Don't handle if there's already an awaiting action
                 if (FGMSubAction.getAwaitingAction()) {
                     return false;
                 }
@@ -46,8 +42,6 @@ class FGMPageModule extends FGMFeatureModule {
         const pageId = data._goToPage;
 
         FGMPageHandler.pageChange(pageId, fromPreset, singlePreset, fromWindow);
-
-        // Stop propagation so other handlers don't process this
         event.stopPropagation();
     }
 
@@ -56,7 +50,5 @@ class FGMPageModule extends FGMFeatureModule {
         const actionType = data._programmerAction;
 
         FGMSubAction.setAwaitingAction(actionType, {}, singlePreset);
-
-        // Don't stop propagation - let the kernel's backward compatibility code handle the awaiting action
     }
 }
