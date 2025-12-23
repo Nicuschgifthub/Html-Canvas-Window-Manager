@@ -178,6 +178,9 @@ class FGMInputHandlers {
 class FGMKernel {
     static eventInit() {
         console.log("FGMKernel initialized");
+
+        // Emit system init event
+        FGMEventBus.emit(FGMEventTypes.INIT, {});
     }
 
     static getAwaitingColor() {
@@ -190,6 +193,23 @@ class FGMKernel {
 
     /** @param {HCWWindow} fromWindow @param {HCWPresetField} fromPreset @param {Object} data @param {HCWPreset} singlePreset */
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
+
+        console.log(singlePreset);
+        // Emit event to event bus
+        const event = FGMEventBus.emit(FGMEventTypes.PRESET_CLICKED, {
+            window: fromWindow,
+            field: fromPreset,
+            data: data,
+            presetData: data,
+            singlePreset: singlePreset
+        });
+
+        // If event was handled and propagation stopped, return early
+        if (event.isPropagationStopped()) {
+            return;
+        }
+
+        // Backward compatibility: handle awaiting actions
         const awaitingValue = FGMSubAction.getAwaitingAction();
         if (awaitingValue) {
             FGMKernel.handleAwaitingAction(
@@ -198,32 +218,40 @@ class FGMKernel {
                     .setWindow(fromWindow)
                     .setSinglePreset(singlePreset)
                     .setData(data))
-
             return;
-        }
-
-        if (data._goToPage !== undefined) {
-            FGMPageHandler.pageChange(data._goToPage, fromPreset, singlePreset, fromWindow);
-            return;
-        }
-
-        if (data._programmerAction !== undefined) {
-            FGMSubAction.setAwaitingAction(data._programmerAction, {}, singlePreset);
         }
     }
 
     /** @param {HCWWindow} fromWindow @param {HCWFaderField} fromFader @param {Object} data */
     static eventFaderUpdate(fromWindow, fromFader, data) {
-        FGMInputHandlers.handleFader(fromFader, data);
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.FADER_UPDATE, {
+            window: fromWindow,
+            field: fromFader,
+            data: data
+        });
     }
 
     /** @param {HCWWindow} fromWindow @param {HCWEncoderField} fromEncoder @param {Object} data */
     static eventEncoderUpdate(fromWindow, fromEncoder, data) {
-        FGMInputHandlers.handleEncoder(fromEncoder, data);
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.ENCODER_UPDATE, {
+            window: fromWindow,
+            field: fromEncoder,
+            data: data
+        });
     }
 
     /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable @param {String} string */
     static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.KEYBOARD_ENTER, {
+            window: fromWindow,
+            field: fromKeyboard,
+            value: string
+        });
+
+        // Backward compatibility: handle awaiting actions
         const actionType = FGMSubAction.getAwaitingAction();
         const handler = FGMActionRegistry.getHandler(actionType);
 
@@ -233,26 +261,52 @@ class FGMKernel {
     }
 
     static eventAddArtNetNode() {
-        FGMArtNetLogic.addNode();
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.TABLE_ROW_ADDED, {
+            field: { getFGMType: () => FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS }
+        });
     }
 
     /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable */
     static eventDeleteArtNetNode(fromWindow, fromTable, rowIndex) {
-        FGMArtNetLogic.deleteNode(rowIndex);
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.TABLE_ROW_DELETED, {
+            window: fromWindow,
+            field: fromTable,
+            rowIndex: rowIndex
+        });
     }
 
-    static eventTableArtNetCellClicked(...args) {
-        FGMArtNetLogic.handleCellClick(...args);
+    static eventTableArtNetCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.TABLE_CELL_CLICKED, {
+            window: fromWindow,
+            field: fromTable,
+            rowIndex: rowIndex,
+            colIndex: colIndex,
+            value: value
+        });
     }
 
     static eventBackgroundClicked() {
-        FGMArtNetLogic.handleBackgroundClick();
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.BACKGROUND_CLICKED, {});
     }
 
     /** @param {HCWWindow} window */
     static eventWindowClicked(window) {
-        const awaitingValue = FGMSubAction.getAwaitingAction();
+        // Emit event to event bus
+        const event = FGMEventBus.emit(FGMEventTypes.WINDOW_CLICKED, {
+            window: window
+        });
 
+        // If event was handled and propagation stopped, return early
+        if (event.isPropagationStopped()) {
+            return;
+        }
+
+        // Backward compatibility: handle awaiting actions
+        const awaitingValue = FGMSubAction.getAwaitingAction();
         if (awaitingValue) {
             const handler = FGMActionRegistry.getHandler(awaitingValue);
             if (handler) {
@@ -264,23 +318,43 @@ class FGMKernel {
                 return;
             }
         }
-
-        FGMArtNetLogic.handleWindowClick(window);
     }
 
     static eventColorPickerUpdate(fromWindow, fromColorPicker, data) {
-        FGMInputHandlers.handleColorPicker(fromColorPicker, data);
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.COLOR_PICKER_UPDATE, {
+            window: fromWindow,
+            field: fromColorPicker,
+            data: data
+        });
     }
 
-    static eventTableFixturePatchCellClicked(...args) {
-        FGMFixturePatcherLogic.cellClicked(...args);
+    static eventTableFixturePatchCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.TABLE_CELL_CLICKED, {
+            window: fromWindow,
+            field: fromTable,
+            rowIndex: rowIndex,
+            colIndex: colIndex,
+            value: value
+        });
     }
 
-    static eventDeleteFixturePatchCell(...args) {
-        FGMFixturePatcherLogic.cellDelete(...args);
+    static eventDeleteFixturePatchCell(fromWindow, fromTable, rowIndex, colIndex, value) {
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.TABLE_ROW_DELETED, {
+            window: fromWindow,
+            field: fromTable,
+            rowIndex: rowIndex,
+            colIndex: colIndex,
+            value: value
+        });
     }
 
     static eventAddFixturePatchCell() {
-        FGMFixturePatcherLogic.cellAddFixture();
+        // Emit event to event bus
+        FGMEventBus.emit(FGMEventTypes.TABLE_ROW_ADDED, {
+            field: { getFGMType: () => FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG }
+        });
     }
 }

@@ -12,7 +12,14 @@ class FGMLoadFiles {
             '/FGM/fgm-window-manager.js',
             '/FGM/fmg-kernel-classes.js',
             '/FGM/fgm-action-handlers.js',
+            '/FGM/fgm-event-bus.js',              // Event bus system (MUST load before modules)
+            '/FGM/fgm-feature-module.js',         // Feature module system (MUST load before modules)
             '/FGM/fgm-kernel.js',
+            '/FGM/fgm-modules/artnet-module.js',  // ArtNet module
+            '/FGM/fgm-modules/programmer-module.js', // Programmer module
+            '/FGM/fgm-modules/edit-name-module.js',  // Edit name module
+            '/FGM/fgm-modules/fixture-patch-module.js', // Fixture patch module
+            '/FGM/fgm-modules/page-module.js',    // Page module
             '/FGM/fgm-base-windows.js',
             '/FGM/fgm-hcw-setup.js'
         ]
