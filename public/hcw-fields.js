@@ -575,6 +575,7 @@ class HCWPresetField extends HCWBaseField {
         return this;
     }
 
+    /** @param {HCWPreset} nameOrInstance */
     addPreset(nameOrInstance, color = null, defaultColor = null, data = {}, id = null, progress = null) {
         let preset;
         if (nameOrInstance instanceof HCWPreset) {

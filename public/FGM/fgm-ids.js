@@ -65,6 +65,9 @@ class FGMIds {
                 },
                 get FIXTURE_LIST_CONFIG() {
                     return 'd_w_fixture_list_config';
+                },
+                get FIXTURE_LIST_SEARCH_FIELD(){
+                    return 'd_w_fixture_list_search_field';
                 }
             }
         }

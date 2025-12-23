@@ -45,8 +45,8 @@ class FGMBaseWindows {
             });
 
         inOutSettings.addPreset(new HCWPreset("ArtNet").setData({ _open: "ARTNET" }).setDefaultColor(FGMColors.PAGES.MENUS.IN_OUT));
-   
-        const newTriggerWindow = new HCWWindow(100, 0, 500, 200)
+
+        const newTriggerWindow = new HCWWindow(100, 0, 600, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(inOutSettings)
             .setHidden(true)
@@ -61,6 +61,8 @@ class FGMBaseWindows {
     }
 
     static fixtureTable() {
+        let windowsForThisPage = [];
+
         const nodes = FGMStore.getPatchedFixtures();
 
         // const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe]);
@@ -68,12 +70,12 @@ class FGMBaseWindows {
         const tableField = new HCWTableField('Patched Fixtures', FGMIds.newComponentId())
             .setHeaders(['uid', 'ShortName', 'Label', 'Address', 'Universe'])
             // .setRows(rows)
-            .onCellClick(FGMKernel.eventTableCellClicked)
-            .onDeleteRow(FGMKernel.eventDeleteArtNetNode)
-            // .onAddRow(FGMKernel.eventAddArtNetNode.bind(FGMKernel))
+            .onCellClick(FGMKernel.eventTableFixturePatchCellClicked)
+            .onDeleteRow(FGMKernel.eventDeleteFixturePatchCell)
+            .onAddRow(FGMKernel.eventAddFixturePatchCell.bind(FGMKernel))
             .setFGMType(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG);
 
-        const fixtureTableWindow = new HCWWindow(800, 0, 500, 600)
+        const fixtureTableWindow = new HCWWindow(700, 0, 600, 600)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(tableField)
             .setHidden(true)
@@ -83,7 +85,26 @@ class FGMBaseWindows {
 
         tableField.setParentWindow(fixtureTableWindow);
 
-        return fixtureTableWindow;
+        windowsForThisPage.fixtureTableWindow = fixtureTableWindow;
+
+        const searchBar = new HCWSearchField("Fixture Lib", FGMIds.newComponentId())
+            .setFGMType(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_SEARCH_FIELD)
+            .setLabel("Search Fixtures")
+        /* .setSearchValue(FGMStore.getLibrary().map((n) => {
+            return { name: n.name, shortName: n.shortName };
+        }))
+*/
+        const fixtureSearchWindow = new HCWWindow(700, 700, 300, 600)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(searchBar)
+            .setHidden(true)
+            .setMinSizes(300, 200)
+            // .setPageId(FGMPageHandler.PAGE_ENUMS.SETUP)
+            .setId(FGMIds.DEFAULT.WINDOWS.FIXTURE_LIST_SEARCH_FIELD);
+
+        windowsForThisPage.fixtureSearchWindow = fixtureSearchWindow;
+
+        return windowsForThisPage;
     }
 
     static artNetSettings() {
@@ -93,12 +114,12 @@ class FGMBaseWindows {
         const tableField = new HCWTableField('ArtNet Address Settings', FGMIds.newComponentId())
             .setHeaders(['Name', 'IP Address', 'Subnet Mask', 'Universe'])
             .setRows(rows)
-            .onCellClick(FGMKernel.eventTableCellClicked)
+            .onCellClick(FGMKernel.eventTableArtNetCellClicked)
             .onDeleteRow(FGMKernel.eventDeleteArtNetNode)
             .onAddRow(FGMKernel.eventAddArtNetNode.bind(FGMKernel))
             .setFGMType(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS);
 
-        const artNetWindow = new HCWWindow(300, 200, 500, 400)
+        const artNetWindow = new HCWWindow(100, 200, 600, 600)
             .setTouchZoneColor(FGMColors.TOUCHZONE.QUICK_INPUT)
             .addContextField(tableField)
             .setHidden(true)

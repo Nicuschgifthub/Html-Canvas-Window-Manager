@@ -42,7 +42,8 @@ class FGMwithHCW {
             .addWindow(inOutWindows.trigger)
             .addWindow(artNetSettings)
             .addWindow(hiddenInputs.keyboard)
-            .addWindow(fixtureTable)
+            .addWindow(fixtureTable.fixtureTableWindow)
+            .addWindow(fixtureTable.fixtureSearchWindow)
     }
 
     saveShow() {

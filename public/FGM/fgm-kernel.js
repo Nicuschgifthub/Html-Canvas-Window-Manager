@@ -51,6 +51,22 @@ class FGMAwaitingActions {
     }
 }
 
+class FGMFixturePatcherLogic {
+
+    static cellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
+
+    }
+
+    static cellDelete(fromWindow, fromTable, rowIndex, colIndex, value) {
+
+    }
+
+    static cellAddFixture() {
+
+    }
+
+}
+
 class FGMArtNetLogic {
     static refreshTable() {
         const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
@@ -122,6 +138,7 @@ class FGMArtNetLogic {
 }
 
 class FGMInputHandlers {
+    /** @param {HCWFaderField} fromFader @param {Object} data */
     static handleFader(fromFader, data) {
         const type = fromFader.getFGMType();
         if (type) {
@@ -129,6 +146,7 @@ class FGMInputHandlers {
         }
     }
 
+    /** @param {HCWEncoderField} fromEncoder @param {Object} data */
     static handleEncoder(fromEncoder, data) {
         const type = fromEncoder.getFGMType();
         if (!type) return;
@@ -142,6 +160,7 @@ class FGMInputHandlers {
         }
     }
 
+    /** @param {HCWColorMapField} fromColorPicker @param {Object} data */
     static handleColorPicker(fromColorPicker, data) {
         const type = fromColorPicker.getFGMType();
         if (type === FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
@@ -169,6 +188,7 @@ class FGMKernel {
         FGMAwaitingActions.handle(...args);
     }
 
+    /** @param {HCWWindow} fromWindow @param {HCWPresetField} fromPreset @param {Object} data @param {HCWPreset} singlePreset */
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
         const awaitingValue = FGMSubAction.getAwaitingAction();
         if (awaitingValue) {
@@ -192,14 +212,17 @@ class FGMKernel {
         }
     }
 
+    /** @param {HCWWindow} fromWindow @param {HCWFaderField} fromFader @param {Object} data */
     static eventFaderUpdate(fromWindow, fromFader, data) {
         FGMInputHandlers.handleFader(fromFader, data);
     }
 
+    /** @param {HCWWindow} fromWindow @param {HCWEncoderField} fromEncoder @param {Object} data */
     static eventEncoderUpdate(fromWindow, fromEncoder, data) {
         FGMInputHandlers.handleEncoder(fromEncoder, data);
     }
 
+    /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable @param {String} string */
     static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
         const actionType = FGMSubAction.getAwaitingAction();
         const handler = FGMActionRegistry.getHandler(actionType);
@@ -213,11 +236,12 @@ class FGMKernel {
         FGMArtNetLogic.addNode();
     }
 
+    /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable */
     static eventDeleteArtNetNode(fromWindow, fromTable, rowIndex) {
         FGMArtNetLogic.deleteNode(rowIndex);
     }
 
-    static eventTableCellClicked(...args) {
+    static eventTableArtNetCellClicked(...args) {
         FGMArtNetLogic.handleCellClick(...args);
     }
 
@@ -225,6 +249,7 @@ class FGMKernel {
         FGMArtNetLogic.handleBackgroundClick();
     }
 
+    /** @param {HCWWindow} window */
     static eventWindowClicked(window) {
         const awaitingValue = FGMSubAction.getAwaitingAction();
 
@@ -245,5 +270,17 @@ class FGMKernel {
 
     static eventColorPickerUpdate(fromWindow, fromColorPicker, data) {
         FGMInputHandlers.handleColorPicker(fromColorPicker, data);
+    }
+
+    static eventTableFixturePatchCellClicked(...args) {
+        FGMFixturePatcherLogic.cellClicked(...args);
+    }
+
+    static eventDeleteFixturePatchCell(...args) {
+        FGMFixturePatcherLogic.cellDelete(...args);
+    }
+
+    static eventAddFixturePatchCell() {
+        FGMFixturePatcherLogic.cellAddFixture();
     }
 }
