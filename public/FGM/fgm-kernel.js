@@ -193,36 +193,14 @@ class FGMKernel {
 
     /** @param {HCWWindow} fromWindow @param {HCWPresetField} fromPreset @param {Object} data @param {HCWPreset} singlePreset */
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
-
-        console.log('[Kernel] eventPresetClicked - singlePreset:', singlePreset?.getName());
-        // Emit event to event bus
-        const event = FGMEventBus.emit(FGMEventTypes.PRESET_CLICKED, {
+        // Emit event to event bus - modules will handle it
+        FGMEventBus.emit(FGMEventTypes.PRESET_CLICKED, {
             window: fromWindow,
             field: fromPreset,
             data: data,
             presetData: data,
             singlePreset: singlePreset
         });
-
-        // If event was handled and propagation stopped, return early
-        if (event.isPropagationStopped()) {
-            console.log('[Kernel] Event propagation stopped');
-            return;
-        }
-
-        // Backward compatibility: handle awaiting actions
-        const awaitingValue = FGMSubAction.getAwaitingAction();
-        if (awaitingValue) {
-            console.log('[Kernel] Awaiting action detected:', awaitingValue);
-            console.log('[Kernel] Creating action store with singlePreset:', singlePreset?.getName());
-            FGMKernel.handleAwaitingAction(
-                new FGMHandleAwaitActionStore()
-                    .setAction(awaitingValue)
-                    .setWindow(fromWindow)
-                    .setSinglePreset(singlePreset)
-                    .setData(data))
-            return;
-        }
     }
 
     /** @param {HCWWindow} fromWindow @param {HCWFaderField} fromFader @param {Object} data */
@@ -247,14 +225,14 @@ class FGMKernel {
 
     /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable @param {String} string */
     static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
-        // Emit event to event bus
+        // Emit event to event bus - modules will handle it
         FGMEventBus.emit(FGMEventTypes.KEYBOARD_ENTER, {
             window: fromWindow,
             field: fromKeyboard,
             value: string
         });
 
-        // Backward compatibility: handle awaiting actions
+        // Action handlers still need to be called for keyboard input
         const actionType = FGMSubAction.getAwaitingAction();
         const handler = FGMActionRegistry.getHandler(actionType);
 
@@ -298,29 +276,10 @@ class FGMKernel {
 
     /** @param {HCWWindow} window */
     static eventWindowClicked(window) {
-        // Emit event to event bus
-        const event = FGMEventBus.emit(FGMEventTypes.WINDOW_CLICKED, {
+        // Emit event to event bus - modules will handle it
+        FGMEventBus.emit(FGMEventTypes.WINDOW_CLICKED, {
             window: window
         });
-
-        // If event was handled and propagation stopped, return early
-        if (event.isPropagationStopped()) {
-            return;
-        }
-
-        // Backward compatibility: handle awaiting actions
-        const awaitingValue = FGMSubAction.getAwaitingAction();
-        if (awaitingValue) {
-            const handler = FGMActionRegistry.getHandler(awaitingValue);
-            if (handler) {
-                handler.handleInteraction(
-                    new FGMHandleAwaitActionStore()
-                        .setAction(awaitingValue)
-                        .setWindow(window)
-                );
-                return;
-            }
-        }
     }
 
     static eventColorPickerUpdate(fromWindow, fromColorPicker, data) {

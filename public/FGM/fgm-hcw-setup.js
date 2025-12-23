@@ -13,6 +13,7 @@ class FGMwithHCW {
     async loadInital() {
         // Register all feature modules
         console.log('[FGM Setup] Registering feature modules...');
+        FGMModuleRegistry.register(new FGMAwaitingActionsModule()); // Must be first - handles awaiting actions
         FGMModuleRegistry.register(new FGMPageModule());
         FGMModuleRegistry.register(new FGMProgrammerModule());
         FGMModuleRegistry.register(new FGMArtNetModule());

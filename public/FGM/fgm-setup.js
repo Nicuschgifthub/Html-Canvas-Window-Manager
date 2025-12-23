@@ -15,6 +15,7 @@ class FGMLoadFiles {
             '/FGM/fgm-event-bus.js',              // Event bus system (MUST load before modules)
             '/FGM/fgm-feature-module.js',         // Feature module system (MUST load before modules)
             '/FGM/fgm-kernel.js',
+            '/FGM/fgm-modules/awaiting-actions-module.js', // Awaiting actions handler
             '/FGM/fgm-modules/artnet-module.js',  // ArtNet module
             '/FGM/fgm-modules/programmer-module.js', // Programmer module
             '/FGM/fgm-modules/edit-name-module.js',  // Edit name module
