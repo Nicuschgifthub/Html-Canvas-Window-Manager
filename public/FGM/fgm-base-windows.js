@@ -228,6 +228,7 @@ class FGMBaseWindows {
 
         const inputKeyboard = new HCWKeyboardField('Keyboard', FGMIds.newComponentId())
             .onEnter(FGMKernel.eventKeyboardOnEnter)
+            .onValueChange(FGMKernel.eventKeyboardUpdate)
             .setFGMType(FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT)
 
         const newKeyboardWindow = new HCWWindow(300, 500, 400, 300)

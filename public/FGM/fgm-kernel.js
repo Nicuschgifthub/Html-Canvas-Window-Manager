@@ -234,6 +234,14 @@ class FGMKernel {
         }
     }
 
+    static eventKeyboardUpdate(fromWindow, fromKeyboard, string) {
+        FGMEventBus.emit(FGMEventTypes.KEYBOARD_UPDATE, {
+            window: fromWindow,
+            field: fromKeyboard,
+            value: string
+        });
+    }
+
     static eventAddArtNetNode() {
         FGMEventBus.emit(FGMEventTypes.TABLE_ROW_ADDED, {
             field: { getFGMType: () => FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS }
