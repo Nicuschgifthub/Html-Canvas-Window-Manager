@@ -164,7 +164,6 @@ class FGMInputHandlers {
     static handleColorPicker(fromColorPicker, data) {
         const type = fromColorPicker.getFGMType();
         if (type === FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
-            // Split the color object into individual attribute updates
             if (data.r !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_R, data.r);
             if (data.g !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_G, data.g);
             if (data.b !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_B, data.b);
@@ -189,7 +188,6 @@ class FGMKernel {
         FGMAwaitingActions.handle(...args);
     }
 
-    /** @param {HCWWindow} fromWindow @param {HCWPresetField} fromPreset @param {Object} data @param {HCWPreset} singlePreset */
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
         FGMEventBus.emit(FGMEventTypes.PRESET_CLICKED, {
             window: fromWindow,
@@ -200,7 +198,6 @@ class FGMKernel {
         });
     }
 
-    /** @param {HCWWindow} fromWindow @param {HCWFaderField} fromFader @param {Object} data */
     static eventFaderUpdate(fromWindow, fromFader, data) {
         FGMEventBus.emit(FGMEventTypes.FADER_UPDATE, {
             window: fromWindow,
@@ -209,7 +206,6 @@ class FGMKernel {
         });
     }
 
-    /** @param {HCWWindow} fromWindow @param {HCWEncoderField} fromEncoder @param {Object} data */
     static eventEncoderUpdate(fromWindow, fromEncoder, data) {
         FGMEventBus.emit(FGMEventTypes.ENCODER_UPDATE, {
             window: fromWindow,
@@ -218,7 +214,6 @@ class FGMKernel {
         });
     }
 
-    /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable @param {String} string */
     static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
         FGMEventBus.emit(FGMEventTypes.KEYBOARD_ENTER, {
             window: fromWindow,
@@ -248,7 +243,6 @@ class FGMKernel {
         });
     }
 
-    /** @param {HCWWindow} fromWindow @param {HCWTableField} fromTable */
     static eventDeleteArtNetNode(fromWindow, fromTable, rowIndex) {
         FGMEventBus.emit(FGMEventTypes.TABLE_ROW_DELETED, {
             window: fromWindow,
@@ -271,7 +265,6 @@ class FGMKernel {
         FGMEventBus.emit(FGMEventTypes.BACKGROUND_CLICKED, {});
     }
 
-    /** @param {HCWWindow} window */
     static eventWindowClicked(window) {
         FGMEventBus.emit(FGMEventTypes.WINDOW_CLICKED, {
             window: window

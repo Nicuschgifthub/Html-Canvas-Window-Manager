@@ -1787,11 +1787,19 @@ class HCWTableField extends HCWBaseField {
         this.headerHeight = 40;
         this.addBtnHeight = 40;
 
+        this.scrollY = 0;
+        this._dragLastY = null;
+        this._clickStartY = null;
+        this._clickStartX = null;
+        this._potentialClick = false;
+
         this.renderProps = {
             startX: null,
             startY: null,
             endX: null,
             endY: null,
+            sx: null,
+            sy: null,
             cells: [],
             deleteButtons: [],
             addButton: null
@@ -1835,35 +1843,84 @@ class HCWTableField extends HCWBaseField {
     }
 
     _interaction(interaction) {
-        if (interaction.type === 'mousedown') {
-            const { mouseX, mouseY } = interaction;
+        const { mouseX, mouseY, type, deltaY } = interaction;
 
-            const hitCell = this.renderProps.cells.find(c =>
-                mouseX >= c.x && mouseX <= c.x + c.w &&
-                mouseY >= c.y && mouseY <= c.y + c.h
-            );
+        if (type === 'mousedown') {
+            this._clickStartX = mouseX;
+            this._clickStartY = mouseY;
+            this._dragLastY = mouseY;
+            this._potentialClick = true;
 
-            if (hitCell && this.onCellClickCallback) {
-                this.onCellClickCallback(this.parentWindow, this, hitCell.rowIndex, hitCell.colIndex, hitCell.value);
-                return;
+        } else if (type === 'mousemove') {
+            if (this._dragLastY !== null) {
+                const dy = mouseY - this._dragLastY;
+
+                if (Math.abs(mouseY - this._clickStartY) > 10) {
+                    this._potentialClick = false;
+                }
+
+                this.scrollY += dy;
+                this._clampScroll();
+                this.updateFrame();
+                this._dragLastY = mouseY;
             }
 
-            const hitDelete = this.renderProps.deleteButtons.find(b =>
-                mouseX >= b.x && mouseX <= b.x + b.w &&
-                mouseY >= b.y && mouseY <= b.y + b.h
-            );
+        } else if (type === 'mouseup') {
+            if (this._potentialClick) {
+                const clickX = this._clickStartX;
+                const clickY = this._clickStartY;
 
-            if (hitDelete && this.onDeleteRowCallback) {
-                this.onDeleteRowCallback(this.parentWindow, this, hitDelete.rowIndex);
-                return;
-            }
+                const hitCell = this.renderProps.cells.find(c =>
+                    clickX >= c.x && clickX <= c.x + c.w &&
+                    clickY >= c.y && clickY <= c.y + c.h
+                );
 
-            const hitAdd = this.renderProps.addButton;
-            if (hitAdd && this.onAddRowCallback &&
-                mouseX >= hitAdd.x && mouseX <= hitAdd.x + hitAdd.w &&
-                mouseY >= hitAdd.y && mouseY <= hitAdd.y + hitAdd.h) {
-                this.onAddRowCallback(this.parentWindow, this);
+                if (hitCell && this.onCellClickCallback) {
+                    this.onCellClickCallback(this.parentWindow, this, hitCell.rowIndex, hitCell.colIndex, hitCell.value);
+                }
+                else {
+                    const hitDelete = this.renderProps.deleteButtons.find(b =>
+                        clickX >= b.x && clickX <= b.x + b.w &&
+                        clickY >= b.y && clickY <= b.y + b.h
+                    );
+
+                    if (hitDelete && this.onDeleteRowCallback) {
+                        this.onDeleteRowCallback(this.parentWindow, this, hitDelete.rowIndex);
+                    }
+                    else {
+                        const hitAdd = this.renderProps.addButton;
+
+                        if (hitAdd && this.onAddRowCallback &&
+                            clickX >= hitAdd.x && clickX <= hitAdd.x + hitAdd.w &&
+                            clickY >= hitAdd.y && clickY <= hitAdd.y + hitAdd.h) {
+
+                            this.onAddRowCallback(this.parentWindow, this);
+                        }
+                    }
+                }
             }
+            this._dragLastY = null;
+            this._potentialClick = false;
+
+        } else if (type === 'scroll') {
+            this.scrollY -= deltaY;
+            this._clampScroll();
+            this.updateFrame();
+        }
+    }
+
+    _clampScroll() {
+        const rowsHeight = this.rows.length * this.rowHeight;
+        const addBtnH = this.onAddRowCallback ? (this.addBtnHeight + 10) : 0;
+        const contentHeight = rowsHeight + addBtnH;
+
+        const viewHeight = this.renderProps.sy - this.headerHeight;
+
+        if (contentHeight <= viewHeight) {
+            this.scrollY = 0;
+        } else {
+            const minScroll = -(contentHeight - viewHeight + 10);
+            this.scrollY = Math.min(0, Math.max(minScroll, this.scrollY));
         }
     }
 
@@ -1879,6 +1936,9 @@ class HCWTableField extends HCWBaseField {
         this.renderProps.startY = w.y;
         this.renderProps.endX = w.x2;
         this.renderProps.endY = w.y2;
+        this.renderProps.sx = w.sx;
+        this.renderProps.sy = w.sy;
+
         this.renderProps.cells = [];
         this.renderProps.deleteButtons = [];
         this.renderProps.addButton = null;
@@ -1891,11 +1951,9 @@ class HCWTableField extends HCWBaseField {
         const availableW = w.sx - pad * 2 - deleteColW;
         const colW = availableW / (this.headers.length || 1);
 
-        // Background
         ctx.fillStyle = '#1e1e1e';
         ctx.fillRect(w.x, w.y, w.sx, w.sy);
 
-        // Header
         ctx.fillStyle = '#333';
         ctx.fillRect(w.x, w.y, w.sx, this.headerHeight);
 
@@ -1908,17 +1966,30 @@ class HCWTableField extends HCWBaseField {
             ctx.fillText(header, x + colW / 2, w.y + this.headerHeight / 2 + 5);
         });
 
-        // Rows
+        ctx.save();
+        const contentAreaY = w.y + this.headerHeight;
+        const contentAreaH = w.sy - this.headerHeight;
+
+        ctx.beginPath();
+        ctx.rect(w.x, contentAreaY, w.sx, contentAreaH);
+        ctx.clip();
+
+        const startDrawY = contentAreaY + this.scrollY;
+
         ctx.font = '13px Arial';
         this.rows.forEach((row, rowIndex) => {
-            const rowY = w.y + this.headerHeight + rowIndex * this.rowHeight;
-            if (rowY + this.rowHeight > w.y2) return;
+            const rowY = startDrawY + rowIndex * this.rowHeight;
 
-            // Zebra striping
+            if (rowY + this.rowHeight < contentAreaY || rowY > w.y + w.sy) {
+                return;
+            }
+
             ctx.fillStyle = rowIndex % 2 === 0 ? '#252525' : '#1e1e1e';
             ctx.fillRect(w.x, rowY, w.sx, this.rowHeight);
 
             row.forEach((cell, colIndex) => {
+                
+
                 const cellX = w.x + pad + colIndex * colW;
 
                 ctx.fillStyle = '#bbb';
@@ -1935,7 +2006,6 @@ class HCWTableField extends HCWBaseField {
                 });
             });
 
-            // Delete Button
             if (this.onDeleteRowCallback) {
                 const delX = w.x2 - pad - deleteColW + 5;
                 const delY = rowY + 5;
@@ -1957,28 +2027,17 @@ class HCWTableField extends HCWBaseField {
                 });
             }
 
-            // Grid lines
             ctx.strokeStyle = '#333';
-            ctx.beginPath();
-            ctx.moveTo(w.x, rowY + this.rowHeight);
-            ctx.lineTo(w.x2, rowY + this.rowHeight);
-            ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(w.x, rowY + this.rowHeight);
+                ctx.lineTo(w.x2, rowY + this.rowHeight);
+                ctx.stroke();
         });
 
-        // Vertical separators
-        ctx.strokeStyle = '#333';
-        for (let i = 1; i < this.headers.length; i++) {
-            const x = w.x + pad + i * colW;
-            ctx.beginPath();
-            ctx.moveTo(x, w.y);
-            ctx.lineTo(x, w.y2);
-            ctx.stroke();
-        }
-
-        // Add Button at the bottom
         if (this.onAddRowCallback) {
-            const addBtnY = w.y + this.headerHeight + this.rows.length * this.rowHeight + 10;
-            if (addBtnY + this.addBtnHeight <= w.y2) {
+            const addBtnY = startDrawY + this.rows.length * this.rowHeight + 10;
+
+            if (addBtnY < w.y + w.sy && addBtnY + this.addBtnHeight > contentAreaY) {
                 const addBtnX = w.x + pad;
                 const addBtnW = w.sx - pad * 2;
 
@@ -1997,6 +2056,25 @@ class HCWTableField extends HCWBaseField {
                 };
             }
         }
+
+        ctx.restore();
+
+        ctx.strokeStyle = '#333';
+        ctx.beginPath();
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(w.x, contentAreaY, w.sx, contentAreaH);
+        ctx.clip();
+
+        for (let i = 1; i < this.headers.length; i++) {
+            const x = w.x + pad + i * colW;
+            ctx.beginPath();
+            ctx.moveTo(x, w.y + this.headerHeight);
+            ctx.lineTo(x, w.y2);
+            ctx.stroke();
+        }
+        ctx.restore();
+
         ctx.textAlign = 'start';
     }
 }
