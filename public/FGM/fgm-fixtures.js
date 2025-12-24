@@ -38,14 +38,17 @@ class FGMFixtureGroup {
 }
 
 class FGMFixture {
-    constructor(uId) {
+    constructor(uId = FGMIds.newFixtureId(), shortName = '', label = '') {
         this.infos = {
             id: uId,
-            text: "Fixture " + uId,
+            text: label || "Fixture " + uId,
+            shortName: shortName || ''
         }
+        console.log("HELLO MY ID IS ", this.infos.id)
 
         this.dmx = {
-            address: 1 // 1-512
+            address: 1,
+            universe: 1
         }
 
         this.functions = [];
@@ -59,6 +62,7 @@ class FGMFixture {
     loadProfile(profile) {
         if (!profile || !profile.functions) return;
         this.setLabel(profile.name);
+        this.setShortName(profile.shortName || '');
         this.functions = [];
         profile.functions.forEach(f => {
             const def = FGMFixtureFunctionDefinitions.getDefinitionByType(f.type);
@@ -72,6 +76,24 @@ class FGMFixture {
     setDmxAddress(addr) {
         this.dmx.address = addr;
         return this;
+    }
+
+    setAddress(addr) {
+        this.dmx.address = addr;
+        return this;
+    }
+
+    getAddress() {
+        return this.dmx.address;
+    }
+
+    setUniverse(universe) {
+        this.dmx.universe = universe;
+        return this;
+    }
+
+    getUniverse() {
+        return this.dmx.universe;
     }
 
     getFunctions() {
@@ -91,6 +113,7 @@ class FGMFixture {
 
     setId(id) {
         this.infos.id = id;
+        console.log("ID UPDATE???????????????????????????????????")
     }
 
     setLabel(label) {
@@ -99,5 +122,13 @@ class FGMFixture {
 
     getLabel() {
         return this.infos.text;
+    }
+
+    setShortName(shortName) {
+        this.infos.shortName = shortName;
+    }
+
+    getShortName() {
+        return this.infos.shortName;
     }
 }

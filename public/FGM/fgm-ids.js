@@ -54,6 +54,21 @@ class FGMIds {
         this._registry = {};
     }
 
+    static fixtureIdCounter = 0;
+
+    static newFixtureId() {
+        this.fixtureIdCounter++;
+        return this.fixtureIdCounter.toString().padStart(3, '0');
+    }
+
+    static resetFixtureIdCounter() {
+        this.fixtureIdCounter = 0;
+    }
+
+    static setFixtureIdCounter(count) {
+        this.fixtureIdCounter = count;
+    }
+
     static get DEFAULT() {
         return {
             WINDOWS: {
@@ -66,7 +81,7 @@ class FGMIds {
                 get FIXTURE_LIST_CONFIG() {
                     return 'd_w_fixture_list_config';
                 },
-                get FIXTURE_LIST_SEARCH_FIELD(){
+                get FIXTURE_LIST_SEARCH_FIELD() {
                     return 'd_w_fixture_list_search_field';
                 }
             }

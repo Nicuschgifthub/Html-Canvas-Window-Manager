@@ -69,7 +69,6 @@ class FGMBaseWindows {
 
         const tableField = new HCWTableField('Patched Fixtures', FGMIds.newComponentId())
             .setHeaders(['uid', 'ShortName', 'Label', 'Address', 'Universe'])
-            // .setRows(rows)
             .onCellClick(FGMKernel.eventTableFixturePatchCellClicked)
             .onDeleteRow(FGMKernel.eventDeleteFixturePatchCell)
             .onAddRow(FGMKernel.eventAddFixturePatchCell.bind(FGMKernel))
@@ -90,16 +89,12 @@ class FGMBaseWindows {
         const searchBar = new HCWSearchField("Fixture Lib", FGMIds.newComponentId())
             .setFGMType(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_SEARCH_FIELD)
             .setLabel("Search Fixtures")
-        /* .setSearchValue(FGMStore.getLibrary().map((n) => {
-            return { name: n.name, shortName: n.shortName };
-        }))
-*/
-        const fixtureSearchWindow = new HCWWindow(700, 700, 300, 600)
+
+        const fixtureSearchWindow = new HCWWindow(0, 0, 10000000000, 600)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(searchBar)
             .setHidden(true)
             .setMinSizes(300, 200)
-            // .setPageId(FGMPageHandler.PAGE_ENUMS.SETUP)
             .setId(FGMIds.DEFAULT.WINDOWS.FIXTURE_LIST_SEARCH_FIELD);
 
         windowsForThisPage.fixtureSearchWindow = fixtureSearchWindow;

@@ -2115,7 +2115,7 @@ class HCWSearchField extends HCWBaseField {
 
             ctx.fillStyle = '#bbb';
             ctx.font = '11px Arial';
-            ctx.fillText(result.shortName || result.type || rx + 10, currentY + 35);
+            ctx.fillText(result.shortName || result.type || '', rx + 10, currentY + 35);
 
             this.renderProps.resultButtons.push({
                 x: rx,
