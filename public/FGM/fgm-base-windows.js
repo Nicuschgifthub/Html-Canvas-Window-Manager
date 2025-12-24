@@ -63,10 +63,6 @@ class FGMBaseWindows {
     static fixtureTable() {
         let windowsForThisPage = [];
 
-        const nodes = FGMStore.getPatchedFixtures();
-
-        // const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe]);
-
         const tableField = new HCWTableField('Patched Fixtures', FGMIds.newComponentId())
             .setHeaders(['uid', 'ShortName', 'Label', 'Address', 'Universe'])
             .onCellClick(FGMKernel.eventTableFixturePatchCellClicked)
@@ -86,11 +82,11 @@ class FGMBaseWindows {
 
         windowsForThisPage.fixtureTableWindow = fixtureTableWindow;
 
-        const searchBar = new HCWSearchField("Fixture Lib", FGMIds.newComponentId())
+        const searchBar = new HCWSearchField("Fixture Library", FGMIds.newComponentId())
             .setFGMType(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_SEARCH_FIELD)
             .setLabel("Search Fixtures")
 
-        const fixtureSearchWindow = new HCWWindow(0, 0, 10000000000, 600)
+        const fixtureSearchWindow = new HCWWindow(0, 0, 900, 600)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(searchBar)
             .setHidden(true)
@@ -188,7 +184,7 @@ class FGMBaseWindows {
 
         // Color Picker
 
-        const colorPicker = new HCWColorMapField('Color Picker 1', FGMIds.newComponentId())
+        const colorPicker = new HCWColorMapField('Color Picker', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventColorPickerUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER)
 
@@ -209,9 +205,6 @@ class FGMBaseWindows {
 
         const pageActions = new HCWPresetField('Actions', FGMIds.newComponentId())
             .onPresetPress(FGMKernel.eventPresetClicked)
-            // .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE }))
-            // .addPreset(new HCWPreset("Clear Fixture atr.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_FIXTURE_VALUE_OVERWRITE }))
-            // .addPreset(new HCWPreset("Clear All").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_ALL }))
             .addPreset(new HCWPreset("Edit Name").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.EDIT_NAME }))
 
         const newPageActionsWindow = new HCWWindow(300, 800, 300, 100)

@@ -55,47 +55,56 @@ class FGMWindowManager {
     }
 
     static resolveKeyboardCollision(staticWindow, keyboardWindow) {
-        if (!keyboardWindow.checkOverlap(staticWindow)) return;
-
-        const canvasWidth = HCW.canvas.width;
-        const canvasHeight = HCW.canvas.height;
-
+        const canvasW = HCW.canvas.width;
+        const canvasH = HCW.canvas.height;
         const buffer = 20;
+        const targetRatio = 2.0;
 
-        let targetY = staticWindow.y + staticWindow.sy + buffer;
-        if (targetY + keyboardWindow.sy <= canvasHeight) {
-            keyboardWindow.y = targetY;
-        } else {
-            targetY = staticWindow.y - keyboardWindow.sy - buffer;
-            if (targetY >= 0) {
-                keyboardWindow.y = targetY;
-            } else {
-                const spaceAbove = staticWindow.y;
-                const spaceBelow = canvasHeight - (staticWindow.y + staticWindow.sy);
+        const zones = [
+            { id: 'top', w: canvasW - (buffer * 2), h: staticWindow.y - (buffer * 2) },
+            { id: 'bottom', w: canvasW - (buffer * 2), h: canvasH - (staticWindow.y + staticWindow.sy) - (buffer * 2) },
+            { id: 'left', w: staticWindow.x - (buffer * 2), h: canvasH - (buffer * 2) },
+            { id: 'right', w: canvasW - (staticWindow.x + staticWindow.sx) - (buffer * 2), h: canvasH - (buffer * 2) }
+        ];
 
-                if (spaceAbove > spaceBelow) {
-                    keyboardWindow.y = buffer / 2;
-                    if (keyboardWindow.checkOverlap(staticWindow)) {
-                        keyboardWindow.sy = Math.max(100, staticWindow.y - buffer);
-                    }
-                } else {
-                    keyboardWindow.sy = Math.max(100, keyboardWindow.sy);
-                    keyboardWindow.y = canvasHeight - keyboardWindow.sy - (buffer / 2);
-                    if (keyboardWindow.checkOverlap(staticWindow)) {
-                        keyboardWindow.sy = Math.max(100, canvasHeight - (staticWindow.y + staticWindow.sy) - buffer);
-                        keyboardWindow.y = canvasHeight - keyboardWindow.sy - (buffer / 2);
-                    }
-                }
+        let bestZone = null;
+        let maxArea = 0;
+
+        zones.forEach(zone => {
+            if (zone.w < 100 || zone.h < 60) return;
+
+            let fitW = Math.min(zone.w, zone.h * targetRatio);
+            let fitH = fitW / targetRatio;
+
+            let area = fitW * fitH;
+
+            if (area > maxArea) {
+                maxArea = area;
+                bestZone = { ...zone, fitW, fitH };
+            }
+        });
+
+        if (bestZone) {
+            keyboardWindow.sx = bestZone.fitW;
+            keyboardWindow.sy = bestZone.fitH;
+
+            if (bestZone.id === 'top') {
+                keyboardWindow.x = (canvasW - keyboardWindow.sx) / 2;
+                keyboardWindow.y = staticWindow.y - buffer - keyboardWindow.sy;
+            } else if (bestZone.id === 'bottom') {
+                keyboardWindow.x = (canvasW - keyboardWindow.sx) / 2;
+                keyboardWindow.y = staticWindow.y + staticWindow.sy + buffer;
+            } else if (bestZone.id === 'left') {
+                keyboardWindow.x = staticWindow.x - buffer - keyboardWindow.sx;
+                keyboardWindow.y = (canvasH - keyboardWindow.sy) / 2;
+            } else if (bestZone.id === 'right') {
+                keyboardWindow.x = staticWindow.x + staticWindow.sx + buffer;
+                keyboardWindow.y = (canvasH - keyboardWindow.sy) / 2;
             }
         }
 
-        const centerX = staticWindow.x + (staticWindow.sx / 2);
-        keyboardWindow.x = centerX - (keyboardWindow.sx / 2);
-
-        if (keyboardWindow.x < buffer) keyboardWindow.x = buffer;
-        if (keyboardWindow.x + keyboardWindow.sx > canvasWidth - buffer) {
-            keyboardWindow.x = canvasWidth - keyboardWindow.sx - buffer;
-        }
+        keyboardWindow.x = Math.max(buffer, Math.min(keyboardWindow.x, canvasW - keyboardWindow.sx - buffer));
+        keyboardWindow.y = Math.max(buffer, Math.min(keyboardWindow.y, canvasH - keyboardWindow.sy - buffer));
 
         keyboardWindow._init();
     }

@@ -44,7 +44,6 @@ class FGMFixture {
             text: label || "Fixture " + uId,
             shortName: shortName || ''
         }
-        console.log("HELLO MY ID IS ", this.infos.id)
 
         this.dmx = {
             address: 1,
@@ -113,7 +112,6 @@ class FGMFixture {
 
     setId(id) {
         this.infos.id = id;
-        console.log("ID UPDATE???????????????????????????????????")
     }
 
     setLabel(label) {

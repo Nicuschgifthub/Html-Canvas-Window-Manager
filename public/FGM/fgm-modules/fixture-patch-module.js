@@ -43,6 +43,15 @@ class FGMFixturePatchModule extends FGMFeatureModule {
             priority: 10
         });
 
+        this.on(FGMEventTypes.KEYBOARD_UPDATE, {
+            filter: (event) => {
+                const awaitingAction = FGMSubAction.getAwaitingAction();
+                return awaitingAction === FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_SEARCH_FIELD;
+            },
+            handler: (event) => this.handleSearchKeyboardUpdate(event),
+            priority: 10
+        });
+
         this.registerAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG, {
             handleKeyboardEnter: (value) => this.handleKeyboardSave(value)
         });

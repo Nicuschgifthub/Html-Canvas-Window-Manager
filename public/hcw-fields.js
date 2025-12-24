@@ -2131,3 +2131,198 @@ class HCWSearchField extends HCWBaseField {
         ctx.textAlign = 'start';
     }
 }
+/* 
+class HCWSearchField extends HCWBaseField {
+    constructor(fieldName = 'Search', id = Date.now()) {
+        super(fieldName, id);
+
+        this.searchValue = "";
+        this.results = [];
+        this.onResultClickCallback = null;
+        this.onSearchRequestCallback = null;
+
+        // Scrolling Properties
+        this.scrollY = 0;
+        this._dragLastY = null;
+        this._clickStartY = null;
+        this._potentialClick = false;
+
+        this.headerHeight = 40;
+        this.resultItemHeight = 45;
+        this.gap = 5;
+        this.padding = 10;
+
+        this.renderProps = {
+            startX: null,
+            startY: null,
+            endX: null,
+            endY: null,
+            sx: null,
+            sy: null,
+            resultButtons: []
+        };
+    }
+
+    setSearchValue(val) {
+        this.searchValue = val;
+        this.updateFrame();
+        return this;
+    }
+
+    setResults(results) {
+        // Removed .slice(0, 5) to allow for scrolling through many results
+        this.results = results;
+        this.scrollY = 0; // Reset scroll on new search
+        this.updateFrame();
+        return this;
+    }
+
+    onResultClick(cb) {
+        this.onResultClickCallback = cb;
+        return this;
+    }
+
+    onSearchRequest(cb) {
+        this.onSearchRequestCallback = cb;
+        return this;
+    }
+
+    getType() {
+        return 'SEARCH_FIELD';
+    }
+
+    _interaction(interaction) {
+        const { mouseX, mouseY, type, deltaY } = interaction;
+
+        if (type === 'mousedown') {
+            this._clickStartY = mouseY;
+            this._dragLastY = mouseY;
+            this._potentialClick = true;
+
+        } else if (type === 'mousemove') {
+            if (this._dragLastY !== null) {
+                const dy = mouseY - this._dragLastY;
+                
+                // If moved more than 5px, it's a drag, not a click
+                if (Math.abs(mouseY - this._clickStartY) > 5) {
+                    this._potentialClick = false;
+                }
+
+                this.scrollY += dy;
+                this._clampScroll();
+                this.updateFrame();
+                this._dragLastY = mouseY;
+            }
+
+        } else if (type === 'mouseup') {
+            if (this._potentialClick) {
+                // Check if we hit a result button
+                const hitResult = this.renderProps.resultButtons.find(b =>
+                    mouseX >= b.x && mouseX <= b.x + b.w &&
+                    mouseY >= b.y && mouseY <= b.y + b.h
+                );
+
+                if (hitResult && this.onResultClickCallback) {
+                    this.onResultClickCallback(this.parentWindow, this, hitResult.result);
+                } else {
+                    // If clicked in header or empty area, open keyboard
+                    if (this.onSearchRequestCallback) {
+                        this.onSearchRequestCallback(this.parentWindow, this);
+                    }
+                }
+            }
+            this._dragLastY = null;
+            this._potentialClick = false;
+
+        } else if (type === 'scroll') {
+            this.scrollY -= deltaY;
+            this._clampScroll();
+            this.updateFrame();
+        }
+    }
+
+    _clampScroll() {
+        const contentHeight = this.results.length * (this.resultItemHeight + this.gap);
+        const viewHeight = this.renderProps.sy - (this.headerHeight + this.padding * 2);
+
+        if (contentHeight <= viewHeight) {
+            this.scrollY = 0;
+        } else {
+            const minScroll = -(contentHeight - viewHeight + 10);
+            this.scrollY = Math.min(0, Math.max(minScroll, this.scrollY));
+        }
+    }
+
+    render(w) {
+        this.renderProps.startX = w.x;
+        this.renderProps.startY = w.y;
+        this.renderProps.endX = w.x2;
+        this.renderProps.endY = w.y2;
+        this.renderProps.sx = w.sx;
+        this.renderProps.sy = w.sy;
+        this.renderProps.resultButtons = [];
+
+        const ctx = HCW.ctx;
+        if (!ctx) return;
+
+        const pad = this.padding;
+
+        // 1. Background
+        ctx.fillStyle = '#1b1717';
+        ctx.fillRect(w.x, w.y, w.sx, w.sy);
+
+        // 2. Header (Sticky at top)
+        ctx.fillStyle = '#333';
+        ctx.fillRect(w.x + pad, w.y + pad, w.sx - pad * 2, this.headerHeight);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(this.searchValue || "Click to search...", w.x + pad + 10, w.y + pad + this.headerHeight / 2 + 6);
+
+        // 3. Results List with Clipping
+        ctx.save();
+        const clipY = w.y + pad + this.headerHeight + this.gap;
+        const clipH = w.sy - (pad * 2 + this.headerHeight + this.gap);
+        
+        ctx.beginPath();
+        ctx.rect(w.x, clipY, w.sx, clipH);
+        ctx.clip();
+
+        let currentY = clipY + this.scrollY;
+
+        this.results.forEach((result, index) => {
+            const rx = w.x + pad;
+            const rw = w.sx - pad * 2;
+            const rh = this.resultItemHeight;
+
+            // Only draw if within visible vertical bounds (optimization)
+            if (currentY + rh > clipY && currentY < clipY + clipH) {
+                ctx.fillStyle = '#2a2a2a';
+                ctx.fillRect(rx, currentY, rw, rh);
+
+                ctx.fillStyle = '#00ff95';
+                ctx.font = 'bold 13px Arial';
+                ctx.fillText(result.name || "Unknown Fixture", rx + 10, currentY + 18);
+
+                ctx.fillStyle = '#bbb';
+                ctx.font = '11px Arial';
+                ctx.fillText(result.shortName || result.type || '', rx + 10, currentY + 35);
+
+                // Store for interaction
+                this.renderProps.resultButtons.push({
+                    x: rx,
+                    y: currentY,
+                    w: rw,
+                    h: rh,
+                    result: result
+                });
+            }
+
+            currentY += rh + this.gap;
+        });
+
+        ctx.restore();
+        ctx.textAlign = 'start';
+    }
+} */
