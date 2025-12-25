@@ -1,5 +1,6 @@
 class FGMProgrammer {
     static selection = []; // Array of fixture IDs
+    static ghostSelection = []; // Array of fixture IDs that have manipulated dmx values, but are not selected anymore press "clear all" to also release them
     static data = {}; // { fixtureId: { attributeType: value } }
 
     static selectFixture(id, clearSelection = false) {

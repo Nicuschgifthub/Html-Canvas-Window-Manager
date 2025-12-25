@@ -482,21 +482,25 @@ class HCWPreset {
         this.triggerRender();
         return this;
     }
+
     setColor(color) {
         this.color = color;
         this.triggerRender();
         return this;
     }
+
     setDefaultColor(color) {
         this.defaultColor = color;
         this.triggerRender();
         return this;
     }
+
     setData(data) {
         this.data = data;
         this.triggerRender();
         return this;
     }
+    
     setProgress(progress) {
         this.progress = progress;
         this.triggerRender();

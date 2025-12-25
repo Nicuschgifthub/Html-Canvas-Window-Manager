@@ -52,18 +52,8 @@ class FGMFixturePatchModule extends FGMFeatureModule {
             priority: 10
         });
 
-        // Action handlers for keyboard input
-        // this.registerAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG, {
-        //     handleKeyboardEnter: (value) => this.handleKeyboardSave(value)
-        // });
-
-        // this.registerAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_SEARCH_FIELD, {
-        //     handleKeyboardEnter: (value) => this.handleSearchSelect(value)
-        // });
-
         console.log('[FixturePatchModule] Initialized');
     }
-
 
     handleSearchKeyboardUpdate(event) {
         const { value } = event.data;
@@ -96,7 +86,6 @@ class FGMFixturePatchModule extends FGMFeatureModule {
     handleRowAdd(event) {
         this.openFixtureSearch();
     }
-
 
     async handleCellClick(event) {
         const { window: fromWindow, field: fromTable, rowIndex, colIndex, value } = event.data;

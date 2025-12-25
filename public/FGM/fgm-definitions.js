@@ -168,6 +168,12 @@ class FGMTypes {
                 },
                 get EDIT_NAME() {
                     return 'a_button_edit_name';
+                },
+                get CLEAR_GHOST_VALUES() {
+                    return 'a_button_clear_ghost_selection';
+                },
+                get CLEAR_SELECTION() {
+                    return 'a_button_clear_selection';
                 }
             },
             KEYBOARD: {
