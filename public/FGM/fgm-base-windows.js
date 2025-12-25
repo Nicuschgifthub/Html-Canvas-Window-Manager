@@ -65,9 +65,9 @@ class FGMBaseWindows {
 
         const tableField = new HCWTableField('Patched Fixtures', FGMIds.newComponentId())
             .setHeaders(['uid', 'ShortName', 'Label', 'Address', 'Universe'])
-            .onCellClick(FGMKernel.eventTableFixturePatchCellClicked)
-            .onDeleteRow(FGMKernel.eventDeleteFixturePatchCell)
-            .onAddRow(FGMKernel.eventAddFixturePatchCell.bind(FGMKernel))
+            .onCellClick(FGMKernel.eventTableCellClicked)
+            .onDeleteRow(FGMKernel.eventTableRowDeleted)
+            .onAddRow(FGMKernel.eventTableRowAdded.bind(FGMKernel))
             .setFGMType(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG);
 
         const fixtureTableWindow = new HCWWindow(700, 0, 600, 600)
@@ -105,9 +105,9 @@ class FGMBaseWindows {
         const tableField = new HCWTableField('ArtNet Address Settings', FGMIds.newComponentId())
             .setHeaders(['Name', 'IP Address', 'Subnet Mask', 'Universe'])
             .setRows(rows)
-            .onCellClick(FGMKernel.eventTableArtNetCellClicked)
-            .onDeleteRow(FGMKernel.eventDeleteArtNetNode)
-            .onAddRow(FGMKernel.eventAddArtNetNode.bind(FGMKernel))
+            .onCellClick(FGMKernel.eventTableCellClicked)
+            .onDeleteRow(FGMKernel.eventTableRowDeleted)
+            .onAddRow(FGMKernel.eventTableRowAdded.bind(FGMKernel))
             .setFGMType(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS);
 
         const artNetWindow = new HCWWindow(100, 200, 600, 600)

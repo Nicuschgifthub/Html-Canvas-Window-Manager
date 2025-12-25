@@ -50,24 +50,37 @@ class FGMArtNetModule extends FGMFeatureModule {
         });
 
         // Register action handler for keyboard input
-        this.registerAction(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS, {
-            handleKeyboardEnter: (value) => this.handleKeyboardSave(value)
-        });
+        // this.registerAction(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS, {
+        //     handleKeyboardEnter: (value) => this.handleKeyboardSave(value)
+        // });
 
         console.log('[ArtNetModule] Initialized');
     }
 
-    handleCellClick(event) {
+    async handleCellClick(event) {
         const { window: fromWindow, field: fromTable, rowIndex, colIndex, value } = event.data;
 
-        FGMSubAction.setAwaitingAction(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS, {
-            targetWindow: fromWindow,
-            targetField: fromTable,
-            rowIndex: rowIndex,
-            colIndex: colIndex
+        const result = await FGMKernel.awaitAction({
+            type: FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT,
+            data: {
+                targetWindow: fromWindow,
+                initialValue: value
+            }
         });
 
-        FGMWindowManager.openKeyboardForWindow(fromWindow, value);
+        const string = result.value;
+
+        if (fromTable && rowIndex !== undefined) {
+            fromTable.updateCellValue(rowIndex, colIndex, string);
+
+            const fields = ['name', 'ip', 'subnet', 'universe'];
+            const fieldName = fields[colIndex];
+            if (fieldName) {
+                FGMStore.updateArtNetNode(rowIndex, fieldName, string);
+            }
+        }
+
+        this.refreshTable();
     }
 
     handleRowDelete(event) {
@@ -101,6 +114,7 @@ class FGMArtNetModule extends FGMFeatureModule {
         }
     }
 
+    /*
     handleKeyboardSave(string) {
         const data = FGMSubAction.actionData;
         if (data.targetField && data.rowIndex !== undefined) {
@@ -116,6 +130,7 @@ class FGMArtNetModule extends FGMFeatureModule {
         FGMWindowManager.closeKeyboard();
         this.refreshTable();
     }
+    */
 
     refreshTable() {
         const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);

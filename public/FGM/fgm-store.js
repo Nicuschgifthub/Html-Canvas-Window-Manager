@@ -96,4 +96,10 @@ class FGMStore {
 
         return true;
     }
+
+    static deletePatchedFixture(index) {
+        if (this.patchedFixtures[index]) {
+            this.patchedFixtures.splice(index, 1);
+        }
+    }
 }

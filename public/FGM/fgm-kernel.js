@@ -3,6 +3,9 @@ class FGMSubAction {
     static actionData = {};
     static initiatorPreset = null;
 
+    static resolvePromise = null;
+    static pendingRequest = null; // { type, filter, data }
+
     static setAwaitingAction(actionType, data = {}, initiatorPreset = null) {
         this.clearAwaitingAction();
 
@@ -13,15 +16,77 @@ class FGMSubAction {
         console.log(`Action set: ${actionType}`, data);
     }
 
+    /**
+     * Await an action or event
+     * @param {string|object} options - ActionType string or { type, filter, data } object
+     * @returns {Promise}
+     */
+    static async awaitAction(options) {
+        if (typeof options === 'string') {
+            options = { type: options };
+        }
+
+        const { type, filter, data = {} } = options;
+
+        this.clearAwaitingAction();
+        this.pendingRequest = { type, filter };
+
+        this.awaitingAction = type;
+        this.actionData = data;
+
+        if (type === FGMEventTypes.KEYBOARD_ENTER || type === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) {
+            if (data && data.targetWindow) {
+                const initialValue = data.initialValue || '';
+                FGMWindowManager.openKeyboardForWindow(data.targetWindow, initialValue);
+            }
+        }
+
+        console.log(`[FGMSubAction] Awaiting action:`, options);
+
+        return new Promise((resolve) => {
+            this.resolvePromise = resolve;
+        });
+    }
+
     static clearAwaitingAction() {
         this.awaitingAction = null;
         this.actionData = {};
         this.initiatorPreset = null;
-        console.log("Action cleared");
+        this.resolvePromise = null;
+        this.pendingRequest = null;
     }
 
     static getAwaitingAction() {
         return this.awaitingAction;
+    }
+
+    /**
+     * Check if an event matches the pending request and resolve if so.
+     * @param {string} eventType 
+     * @param {object} payload 
+     * @returns {boolean} true if handled (resolved), false otherwise
+     */
+    static checkAndResolve(eventType, payload) {
+        if (!this.resolvePromise || !this.pendingRequest) return false;
+
+        const req = this.pendingRequest;
+
+        let typeMatches = (req.type === eventType);
+
+        if (req.type === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT && eventType === FGMEventTypes.KEYBOARD_ENTER) {
+            typeMatches = true;
+        }
+
+        if (!typeMatches) return false;
+
+        if (req.filter && typeof req.filter === 'function') {
+            if (!req.filter(payload)) return false;
+        }
+
+        const resolve = this.resolvePromise;
+        this.clearAwaitingAction();
+        resolve(payload);
+        return true;
     }
 }
 
@@ -51,129 +116,6 @@ class FGMAwaitingActions {
     }
 }
 
-class FGMFixturePatcherLogic {
-
-    static cellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
-
-    }
-
-    static cellDelete(fromWindow, fromTable, rowIndex, colIndex, value) {
-
-    }
-
-    static cellAddFixture() {
-
-    }
-
-}
-
-class FGMArtNetLogic {
-    static refreshTable() {
-        const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
-        if (artNetWin) {
-            const tableField = artNetWin.getSingleContextField();
-            const nodes = FGMStore.getArtNetNodes();
-            const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe]);
-            tableField.setRows(rows);
-        }
-    }
-
-    static handleWindowClick(window) {
-        const artNetWin = this.getArtNetConfigWindow();
-        if (artNetWin && !artNetWin.getHiddenStatus() &&
-            window.getSingleContextField().getId() !== artNetWin.getSingleContextField().getId() &&
-            window.getSingleContextField().getFGMType() !== FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) {
-            artNetWin.setHidden();
-            FGMWindowManager.closeKeyboard();
-        }
-    }
-
-    static addNode() {
-        FGMStore.addArtNetNode();
-        FGMArtNetLogic.refreshTable();
-    }
-
-    static deleteNode(rowIndex) {
-        FGMStore.deleteArtNetNode(rowIndex);
-        FGMArtNetLogic.refreshTable();
-    }
-
-    static handleCellClick(fromWindow, fromTable, rowIndex, colIndex, value) {
-        FGMSubAction.setAwaitingAction(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS, {
-            targetWindow: fromWindow,
-            targetField: fromTable,
-            rowIndex: rowIndex,
-            colIndex: colIndex
-        });
-        FGMWindowManager.openKeyboardForWindow(fromWindow, value);
-    }
-
-    static handleKeyboardSave(string) {
-        const data = FGMSubAction.actionData;
-        if (data.targetField && data.rowIndex !== undefined) {
-            data.targetField.updateCellValue(data.rowIndex, data.colIndex, string);
-
-            const fields = ['name', 'ip', 'subnet', 'universe'];
-            const fieldName = fields[data.colIndex];
-            if (fieldName) {
-                FGMStore.updateArtNetNode(data.rowIndex, fieldName, string);
-            }
-        }
-        FGMSubAction.clearAwaitingAction();
-        FGMWindowManager.closeKeyboard();
-        FGMArtNetLogic.refreshTable();
-    }
-
-    static getArtNetConfigWindow() {
-        return FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
-    }
-
-    static handleBackgroundClick() {
-        const artNetWin = this.getArtNetConfigWindow();
-        if (artNetWin && !artNetWin.getHiddenStatus()) {
-            artNetWin.setHidden(true);
-            FGMWindowManager.closeKeyboard();
-        }
-    }
-}
-
-class FGMInputHandlers {
-    /** @param {HCWFaderField} fromFader @param {Object} data */
-    static handleFader(fromFader, data) {
-        const type = fromFader.getFGMType();
-        if (type) {
-            FGMProgrammer.setAttributeValue(type, data.value * 255);
-        }
-    }
-
-    /** @param {HCWEncoderField} fromEncoder @param {Object} data */
-    static handleEncoder(fromEncoder, data) {
-        const type = fromEncoder.getFGMType();
-        if (!type) return;
-        if (type == FGMTypes.PROGRAMMER.POSITION.PAN_ENCODER) {
-            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.PAN_8Bit, data.outer.value * 255);
-            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.PAN_16Bit, data.inner.value * 255);
-        }
-        if (type == FGMTypes.PROGRAMMER.POSITION.TILT_ENCODER) {
-            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.TILT_8Bit, data.outer.value * 255);
-            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.TILT_16Bit, data.inner.value * 255);
-        }
-    }
-
-    /** @param {HCWColorMapField} fromColorPicker @param {Object} data */
-    static handleColorPicker(fromColorPicker, data) {
-        const type = fromColorPicker.getFGMType();
-        if (type === FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
-            if (data.r !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_R, data.r);
-            if (data.g !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_G, data.g);
-            if (data.b !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_B, data.b);
-            if (data.white !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_W, data.white);
-            if (data.amber !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_A, data.amber);
-            if (data.uv !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_U, data.uv);
-        }
-    }
-}
-
 class FGMKernel {
     static eventInit() {
         console.log("FGMKernel initialized");
@@ -184,18 +126,28 @@ class FGMKernel {
         return FGMAwaitingActions.getAwaitingColor();
     }
 
+    static awaitAction(options) {
+        return FGMSubAction.awaitAction(options);
+    }
+
     static handleAwaitingAction(...args) {
         FGMAwaitingActions.handle(...args);
     }
 
     static eventPresetClicked(fromWindow, fromPreset, data, singlePreset) {
-        FGMEventBus.emit(FGMEventTypes.PRESET_CLICKED, {
+        const payload = {
             window: fromWindow,
             field: fromPreset,
             data: data,
             presetData: data,
             singlePreset: singlePreset
-        });
+        };
+
+        if (FGMSubAction.checkAndResolve(FGMEventTypes.PRESET_CLICKED, payload)) {
+            return;
+        }
+
+        FGMEventBus.emit(FGMEventTypes.PRESET_CLICKED, payload);
     }
 
     static eventFaderUpdate(fromWindow, fromFader, data) {
@@ -215,11 +167,18 @@ class FGMKernel {
     }
 
     static eventKeyboardOnEnter(fromWindow, fromKeyboard, string) {
-        FGMEventBus.emit(FGMEventTypes.KEYBOARD_ENTER, {
+        const payload = {
             window: fromWindow,
             field: fromKeyboard,
             value: string
-        });
+        };
+
+        if (FGMSubAction.checkAndResolve(FGMEventTypes.KEYBOARD_ENTER, payload)) {
+            FGMWindowManager.closeKeyboard();
+            return;
+        }
+
+        FGMEventBus.emit(FGMEventTypes.KEYBOARD_ENTER, payload);
 
         const actionType = FGMSubAction.getAwaitingAction();
         const handler = FGMActionRegistry.getHandler(actionType);
@@ -237,21 +196,24 @@ class FGMKernel {
         });
     }
 
-    static eventAddArtNetNode() {
+    static eventTableRowAdded(fromWindow, fromTable) {
         FGMEventBus.emit(FGMEventTypes.TABLE_ROW_ADDED, {
-            field: { getFGMType: () => FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS }
+            window: fromWindow,
+            field: fromTable
         });
     }
 
-    static eventDeleteArtNetNode(fromWindow, fromTable, rowIndex) {
+    static eventTableRowDeleted(fromWindow, fromTable, rowIndex, colIndex, value) {
         FGMEventBus.emit(FGMEventTypes.TABLE_ROW_DELETED, {
             window: fromWindow,
             field: fromTable,
-            rowIndex: rowIndex
+            rowIndex: rowIndex,
+            colIndex: colIndex,
+            value: value
         });
     }
 
-    static eventTableArtNetCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
+    static eventTableCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
         FGMEventBus.emit(FGMEventTypes.TABLE_CELL_CLICKED, {
             window: fromWindow,
             field: fromTable,
@@ -266,9 +228,13 @@ class FGMKernel {
     }
 
     static eventWindowClicked(window) {
-        FGMEventBus.emit(FGMEventTypes.WINDOW_CLICKED, {
-            window: window
-        });
+        const payload = { window: window };
+
+        if (FGMSubAction.checkAndResolve(FGMEventTypes.WINDOW_CLICKED, payload)) {
+            return;
+        }
+
+        FGMEventBus.emit(FGMEventTypes.WINDOW_CLICKED, payload);
     }
 
     static eventColorPickerUpdate(fromWindow, fromColorPicker, data) {
@@ -276,32 +242,6 @@ class FGMKernel {
             window: fromWindow,
             field: fromColorPicker,
             data: data
-        });
-    }
-
-    static eventTableFixturePatchCellClicked(fromWindow, fromTable, rowIndex, colIndex, value) {
-        FGMEventBus.emit(FGMEventTypes.TABLE_CELL_CLICKED, {
-            window: fromWindow,
-            field: fromTable,
-            rowIndex: rowIndex,
-            colIndex: colIndex,
-            value: value
-        });
-    }
-
-    static eventDeleteFixturePatchCell(fromWindow, fromTable, rowIndex, colIndex, value) {
-        FGMEventBus.emit(FGMEventTypes.TABLE_ROW_DELETED, {
-            window: fromWindow,
-            field: fromTable,
-            rowIndex: rowIndex,
-            colIndex: colIndex,
-            value: value
-        });
-    }
-
-    static eventAddFixturePatchCell() {
-        FGMEventBus.emit(FGMEventTypes.TABLE_ROW_ADDED, {
-            field: { getFGMType: () => FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG }
         });
     }
 }

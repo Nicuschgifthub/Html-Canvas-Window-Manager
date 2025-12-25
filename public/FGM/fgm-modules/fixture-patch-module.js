@@ -52,16 +52,18 @@ class FGMFixturePatchModule extends FGMFeatureModule {
             priority: 10
         });
 
-        this.registerAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG, {
-            handleKeyboardEnter: (value) => this.handleKeyboardSave(value)
-        });
+        // Action handlers for keyboard input
+        // this.registerAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG, {
+        //     handleKeyboardEnter: (value) => this.handleKeyboardSave(value)
+        // });
 
-        this.registerAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_SEARCH_FIELD, {
-            handleKeyboardEnter: (value) => this.handleSearchSelect(value)
-        });
+        // this.registerAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_SEARCH_FIELD, {
+        //     handleKeyboardEnter: (value) => this.handleSearchSelect(value)
+        // });
 
         console.log('[FixturePatchModule] Initialized');
     }
+
 
     handleSearchKeyboardUpdate(event) {
         const { value } = event.data;
@@ -85,43 +87,39 @@ class FGMFixturePatchModule extends FGMFeatureModule {
         searchField.setResults(results);
     }
 
-    handleCellClick(event) {
-        const { window: fromWindow, field: fromTable, rowIndex, colIndex, value } = event.data;
-
-        FGMSubAction.setAwaitingAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_CONFIG, {
-            targetWindow: fromWindow,
-            targetField: fromTable,
-            rowIndex: rowIndex,
-            colIndex: colIndex
-        });
-
-        FGMWindowManager.openKeyboardForWindow(fromWindow, value);
-    }
-
     handleRowDelete(event) {
         const { rowIndex } = event.data;
-        const fixtures = FGMStore.getPatchedFixtures();
-        if (fixtures[rowIndex]) {
-            fixtures.splice(rowIndex, 1);
-            this.refreshFixtureTable();
-        }
+        FGMStore.deletePatchedFixture(rowIndex);
+        this.refreshFixtureTable();
     }
 
     handleRowAdd(event) {
         this.openFixtureSearch();
     }
 
-    handleKeyboardSave(string) {
-        const data = FGMSubAction.actionData;
-        if (data.targetField && data.rowIndex !== undefined) {
-            data.targetField.updateCellValue(data.rowIndex, data.colIndex, string);
+
+    async handleCellClick(event) {
+        const { window: fromWindow, field: fromTable, rowIndex, colIndex, value } = event.data;
+
+        const result = await FGMKernel.awaitAction({
+            type: FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT,
+            data: {
+                targetWindow: fromWindow,
+                initialValue: value
+            }
+        });
+
+        const string = result.value;
+
+        if (fromTable && rowIndex !== undefined) {
+            fromTable.updateCellValue(rowIndex, colIndex, string);
 
             const fixtures = FGMStore.getPatchedFixtures();
-            const fixture = fixtures[data.rowIndex];
+            const fixture = fixtures[rowIndex];
 
             if (fixture) {
                 const fields = ['uid', 'shortName', 'label', 'address', 'universe'];
-                const fieldName = fields[data.colIndex];
+                const fieldName = fields[colIndex];
 
                 if (fieldName === 'uid') {
                     fixture.setId(string);
@@ -136,12 +134,11 @@ class FGMFixturePatchModule extends FGMFeatureModule {
                 }
             }
         }
-        FGMSubAction.clearAwaitingAction();
-        FGMWindowManager.closeKeyboard();
+
         this.refreshFixtureTable();
     }
 
-    openFixtureSearch() {
+    async openFixtureSearch() {
         const searchWindow = this.getSearchWindow();
         const fixtureWindow = this.getFixtureWindow();
 
@@ -160,21 +157,28 @@ class FGMFixturePatchModule extends FGMFeatureModule {
                     type: p.type || ''
                 }));
                 searchField.setResults(results);
+
                 searchField.onResultClick((window, field, result) => {
                     this.handleSearchSelect(result.shortName);
+                    FGMWindowManager.closeKeyboard();
                 });
             }
 
-            FGMSubAction.setAwaitingAction(FGMTypes.ACTIONS.WINDOW.FIXTURE_LIST_SEARCH_FIELD, {
-                targetWindow: searchWindow,
-                targetField: searchField
+            const result = await FGMKernel.awaitAction({
+                type: FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT,
+                data: {
+                    targetWindow: searchWindow,
+                    initialValue: ''
+                }
             });
 
-            FGMWindowManager.openKeyboardForWindow(searchWindow, '');
+            this.handleSearchSelect(result.value);
         }
     }
 
     handleSearchSelect(value) {
+        if (!value) return;
+
         const library = FGMStore.getLibrary();
         if (!library) {
             console.error('[FixturePatchModule] No library loaded');

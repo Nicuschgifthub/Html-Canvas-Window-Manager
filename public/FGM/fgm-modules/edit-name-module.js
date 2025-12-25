@@ -11,46 +11,41 @@ class FGMEditNameModule extends FGMFeatureModule {
         console.log('[EditNameModule] Initializing...');
 
         this.registerAction(FGMTypes.ACTIONS.BUTTON.EDIT_NAME, {
-            handleInteraction: (actionStore) => this.handleInteraction(actionStore),
-            handleKeyboardEnter: (value) => this.handleKeyboardEnter(value)
+            handleInteraction: (actionStore) => this.handleInteraction(actionStore)
         });
 
         console.log('[EditNameModule] Initialized');
     }
 
-    handleInteraction(actionStore) {
+    async handleInteraction(actionStore) {
         const window = actionStore.getWindow();
         const singlePreset = actionStore.getSinglePreset();
 
         if (!window) return;
         if (window.getSingleContextField().getFGMType() === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) return;
 
+        let initialValue = '';
         if (singlePreset) {
-            FGMSubAction.actionData.targetPreset = singlePreset;
-            FGMSubAction.actionData.fromSinglePreset = singlePreset;
-            FGMSubAction.actionData.fromWindow = window;
-            FGMWindowManager.openKeyboardForWindow(window, singlePreset.getName());
+            initialValue = singlePreset.getName();
         } else {
-            FGMSubAction.actionData.targetWindow = window;
-            FGMSubAction.actionData.fromWindow = window;
-            FGMWindowManager.openKeyboardForWindow(window, window.getSingleContextField().getLabel());
+            initialValue = window.getSingleContextField().getLabel();
         }
-        FGMSubAction.initiatorPreset = null;
-    }
 
-    handleKeyboardEnter(string) {
-        const targetPreset = FGMSubAction.actionData.targetPreset;
-        const fromSinglePreset = FGMSubAction.actionData.fromSinglePreset;
-        const targetWindow = FGMSubAction.actionData.targetWindow;
+        const result = await FGMKernel.awaitAction({
+            type: FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT,
+            data: {
+                targetWindow: window,
+                initialValue: initialValue
+            }
+        });
 
-        if (targetPreset && fromSinglePreset) {
-            fromSinglePreset.setLabel(string);
-        } else if (targetWindow) {
-            targetWindow.getSingleContextField().setLabel(string);
+        const string = result.value;
+
+        if (singlePreset) {
+            singlePreset.setLabel(string);
+        } else {
+            window.getSingleContextField().setLabel(string);
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         }
-
-        FGMSubAction.clearAwaitingAction();
-        FGMWindowManager.closeKeyboard();
     }
 }
