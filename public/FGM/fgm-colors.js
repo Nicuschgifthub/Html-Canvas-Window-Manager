@@ -8,7 +8,9 @@ class FGMColors {
                 SETUP: "#007771ff",
                 IN_OUT: "#000baaff",
                 FIXTURE_CONTROL: "#7c9200ff"
-            }
+            },
+            HIGHLIGHT: "#00ff4cff",
+            SELECTED: "#00ff4cff"
         }
     }
     static get TOUCHZONE() {

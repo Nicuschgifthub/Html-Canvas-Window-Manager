@@ -125,13 +125,58 @@ class FGMBaseWindows {
     static fixtureControl() {
         let windowsForThisPage = [];
 
+        // --- Fixture Pool ---
+        const fixturePool = new HCWPresetField('Fixtures', FGMIds.newComponentId())
+            .setFGMType(FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL)
+            .onPresetPress(FGMKernel.eventPresetClicked);
+
+        // Populate from Store
+        const patchedFixtures = FGMStore.getPatchedFixtures();
+        patchedFixtures.forEach(fix => {
+            fixturePool.addPreset(new HCWPreset(fix.getLabel(), null, null, { id: fix.getId() }));
+        });
+
+        const newFixturePoolWindow = new HCWWindow(60, 50, 400, 300)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(fixturePool)
+            .setHidden(true)
+            .setMinSizes(100, 100)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        fixturePool.setParentWindow(newFixturePoolWindow);
+        windowsForThisPage.fixturePool = newFixturePoolWindow;
+
+        // --- Group Pool ---
+        const groupPool = new HCWPresetField('Groups', FGMIds.newComponentId())
+            .setFGMType(FGMTypes.PROGRAMMER.POOLS.GROUP_POOL)
+            .onPresetPress(FGMKernel.eventPresetClicked);
+
+        for (let i = 1; i <= 20; i++) {
+            groupPool.addPreset(new HCWPreset("Group " + i, null, null, { id: i }));
+        }
+
+        const newGroupPoolWindow = new HCWWindow(470, 50, 400, 300)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(groupPool)
+            .setHidden(true)
+            .setMinSizes(100, 100)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        groupPool.setParentWindow(newGroupPoolWindow);
+        windowsForThisPage.groupPool = newGroupPoolWindow;
+
+
         // Main Dimmer
         const dimFader = new HCWFaderField('Dimmer', FGMIds.newComponentId())
             .setDisplayType("byte")
             .onValueChange(FGMKernel.eventFaderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.DIMMERS.MAIN)
 
-        const newFaderWindow = new HCWWindow(0, 500, 50, 400)
+        const newFaderWindow = new HCWWindow(0, 500, 80, 400)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(dimFader)
             .setHidden(true)
@@ -169,7 +214,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventEncoderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.POSITION.TILT_ENCODER)
 
-        const newtiltEncoderWindow = new HCWWindow(100, 700, 200, 200)
+        const newtiltEncoderWindow = new HCWWindow(100, 710, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(tiltEncoder)
             .setMinSizes(100, 100)
@@ -188,7 +233,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventColorPickerUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER)
 
-        const newColorPickerWindow = new HCWWindow(300, 500, 300, 300)
+        const newColorPickerWindow = new HCWWindow(320, 500, 300, 300)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(colorPicker)
             .setHidden(true)
@@ -201,13 +246,13 @@ class FGMBaseWindows {
 
         windowsForThisPage.colorPicker = newColorPickerWindow;
 
-        // 3 Simple actions
-
         const pageActions = new HCWPresetField('Actions', FGMIds.newComponentId())
             .onPresetPress(FGMKernel.eventPresetClicked)
             .addPreset(new HCWPreset("Edit Name").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.EDIT_NAME }))
+            .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE }))
+            .addPreset(new HCWPreset("Clear").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_ALL }))
 
-        const newPageActionsWindow = new HCWWindow(300, 800, 300, 100)
+        const newPageActionsWindow = new HCWWindow(320, 810, 300, 100)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(pageActions)
             .setHidden(true)

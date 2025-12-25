@@ -19,6 +19,7 @@ class FGMwithHCW {
         FGMModuleRegistry.register(new FGMArtNetModule());
         FGMModuleRegistry.register(new FGMEditNameModule());
         FGMModuleRegistry.register(new FGMFixturePatchModule());
+        FGMModuleRegistry.register(new FGMFixtureGroupModule()); // Added
 
         // Initialize all modules
         FGMModuleRegistry.initializeAll();
@@ -58,6 +59,8 @@ class FGMwithHCW {
             .addWindow(hiddenInputs.keyboard)
             .addWindow(fixtureTable.fixtureTableWindow)
             .addWindow(fixtureTable.fixtureSearchWindow)
+            .addWindow(baseFixtureControl.groupPool)
+            .addWindow(baseFixtureControl.fixturePool)
     }
 
     saveShow() {

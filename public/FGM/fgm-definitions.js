@@ -147,6 +147,10 @@ class FGMTypes {
                 get COLOR_PICKER() {
                     return 'p_color_color_picker';
                 },
+            },
+            POOLS: {
+                get FIXTURE_POOL() { return 'p_pool_fixture'; },
+                get GROUP_POOL() { return 'p_pool_group'; }
             }
         }
     }

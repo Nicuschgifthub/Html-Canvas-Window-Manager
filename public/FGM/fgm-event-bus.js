@@ -29,6 +29,11 @@ class FGMEventTypes {
     // System Events
     static get INIT() { return 'system.init'; }
     static get PAGE_CHANGE() { return 'system.pageChange'; }
+    static get PATCH_CHANGED() { return 'system.patchChanged'; }
+    static get SELECTION_CHANGED() { return 'programmer.selectionChanged'; } // Added // Added
+
+    // Await action Events
+    static get AWAIT_KEYBOARD_INPUT() {}
 
     // Wildcard - matches all events
     static get ALL() { return '*'; }
