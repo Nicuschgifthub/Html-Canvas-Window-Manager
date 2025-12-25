@@ -19,7 +19,6 @@ class FGMwithHCW {
         FGMModuleRegistry.register(new FGMArtNetModule());
         FGMModuleRegistry.register(new FGMEditNameModule());
         FGMModuleRegistry.register(new FGMFixturePatchModule());
-        FGMModuleRegistry.register(new FGMFixtureGroupModule()); // Added
 
         // Initialize all modules
         FGMModuleRegistry.initializeAll();
