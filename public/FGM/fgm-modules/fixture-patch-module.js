@@ -52,6 +52,14 @@ class FGMFixturePatchModule extends FGMFeatureModule {
             priority: 10
         });
 
+        this.on(FGMEventTypes.PATCH_CHANGED, {
+            handler: () => {
+                const win = this.getFixtureWindow();
+                if (win) this.refreshFixtureTable(false);
+            },
+            priority: 5
+        });
+
         console.log('[FixturePatchModule] Initialized');
     }
 
@@ -203,7 +211,7 @@ class FGMFixturePatchModule extends FGMFeatureModule {
         this.refreshFixtureTable();
     }
 
-    refreshFixtureTable() {
+    refreshFixtureTable(shouldEmit = true) {
         const fixtureWindow = this.getFixtureWindow();
         if (fixtureWindow) {
             const tableField = fixtureWindow.getSingleContextField();
@@ -217,6 +225,10 @@ class FGMFixturePatchModule extends FGMFeatureModule {
                 f.getUniverse().toString()
             ]);
             tableField.setRows(rows);
+        }
+
+        if (shouldEmit) {
+            FGMEventBus.emit(FGMEventTypes.PATCH_CHANGED);
         }
     }
 

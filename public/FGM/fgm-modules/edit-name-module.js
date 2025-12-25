@@ -1,7 +1,3 @@
-/**
- * Edit Name Module
- * Handles the "Edit Name" functionality for windows and presets
- */
 class FGMEditNameModule extends FGMFeatureModule {
     constructor() {
         super('edit-name', '1.0.0');
@@ -69,6 +65,11 @@ class FGMEditNameModule extends FGMFeatureModule {
 
         if (targetPreset) {
             targetPreset.setLabel(string);
+
+            const fixtureId = targetPreset.getData()?.id;
+            if (fixtureId) {
+                FGMStore.updateFixtureMetadata(fixtureId, { label: string });
+            }
         } else {
             targetWindow.getSingleContextField().setLabel(string);
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();

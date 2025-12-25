@@ -21,9 +21,9 @@ class FGMLoadFiles {
             '/FGM/fgm-modules/edit-name-module.js',       // Edit name module
             '/FGM/fgm-modules/fixture-patch-module.js',   // Fixture patch module
             '/FGM/fgm-modules/page-module.js',            // Page module
-            '/FGM/fgm-modules/store-button.js',
+            '/FGM/fgm-modules/pool-module.js',            // Pool module
             '/FGM/fgm-base-windows.js',
-            '/FGM/fgm-hcw-setup.js'
+            '/FGM/fgm-init.js'
         ]
     }
 

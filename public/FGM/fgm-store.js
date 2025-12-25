@@ -71,6 +71,9 @@ class FGMStore {
 
     static addPatchedFixture(fixture) {
         this.patchedFixtures.push(fixture);
+        if (typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PATCH_CHANGED);
+        }
     }
 
     static updateFixtureMetadata(id, updates = {}) {
@@ -80,18 +83,24 @@ class FGMStore {
             return false;
         }
 
+        let changed = false;
         if (updates.id !== undefined && updates.id !== id) {
-            // Check for duplicate ID
             const exists = this.patchedFixtures.find(f => f.getId() === updates.id);
             if (exists) {
                 console.warn(`FGMStore: Duplicate ID ${updates.id} rejected.`);
                 return false;
             }
             fixture.setId(updates.id);
+            changed = true;
         }
 
         if (updates.label !== undefined) {
             fixture.setLabel(updates.label);
+            changed = true;
+        }
+
+        if (changed && typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PATCH_CHANGED);
         }
 
         return true;
@@ -100,6 +109,9 @@ class FGMStore {
     static deletePatchedFixture(index) {
         if (this.patchedFixtures[index]) {
             this.patchedFixtures.splice(index, 1);
+            if (typeof FGMEventBus !== 'undefined') {
+                FGMEventBus.emit(FGMEventTypes.PATCH_CHANGED);
+            }
         }
     }
 }

@@ -10,25 +10,21 @@ class FGMProgrammerModule extends FGMFeatureModule {
     init() {
         console.log('[ProgrammerModule] Initializing...');
 
-        // Register handler for fader updates
         this.on(FGMEventTypes.FADER_UPDATE, {
             handler: (event) => this.handleFader(event),
             priority: 10
         });
 
-        // Register handler for encoder updates
         this.on(FGMEventTypes.ENCODER_UPDATE, {
             handler: (event) => this.handleEncoder(event),
             priority: 10
         });
 
-        // Register handler for color picker updates
         this.on(FGMEventTypes.COLOR_PICKER_UPDATE, {
             handler: (event) => this.handleColorPicker(event),
             priority: 10
         });
 
-        // Register handler for programmer clear actions
         this.on(FGMEventTypes.PRESET_CLICKED, {
             filter: FGMEventFilter.or(
                 FGMEventFilter.byPresetData('_actionId', FGMTypes.ACTIONS.BUTTON.CLEAR_ALL),
@@ -39,14 +35,43 @@ class FGMProgrammerModule extends FGMFeatureModule {
                 const data = event.data.presetData || event.data.data;
                 const actionId = data._actionId;
 
-                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_ALL) FGMProgrammer.clearProgrammer();
-                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION) FGMProgrammer.clearSelection();
-                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES) FGMProgrammer.releaseGhostValues();
+                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_ALL) {
+                    FGMProgrammer.clear();
+                }
+
+                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION) {
+                    FGMProgrammer.clearSelection();
+                }
+
+                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES) {
+                    FGMProgrammer.clearProgrammer();
+                }
+
+                if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
             },
             priority: 10
         });
 
+        this.on(FGMEventTypes.PRESET_CLICKED, {
+            filter: FGMEventFilter.byFieldType(FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL),
+            handler: (event) => this.handleFixtureSelection(event),
+            priority: 10
+        });
+
         console.log('[ProgrammerModule] Initialized');
+    }
+
+    handleFixtureSelection(event) {
+        const { field, presetData, preset } = event.data;
+        const fixtureId = presetData.id;
+
+        if (FGMProgrammer.getSelection().includes(fixtureId)) {
+            FGMProgrammer.unselectFixture(fixtureId);
+        } else {
+            FGMProgrammer.selectFixture(fixtureId, false);
+        }
+
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
     }
 
     handleFader(event) {
@@ -80,7 +105,6 @@ class FGMProgrammerModule extends FGMFeatureModule {
         const type = fromColorPicker.getFGMType();
 
         if (type === FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
-            // Split the color object into individual attribute updates
             if (data.r !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_R, data.r);
             if (data.g !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_G, data.g);
             if (data.b !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_B, data.b);

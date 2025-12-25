@@ -11,20 +11,19 @@ class FGMwithHCW {
     }
 
     async loadInital() {
-        // Register all feature modules
         console.log('[FGM Setup] Registering feature modules...');
-        FGMModuleRegistry.register(new FGMAwaitingActionsModule()); // Must be first - handles awaiting actions
+        FGMModuleRegistry.register(new FGMAwaitingActionsModule());
         FGMModuleRegistry.register(new FGMPageModule());
         FGMModuleRegistry.register(new FGMProgrammerModule());
         FGMModuleRegistry.register(new FGMArtNetModule());
         FGMModuleRegistry.register(new FGMEditNameModule());
         FGMModuleRegistry.register(new FGMFixturePatchModule());
+        FGMModuleRegistry.register(new FGMPoolModule());
 
         // Initialize all modules
         FGMModuleRegistry.initializeAll();
         console.log('[FGM Setup] All modules initialized');
 
-        // Initialize kernel (will emit INIT event)
         FGMKernel.eventInit();
 
         try {

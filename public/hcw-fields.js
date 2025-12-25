@@ -438,6 +438,7 @@ class HCWPreset {
         this.progress = progress;
         this.parentField = null;
         this.flashing = false;
+        this.selected = false;
     }
 
     getLabel() {
@@ -516,6 +517,16 @@ class HCWPreset {
 
     isFlashing() {
         return this.flashing;
+    }
+
+    setSelected(selected) {
+        this.selected = selected;
+        this.triggerRender();
+        return this;
+    }
+
+    isSelected() {
+        return this.selected;
     }
 
     update(updates = {}) {
@@ -623,6 +634,10 @@ class HCWPresetField extends HCWBaseField {
         });
         this.updateFrame();
         return this;
+    }
+
+    clearAllPresets() {
+        this.presets = [];
     }
 
     onPresetPress(callback) {
@@ -771,6 +786,12 @@ class HCWPresetField extends HCWBaseField {
 
                 HCW.ctx.fillStyle = bgColor;
                 HCW.ctx.fillRect(px, py, itemWidth, this.itemHeight);
+
+                if (preset.isSelected()) {
+                    HCW.ctx.strokeStyle = "#39af0aff";
+                    HCW.ctx.lineWidth = 3;
+                    HCW.ctx.strokeRect(px + 1.5, py + 1.5, itemWidth - 3, this.itemHeight - 3);
+                }
 
                 HCW.ctx.fillStyle = this.renderProps.colors.itemText;
                 HCW.ctx.font = "12px Arial";
