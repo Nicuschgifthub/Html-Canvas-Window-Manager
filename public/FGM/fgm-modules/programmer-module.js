@@ -28,6 +28,28 @@ class FGMProgrammerModule extends FGMFeatureModule {
             priority: 10
         });
 
+        // Register handler for programmer clear actions
+        this.on(FGMEventTypes.PRESET_CLICKED, {
+            filter: (event) => {
+                const data = event.data.presetData || event.data.data;
+                const actionId = data?._actionId;
+                return [
+                    FGMTypes.ACTIONS.BUTTON.CLEAR_ALL,
+                    FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION,
+                    FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES
+                ].includes(actionId);
+            },
+            handler: (event) => {
+                const data = event.data.presetData || event.data.data;
+                const actionId = data._actionId;
+
+                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_ALL) FGMProgrammer.clearProgrammer();
+                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION) FGMProgrammer.clearSelection();
+                if (actionId === FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES) FGMProgrammer.releaseGhostValues();
+            },
+            priority: 10
+        });
+
         console.log('[ProgrammerModule] Initialized');
     }
 

@@ -17,8 +17,7 @@ class FGMSubAction {
     }
 
     /**
-     * Await an action or event
-     * @param {string|object} options - ActionType string or { type, filter, data } object
+     * @param {object} options { type, types, filter, data }
      * @returns {Promise}
      */
     static async awaitAction(options) {
@@ -26,12 +25,12 @@ class FGMSubAction {
             options = { type: options };
         }
 
-        const { type, filter, data = {} } = options;
+        const { type, types, filter, data = {} } = options;
 
         this.clearAwaitingAction();
-        this.pendingRequest = { type, filter };
+        this.pendingRequest = { type, types, filter };
 
-        this.awaitingAction = type;
+        this.awaitingAction = type || (types && types[0]) || 'generic';
         this.actionData = data;
 
         if (type === FGMEventTypes.KEYBOARD_ENTER || type === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) {
@@ -40,8 +39,6 @@ class FGMSubAction {
                 FGMWindowManager.openKeyboardForWindow(data.targetWindow, initialValue);
             }
         }
-
-        console.log(`[FGMSubAction] Awaiting action:`, options);
 
         return new Promise((resolve) => {
             this.resolvePromise = resolve;
@@ -72,6 +69,10 @@ class FGMSubAction {
         const req = this.pendingRequest;
 
         let typeMatches = (req.type === eventType);
+
+        if (req.types && Array.isArray(req.types)) {
+            if (req.types.includes(eventType)) typeMatches = true;
+        }
 
         if (req.type === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT && eventType === FGMEventTypes.KEYBOARD_ENTER) {
             typeMatches = true;

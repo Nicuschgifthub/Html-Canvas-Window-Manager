@@ -437,6 +437,7 @@ class HCWPreset {
         this.data = data;
         this.progress = progress;
         this.parentField = null;
+        this.flashing = false;
     }
 
     getLabel() {
@@ -500,11 +501,21 @@ class HCWPreset {
         this.triggerRender();
         return this;
     }
-    
+
     setProgress(progress) {
         this.progress = progress;
         this.triggerRender();
         return this;
+    }
+
+    setFlashing(flashing) {
+        this.flashing = flashing;
+        this.triggerRender();
+        return this;
+    }
+
+    isFlashing() {
+        return this.flashing;
     }
 
     update(updates = {}) {
@@ -746,7 +757,7 @@ class HCWPresetField extends HCWBaseField {
                     bgColor = preset.getDefaultColor();
                 }
 
-                const isFlashing = (typeof FGMSubAction !== 'undefined' && FGMSubAction.initiatorPreset === preset);
+                const isFlashing = preset.isFlashing();
 
                 if (isFlashing) {
                     if (typeof FGMKernel !== 'undefined' && FGMKernel.getAwaitingColor) {

@@ -14,37 +14,70 @@ class FGMEditNameModule extends FGMFeatureModule {
             handleInteraction: (actionStore) => this.handleInteraction(actionStore)
         });
 
+        this.on(FGMEventTypes.PRESET_CLICKED, {
+            filter: (event) => {
+                const data = event.data.presetData || event.data.data;
+                return data?._actionId === FGMTypes.ACTIONS.BUTTON.EDIT_NAME;
+            },
+            handler: (event) => {
+                this.handleInteraction(
+                    new FGMHandleAwaitActionStore()
+                        .setAction(FGMTypes.ACTIONS.BUTTON.EDIT_NAME)
+                        .setSinglePreset(event.data.singlePreset)
+                );
+            },
+            priority: 10
+        });
+
         console.log('[EditNameModule] Initialized');
     }
 
     async handleInteraction(actionStore) {
-        const window = actionStore.getWindow();
-        const singlePreset = actionStore.getSinglePreset();
+        const initiatorPreset = actionStore.getSinglePreset();
 
-        if (!window) return;
-        if (window.getSingleContextField().getFGMType() === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) return;
+        if (initiatorPreset) {
+            initiatorPreset.setFlashing(true);
+        }
+
+        const interaction = await FGMKernel.awaitAction({
+            types: [FGMEventTypes.PRESET_CLICKED, FGMEventTypes.WINDOW_CLICKED]
+        });
+
+        if (initiatorPreset) {
+            initiatorPreset.setFlashing(false);
+        }
+
+        let targetWindow = interaction.window;
+        let targetPreset = interaction.singlePreset;
+
+        console.log(targetWindow);
+        console.log(targetPreset);
+
+
+        if (!targetWindow) return;
+        if (targetWindow.getSingleContextField().getFGMType() === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) return;
 
         let initialValue = '';
-        if (singlePreset) {
-            initialValue = singlePreset.getName();
+        if (targetPreset) {
+            initialValue = targetPreset.getName();
         } else {
-            initialValue = window.getSingleContextField().getLabel();
+            initialValue = targetWindow.getSingleContextField().getLabel();
         }
 
         const result = await FGMKernel.awaitAction({
             type: FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT,
             data: {
-                targetWindow: window,
+                targetWindow: targetWindow,
                 initialValue: initialValue
             }
         });
 
         const string = result.value;
 
-        if (singlePreset) {
-            singlePreset.setLabel(string);
+        if (targetPreset) {
+            targetPreset.setLabel(string);
         } else {
-            window.getSingleContextField().setLabel(string);
+            targetWindow.getSingleContextField().setLabel(string);
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         }
     }

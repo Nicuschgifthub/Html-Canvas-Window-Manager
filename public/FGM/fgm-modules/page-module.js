@@ -12,26 +12,11 @@ class FGMPageModule extends FGMFeatureModule {
 
         this.on(FGMEventTypes.PRESET_CLICKED, {
             filter: (event) => {
-                if (FGMSubAction.getAwaitingAction()) {
-                    return false;
-                }
                 const data = event.data.presetData || event.data.data;
                 return data?._goToPage !== undefined;
             },
             handler: (event) => this.handlePageChange(event),
             priority: 20
-        });
-
-        this.on(FGMEventTypes.PRESET_CLICKED, {
-            filter: (event) => {
-                if (FGMSubAction.getAwaitingAction()) {
-                    return false;
-                }
-                const data = event.data.presetData || event.data.data;
-                return data?._programmerAction !== undefined;
-            },
-            handler: (event) => this.handleProgrammerAction(event),
-            priority: 15
         });
 
         console.log('[PageModule] Initialized');
@@ -43,12 +28,5 @@ class FGMPageModule extends FGMFeatureModule {
 
         FGMPageHandler.pageChange(pageId, fromPreset, singlePreset, fromWindow);
         event.stopPropagation();
-    }
-
-    handleProgrammerAction(event) {
-        const { data, singlePreset } = event.data;
-        const actionType = data._programmerAction;
-
-        FGMSubAction.setAwaitingAction(actionType, {}, singlePreset);
     }
 }

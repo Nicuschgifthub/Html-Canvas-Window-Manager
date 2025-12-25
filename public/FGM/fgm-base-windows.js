@@ -248,10 +248,10 @@ class FGMBaseWindows {
 
         const pageActions = new HCWPresetField('Actions', FGMIds.newComponentId())
             .onPresetPress(FGMKernel.eventPresetClicked)
-            .addPreset(new HCWPreset("Edit Name").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.EDIT_NAME }))
-            .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.STORE }))
-            .addPreset(new HCWPreset("Clear Selec.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION }))
-            .addPreset(new HCWPreset("Release Fixt.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _programmerAction: FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES }))
+            .addPreset(new HCWPreset("Edit Name").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.EDIT_NAME }))
+            .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.STORE }))
+            .addPreset(new HCWPreset("Clear Selec.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION }))
+            .addPreset(new HCWPreset("Release Fixt.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES }))
 
         const newPageActionsWindow = new HCWWindow(320, 810, 300, 100)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
