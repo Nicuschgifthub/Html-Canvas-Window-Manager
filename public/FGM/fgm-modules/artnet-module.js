@@ -108,24 +108,6 @@ class FGMArtNetModule extends FGMFeatureModule {
         }
     }
 
-    /*
-    handleKeyboardSave(string) {
-        const data = FGMSubAction.actionData;
-        if (data.targetField && data.rowIndex !== undefined) {
-            data.targetField.updateCellValue(data.rowIndex, data.colIndex, string);
-
-            const fields = ['name', 'ip', 'subnet', 'universe'];
-            const fieldName = fields[data.colIndex];
-            if (fieldName) {
-                FGMStore.updateArtNetNode(data.rowIndex, fieldName, string);
-            }
-        }
-        FGMSubAction.clearAwaitingAction();
-        FGMWindowManager.closeKeyboard();
-        this.refreshTable();
-    }
-    */
-
     refreshTable() {
         const artNetWin = FGMStore.getHCW().getWindows().find(w => w.getId() === FGMIds.DEFAULT.WINDOWS.ART_NET_CONFIG);
         if (artNetWin) {

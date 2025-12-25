@@ -3,9 +3,6 @@ class FGMProgrammer {
     static data = {}; // { fixtureId: { attributeType: { value: 0, active: true } } }
     static clearStep = 0; // 0: None, 1: Selection cleared, 2: Values inactivated, 3: Everything cleared
 
-    /**
-     * Selects a fixture and maintains order
-     */
     static selectFixture(id, clearSelection = false) {
         if (clearSelection) {
             this.selection = [];
@@ -15,7 +12,7 @@ class FGMProgrammer {
         const index = this.selection.indexOf(id);
         if (index === -1) {
             this.selection.push(id);
-            this.clearStep = 0; // Reset clear sequence on new selection
+            this.clearStep = 0;
         }
 
         if (typeof FGMEventBus !== 'undefined') {
@@ -129,7 +126,6 @@ class FGMProgrammer {
         const isAllPool = poolType === FGMTypes.PROGRAMMER.POOLS.ALL_POOL;
 
         if (isUniversal) {
-            // Universal: Template based on first selected fixture
             const firstFid = this.selection[0];
             const fixtureData = this.data[firstFid];
             if (!fixtureData) return null;
@@ -146,7 +142,6 @@ class FGMProgrammer {
             return hasData ? { _universal: true, values: universalValues } : null;
         }
 
-        // Selective: Map of FID -> Attributes
         const result = {};
         for (let fid in this.data) {
             const fixtureData = this.data[fid];
@@ -178,7 +173,6 @@ class FGMProgrammer {
                 console.log("[Programmer] Group recalled:", data);
             }
         } else if (data && data._universal) {
-            // Apply Universal Preset to current selection
             const values = data.values;
             this.selection.forEach(fid => {
                 if (!this.data[fid]) this.data[fid] = {};
@@ -193,7 +187,6 @@ class FGMProgrammer {
             });
             console.log("[Programmer] Universal Preset recalled of type:", type);
         } else {
-            // Selective logic
             for (let fid in data) {
                 if (!this.data[fid]) this.data[fid] = {};
                 if (!this.selection.includes(fid)) {
