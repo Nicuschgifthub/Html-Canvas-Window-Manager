@@ -454,12 +454,6 @@ class HCWPreset {
         return this;
     }
 
-    triggerRender() {
-        if (this.parentField && typeof HCWRender !== 'undefined') {
-            HCWRender.updateFrame();
-        }
-    }
-
     toJSON() {
         const copy = { ...this };
         delete copy.parentField;
@@ -481,37 +475,31 @@ class HCWPreset {
 
     setLabel(name) {
         this.name = name;
-        this.triggerRender();
         return this;
     }
 
     setColor(color) {
         this.color = color;
-        this.triggerRender();
         return this;
     }
 
     setDefaultColor(color) {
         this.defaultColor = color;
-        this.triggerRender();
         return this;
     }
 
     setData(data) {
         this.data = data;
-        this.triggerRender();
         return this;
     }
 
     setProgress(progress) {
         this.progress = progress;
-        this.triggerRender();
         return this;
     }
 
     setFlashing(flashing) {
         this.flashing = flashing;
-        this.triggerRender();
         return this;
     }
 
@@ -521,7 +509,6 @@ class HCWPreset {
 
     setSelectionState(state) {
         this.selectionState = state;
-        this.triggerRender();
         return this;
     }
 
@@ -531,7 +518,6 @@ class HCWPreset {
 
     setSelected(selected) {
         this.selectionState = selected ? 2 : 0;
-        this.triggerRender();
         return this;
     }
 
@@ -546,8 +532,13 @@ class HCWPreset {
         if (updates.progress !== undefined) this.progress = updates.progress;
         if (updates.defaultColor !== undefined) this.defaultColor = updates.defaultColor;
 
-        this.triggerRender();
         return this;
+    }
+
+    forceRerender() {
+        if (this.parentField && typeof HCWRender !== 'undefined') {
+            HCWRender.updateFrame();
+        }
     }
 }
 

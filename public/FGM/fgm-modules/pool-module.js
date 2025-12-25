@@ -41,8 +41,7 @@ class FGMPoolModule extends FGMFeatureModule {
                 }
 
                 if (poolType === FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL) {
-                    const isSel = selection.includes(data.id);
-                    preset.setSelected(isSel);
+                    const isSel = selection.map(String).includes(String(data.id));
                     if (preset.setSelectionState) preset.setSelectionState(isSel ? 2 : 0);
                     return;
                 }
@@ -56,21 +55,18 @@ class FGMPoolModule extends FGMFeatureModule {
                 }
 
                 if (fixtureIdsInPreset.length > 0) {
-                    const matched = fixtureIdsInPreset.filter(id => selection.includes(id));
+                    const selStrings = selection.map(String);
+                    const matched = fixtureIdsInPreset.filter(id => selStrings.includes(String(id)));
 
                     if (matched.length === 0) {
                         if (preset.setSelectionState) preset.setSelectionState(0);
-                        preset.setSelected(false);
                     } else if (matched.length === fixtureIdsInPreset.length) {
                         if (preset.setSelectionState) preset.setSelectionState(2);
-                        preset.setSelected(true);
                     } else {
                         if (preset.setSelectionState) preset.setSelectionState(1);
-                        preset.setSelected(true);
                     }
                 } else {
                     if (preset.setSelectionState) preset.setSelectionState(0);
-                    preset.setSelected(false);
                 }
             });
         });
