@@ -150,7 +150,12 @@ class FGMTypes {
             },
             POOLS: {
                 get FIXTURE_POOL() { return 'p_pool_fixture'; },
-                get GROUP_POOL() { return 'p_pool_group'; }
+                get GROUP_POOL() { return 'p_pool_group'; },
+                get DIMMER_POOL() { return 'p_pool_dimmer'; },
+                get POSITION_POOL() { return 'p_pool_position'; },
+                get COLOR_POOL() { return 'p_pool_color'; },
+                get COLOR_WHEEL_POOL() { return 'p_pool_color_wheel'; },
+                get GOBO_WHEEL_POOL() { return 'p_pool_group_color_wheel'; },
             }
         }
     }
