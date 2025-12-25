@@ -114,4 +114,34 @@ class FGMStore {
             }
         }
     }
+
+    static presets = {}; // { [poolType]: [ { name, data } ] }
+
+    static getPresets(poolType) {
+        return this.presets[poolType] || [];
+    }
+
+    static savePreset(poolType, index, name, data) {
+        if (!this.presets[poolType]) this.presets[poolType] = [];
+        this.presets[poolType][index] = { name, data };
+
+        if (typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PATCH_CHANGED);
+        }
+    }
+
+    static getPreset(poolType, index) {
+        return this.presets[poolType]?.[index] || null;
+    }
+
+    static deletePreset(poolType, index) {
+        if (this.presets[poolType] && this.presets[poolType][index]) {
+            delete this.presets[poolType][index];
+            if (typeof FGMEventBus !== 'undefined') {
+                FGMEventBus.emit(FGMEventTypes.PATCH_CHANGED);
+            }
+            return true;
+        }
+        return false;
+    }
 }

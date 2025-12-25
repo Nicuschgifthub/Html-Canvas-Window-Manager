@@ -156,6 +156,7 @@ class FGMTypes {
                 get COLOR_POOL() { return 'p_pool_color'; },
                 get COLOR_WHEEL_POOL() { return 'p_pool_color_wheel'; },
                 get GOBO_WHEEL_POOL() { return 'p_pool_group_color_wheel'; },
+                get ALL_POOL() { return 'p_pool_all'; }
             }
         }
     }
@@ -164,6 +165,9 @@ class FGMTypes {
             BUTTON: {
                 get STORE() {
                     return 'a_button_store';
+                },
+                get DELETE() {
+                    return 'a_button_delete';
                 },
                 get CLEAR_ALL() {
                     return 'a_button_clear_all';

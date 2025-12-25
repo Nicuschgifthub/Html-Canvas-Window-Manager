@@ -66,9 +66,9 @@ class FGMEditNameModule extends FGMFeatureModule {
         if (targetPreset) {
             targetPreset.setLabel(string);
 
-            const fixtureId = targetPreset.getData()?.id;
-            if (fixtureId) {
-                FGMStore.updateFixtureMetadata(fixtureId, { label: string });
+            const data = targetPreset.getData();
+            if (data && data.id && targetWindow.getSingleContextField().getFGMType() === FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL) {
+                FGMStore.updateFixtureMetadata(data.id, { label: string });
             }
         } else {
             targetWindow.getSingleContextField().setLabel(string);

@@ -22,6 +22,7 @@ class FGMLoadFiles {
             '/FGM/fgm-modules/fixture-patch-module.js',   // Fixture patch module
             '/FGM/fgm-modules/page-module.js',            // Page module
             '/FGM/fgm-modules/pool-module.js',            // Pool module
+            '/FGM/fgm-modules/store-module.js',           // Store module
             '/FGM/fgm-base-windows.js',
             '/FGM/fgm-init.js'
         ]

@@ -1,3 +1,7 @@
+/**
+ * Pool Module
+ * Manages refreshing and updating of all pool windows (Fixtures, Groups, Presets)
+ */
 class FGMPoolModule extends FGMFeatureModule {
     constructor() {
         super('pool-manager', '1.0.0');
@@ -6,16 +10,14 @@ class FGMPoolModule extends FGMFeatureModule {
     init() {
         console.log('[PoolModule] Initializing...');
 
-        this.on(FGMEventTypes.PATCH_CHANGED, {
-            handler: () => this.refreshFixturePool(),
-            priority: 5
-        });
+        // Refresh pools on patch change
+        this.on(FGMEventTypes.PATCH_CHANGED, () => this.refreshPools());
 
-        this.on(FGMEventTypes.SELECTION_CHANGED, {
-            handler: () => this.updatePoolSelection(),
-            priority: 5
-        });
+        // Update selection highlights on selection change
+        this.on(FGMEventTypes.SELECTION_CHANGED, () => this.updatePoolSelection());
 
+        // Refresh everything initially
+        this.refreshPools();
         console.log('[PoolModule] Initialized');
     }
 
@@ -27,41 +29,136 @@ class FGMPoolModule extends FGMFeatureModule {
 
         hcw.getWindows().forEach(win => {
             const field = win.getSingleContextField();
-            if (field && field.getFGMType() === FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL) {
-                field.presets.forEach(preset => {
-                    const fixtureId = preset.data?.id;
-                    if (fixtureId) {
-                        preset.setSelected(selection.includes(fixtureId));
+            const poolType = field?.getFGMType();
+            if (!field || !poolType || !field.presets) return;
+
+            field.presets.forEach(preset => {
+                const data = preset.getData();
+                if (!data) {
+                    preset.setSelected(false);
+                    if (preset.setSelectionState) preset.setSelectionState(0);
+                    return;
+                }
+
+                if (poolType === FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL) {
+                    const isSel = selection.includes(data.id);
+                    preset.setSelected(isSel);
+                    if (preset.setSelectionState) preset.setSelectionState(isSel ? 2 : 0);
+                    return;
+                }
+
+                // Selective Pools (Group, All, or any Map-based data)
+                let fixtureIdsInPreset = [];
+                if (Array.isArray(data)) {
+                    fixtureIdsInPreset = data;
+                } else if (typeof data === 'object' && !data._universal) {
+                    fixtureIdsInPreset = Object.keys(data);
+                }
+
+                if (fixtureIdsInPreset.length > 0) {
+                    const matched = fixtureIdsInPreset.filter(id => selection.includes(id));
+
+                    if (matched.length === 0) {
+                        if (preset.setSelectionState) preset.setSelectionState(0);
+                        preset.setSelected(false);
+                    } else if (matched.length === fixtureIdsInPreset.length) {
+                        if (preset.setSelectionState) preset.setSelectionState(2);
+                        preset.setSelected(true);
+                    } else {
+                        if (preset.setSelectionState) preset.setSelectionState(1);
+                        preset.setSelected(true);
                     }
-                });
-            }
+                } else {
+                    if (preset.setSelectionState) preset.setSelectionState(0);
+                    preset.setSelected(false);
+                }
+            });
         });
     }
 
-    refreshFixturePool() {
+    refreshPools() {
         const hcw = FGMStore.getHCW();
         if (!hcw) return;
 
-        const poolWindows = hcw.getWindows().filter(win => {
-            const field = win.getSingleContextField();
-            return field && field.getFGMType() === FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL;
+        // Refresh Fixture Pool
+        this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL, () => {
+            const patchedFixtures = FGMStore.getPatchedFixtures();
+            const currentSelection = FGMProgrammer.getSelection();
+            return patchedFixtures.map(fix => {
+                const preset = new HCWPreset(fix.getLabel(), null, null, { id: fix.getId() });
+                preset.setSelected(currentSelection.includes(fix.getId()));
+                return preset;
+            });
         });
 
-        const patchedFixtures = FGMStore.getPatchedFixtures();
-        const currentSelection = FGMProgrammer.getSelection();
+        // Refresh Group Pool
+        this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.GROUP_POOL, (preset, index) => {
+            const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.GROUP_POOL, index);
+            if (stored) {
+                preset.setLabel(stored.name).setData(stored.data);
+            } else {
+                preset.setLabel("").setData(null);
+            }
+        });
 
-        poolWindows.forEach(win => {
+        // Refresh Dimmer Pool
+        this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.DIMMER_POOL, (preset, index) => {
+            const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.DIMMER_POOL, index);
+            if (stored) {
+                preset.setLabel(stored.name).setData(stored.data).setColor("#574b4bff");
+            } else {
+                preset.setLabel("").setData(null).setColor(null);
+            }
+        });
+
+        // Refresh Color Pool
+        this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.COLOR_POOL, (preset, index) => {
+            const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.COLOR_POOL, index);
+            if (stored) {
+                preset.setLabel(stored.name).setData(stored.data).setColor("#8e44ad");
+            } else {
+                preset.setLabel("").setData(null).setColor(null);
+            }
+        });
+
+        // Refresh Position Pool
+        this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.POSITION_POOL, (preset, index) => {
+            const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.POSITION_POOL, index);
+            if (stored) {
+                preset.setLabel(stored.name).setData(stored.data).setColor("#2980b9");
+            } else {
+                preset.setLabel("").setData(null).setColor(null);
+            }
+        });
+
+        // Refresh All Pool
+        this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.ALL_POOL, (preset, index) => {
+            const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.ALL_POOL, index);
+            if (stored) {
+                preset.setLabel(stored.name).setData(stored.data).setColor("#27ae60");
+            } else {
+                preset.setLabel("").setData(null).setColor(null);
+            }
+        });
+
+        this.updatePoolSelection();
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
+    }
+
+    refreshSpecificPool(poolType, presetFactory) {
+        const hcw = FGMStore.getHCW();
+        hcw.getWindows().forEach(win => {
             const field = win.getSingleContextField();
-            if (field) {
-                field.clearAllPresets();
-                patchedFixtures.forEach(fix => {
-                    const preset = new HCWPreset(fix.getLabel(), null, null, { id: fix.getId() });
-                    if (currentSelection.includes(fix.getId())) {
-                        preset.setSelected(true);
-                    }
-                    field.addPreset(preset);
-                });
-                field.updateFrame();
+            if (field && field.getFGMType() === poolType) {
+                if (poolType === FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL) {
+                    field.clearAllPresets();
+                    const presets = presetFactory();
+                    presets.forEach(p => field.addPreset(p));
+                } else {
+                    field.presets.forEach((preset, index) => {
+                        presetFactory(preset, index);
+                    });
+                }
             }
         });
     }

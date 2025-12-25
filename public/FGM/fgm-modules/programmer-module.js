@@ -26,6 +26,12 @@ class FGMProgrammerModule extends FGMFeatureModule {
         });
 
         this.on(FGMEventTypes.PRESET_CLICKED, {
+            filter: FGMEventFilter.byFieldType(FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL),
+            handler: (event) => this.handleFixtureSelection(event),
+            priority: 10
+        });
+
+        this.on(FGMEventTypes.PRESET_CLICKED, {
             filter: FGMEventFilter.or(
                 FGMEventFilter.byPresetData('_actionId', FGMTypes.ACTIONS.BUTTON.CLEAR_ALL),
                 FGMEventFilter.byPresetData('_actionId', FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION),
@@ -49,12 +55,6 @@ class FGMProgrammerModule extends FGMFeatureModule {
 
                 if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
             },
-            priority: 10
-        });
-
-        this.on(FGMEventTypes.PRESET_CLICKED, {
-            filter: FGMEventFilter.byFieldType(FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL),
-            handler: (event) => this.handleFixtureSelection(event),
             priority: 10
         });
 

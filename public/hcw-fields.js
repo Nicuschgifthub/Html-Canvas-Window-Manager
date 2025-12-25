@@ -438,7 +438,7 @@ class HCWPreset {
         this.progress = progress;
         this.parentField = null;
         this.flashing = false;
-        this.selected = false;
+        this.selectionState = 0; // 0: None, 1: Partial, 2: Full
     }
 
     getLabel() {
@@ -519,14 +519,24 @@ class HCWPreset {
         return this.flashing;
     }
 
+    setSelectionState(state) {
+        this.selectionState = state;
+        this.triggerRender();
+        return this;
+    }
+
+    getSelectionState() {
+        return this.selectionState;
+    }
+
     setSelected(selected) {
-        this.selected = selected;
+        this.selectionState = selected ? 2 : 0;
         this.triggerRender();
         return this;
     }
 
     isSelected() {
-        return this.selected;
+        return this.selectionState > 0;
     }
 
     update(updates = {}) {
@@ -787,8 +797,9 @@ class HCWPresetField extends HCWBaseField {
                 HCW.ctx.fillStyle = bgColor;
                 HCW.ctx.fillRect(px, py, itemWidth, this.itemHeight);
 
-                if (preset.isSelected()) {
-                    HCW.ctx.strokeStyle = "#39af0aff";
+                if (preset.getSelectionState() > 0) {
+                    const state = preset.getSelectionState();
+                    HCW.ctx.strokeStyle = state === 2 ? "#39af0aff" : "#f1c40f"; // Green for Full, Yellow for Partial
                     HCW.ctx.lineWidth = 3;
                     HCW.ctx.strokeRect(px + 1.5, py + 1.5, itemWidth - 3, this.itemHeight - 3);
                 }

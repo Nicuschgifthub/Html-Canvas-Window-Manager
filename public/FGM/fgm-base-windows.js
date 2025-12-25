@@ -136,7 +136,7 @@ class FGMBaseWindows {
             fixturePool.addPreset(new HCWPreset(fix.getLabel(), null, null, { id: fix.getId() }));
         });
 
-        const newFixturePoolWindow = new HCWWindow(60, 50, 400, 300)
+        const newFixturePoolWindow = new HCWWindow(100, 0, 400, 300)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(fixturePool)
             .setHidden(true)
@@ -157,7 +157,7 @@ class FGMBaseWindows {
             groupPool.addPreset(new HCWPreset("Group " + i, null, null, { id: i }));
         }
 
-        const newGroupPoolWindow = new HCWWindow(470, 50, 400, 300)
+        const newGroupPoolWindow = new HCWWindow(500, 0, 400, 300)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(groupPool)
             .setHidden(true)
@@ -169,6 +169,77 @@ class FGMBaseWindows {
         groupPool.setParentWindow(newGroupPoolWindow);
         windowsForThisPage.groupPool = newGroupPoolWindow;
 
+        // --- Dimmer Pool ---
+        const dimmerPool = new HCWPresetField('Dimmers', FGMIds.newComponentId())
+            .setFGMType(FGMTypes.PROGRAMMER.POOLS.DIMMER_POOL)
+            .onPresetPress(FGMKernel.eventPresetClicked);
+
+        for (let i = 0; i < 20; i++) dimmerPool.addPreset(new HCWPreset("", null, null, null));
+
+        const dimmerPoolWindow = new HCWWindow(100, 300, 400, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(dimmerPool)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        dimmerPool.setParentWindow(dimmerPoolWindow);
+        windowsForThisPage.dimmerPool = dimmerPoolWindow;
+
+        // --- Color Pool ---
+        const colorPool = new HCWPresetField('Colors', FGMIds.newComponentId())
+            .setFGMType(FGMTypes.PROGRAMMER.POOLS.COLOR_POOL)
+            .onPresetPress(FGMKernel.eventPresetClicked);
+
+        for (let i = 0; i < 20; i++) colorPool.addPreset(new HCWPreset("", null, null, null));
+
+        const colorPoolWindow = new HCWWindow(500, 300, 400, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(colorPool)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        colorPool.setParentWindow(colorPoolWindow);
+        windowsForThisPage.colorPool = colorPoolWindow;
+
+        // --- Position Pool ---
+        const positionPool = new HCWPresetField('Positions', FGMIds.newComponentId())
+            .setFGMType(FGMTypes.PROGRAMMER.POOLS.POSITION_POOL)
+            .onPresetPress(FGMKernel.eventPresetClicked);
+
+        for (let i = 0; i < 20; i++) positionPool.addPreset(new HCWPreset("", null, null, null));
+
+        const positionPoolWindow = new HCWWindow(900, 300, 400, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(positionPool)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        positionPool.setParentWindow(positionPoolWindow);
+        windowsForThisPage.positionPool = positionPoolWindow;
+
+        // --- All Pool ---
+        const allPool = new HCWPresetField('All', FGMIds.newComponentId())
+            .setFGMType(FGMTypes.PROGRAMMER.POOLS.ALL_POOL)
+            .onPresetPress(FGMKernel.eventPresetClicked);
+
+        for (let i = 0; i < 20; i++) allPool.addPreset(new HCWPreset("", null, null, null));
+
+        const allPoolWindow = new HCWWindow(900, 0, 400, 300)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(allPool)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        allPool.setParentWindow(allPoolWindow);
+        windowsForThisPage.allPool = allPoolWindow;
 
         // Main Dimmer
         const dimFader = new HCWFaderField('Dimmer', FGMIds.newComponentId())
@@ -233,7 +304,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventColorPickerUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER)
 
-        const newColorPickerWindow = new HCWWindow(320, 500, 300, 300)
+        const newColorPickerWindow = new HCWWindow(300, 500, 400, 400)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(colorPicker)
             .setHidden(true)
@@ -250,10 +321,11 @@ class FGMBaseWindows {
             .onPresetPress(FGMKernel.eventPresetClicked)
             .addPreset(new HCWPreset("Edit Name").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.EDIT_NAME }))
             .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.STORE }))
+            .addPreset(new HCWPreset("Delete").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.DELETE }))
             .addPreset(new HCWPreset("Clear Selec.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION }))
             .addPreset(new HCWPreset("Release Fixt.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES }))
 
-        const newPageActionsWindow = new HCWWindow(320, 810, 300, 100)
+        const newPageActionsWindow = new HCWWindow(700, 500, 100, 500)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(pageActions)
             .setHidden(true)
