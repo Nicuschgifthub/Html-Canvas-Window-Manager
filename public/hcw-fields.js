@@ -1988,8 +1988,6 @@ class HCWTableField extends HCWBaseField {
             ctx.fillRect(w.x, rowY, w.sx, this.rowHeight);
 
             row.forEach((cell, colIndex) => {
-                
-
                 const cellX = w.x + pad + colIndex * colW;
 
                 ctx.fillStyle = '#bbb';
@@ -2028,10 +2026,10 @@ class HCWTableField extends HCWBaseField {
             }
 
             ctx.strokeStyle = '#333';
-                ctx.beginPath();
-                ctx.moveTo(w.x, rowY + this.rowHeight);
-                ctx.lineTo(w.x2, rowY + this.rowHeight);
-                ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(w.x, rowY + this.rowHeight);
+            ctx.lineTo(w.x2, rowY + this.rowHeight);
+            ctx.stroke();
         });
 
         if (this.onAddRowCallback) {
