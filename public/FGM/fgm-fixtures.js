@@ -60,7 +60,7 @@ class FGMFixture {
 
     loadProfile(profile) {
         if (!profile || !profile.functions) return;
-        this.setLabel(profile.name);
+        this.setLabel(profile.shortName);
         this.setShortName(profile.shortName || '');
         this.functions = [];
         profile.functions.forEach(f => {
