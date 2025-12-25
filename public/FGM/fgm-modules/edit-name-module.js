@@ -50,10 +50,6 @@ class FGMEditNameModule extends FGMFeatureModule {
         let targetWindow = interaction.window;
         let targetPreset = interaction.singlePreset;
 
-        console.log(targetWindow);
-        console.log(targetPreset);
-
-
         if (!targetWindow) return;
         if (targetWindow.getSingleContextField().getFGMType() === FGMTypes.ACTIONS.KEYBOARD.MAIN_INPUT) return;
 

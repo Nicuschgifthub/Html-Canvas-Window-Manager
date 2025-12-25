@@ -63,6 +63,7 @@ class FGMSubAction {
      * @param {object} payload 
      * @returns {boolean} true if handled (resolved), false otherwise
      */
+
     static checkAndResolve(eventType, payload) {
         if (!this.resolvePromise || !this.pendingRequest) return false;
 
@@ -79,6 +80,21 @@ class FGMSubAction {
         }
 
         if (!typeMatches) return false;
+
+        // Special case: If we are awaiting both a preset and a window click, 
+        // give the preset click priority by delaying the window click resolution.
+        if (eventType === FGMEventTypes.WINDOW_CLICKED && req.types && req.types.includes(FGMEventTypes.PRESET_CLICKED)) {
+            const resolve = this.resolvePromise;
+            const currentRequest = this.pendingRequest;
+
+            queueMicrotask(() => {
+                if (this.resolvePromise === resolve && this.pendingRequest === currentRequest) {
+                    this.clearAwaitingAction();
+                    resolve(payload);
+                }
+            });
+            return true;
+        }
 
         if (req.filter && typeof req.filter === 'function') {
             if (!req.filter(payload)) return false;

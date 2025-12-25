@@ -235,7 +235,6 @@ class HCWTouch {
             HCW.pointer._windowPressCandidate = windowParts.window;
             HCW.pointer._windowPressStartX = mouseX;
             HCW.pointer._windowPressStartY = mouseY;
-            FGMKernel.eventWindowClicked(windowParts.window);
         }
 
         if (HCWInteraction.touchZoneTop(windowParts) && !HCWInteraction.touchZoneRight(windowParts)) {
@@ -258,7 +257,7 @@ class HCWTouch {
         if (contextHit.field) {
             HCW.pointer.contextdrag = true;
             HCW.pointer.contextwindow = contextHit.field;
-            HCW.pointer.focusedField = contextHit.field; // Set focus
+            HCW.pointer.focusedField = contextHit.field;
             contextHit.field._interaction({ type: 'mousedown', mouseX, mouseY });
         } else if (!windowParts.window) {
             if (typeof FGMKernel !== 'undefined' && FGMKernel.eventBackgroundClicked) {
@@ -351,8 +350,9 @@ class HCWTouch {
             const dist = Math.sqrt(Math.pow(mouseX - HCW.pointer._windowPressStartX, 2) + Math.pow(mouseY - HCW.pointer._windowPressStartY, 2));
 
             if (dist < 5) {
+                FGMKernel.eventWindowClicked(HCW.pointer._windowPressCandidate);
+
                 const contextHit = HCWInteraction.getContextHitByCords(mouseX, mouseY);
-                // Trigger window press if we didn't hit a specific field item
                 if (!contextHit.field && HCW.pointer._windowPressCandidate.onPressCallback) {
                     HCW.pointer._windowPressCandidate.onPressCallback(HCW.pointer._windowPressCandidate);
                 }
