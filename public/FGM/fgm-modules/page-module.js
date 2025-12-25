@@ -11,10 +11,7 @@ class FGMPageModule extends FGMFeatureModule {
         console.log('[PageModule] Initializing...');
 
         this.on(FGMEventTypes.PRESET_CLICKED, {
-            filter: (event) => {
-                const data = event.data.presetData || event.data.data;
-                return data?._goToPage !== undefined;
-            },
+            filter: FGMEventFilter.hasPresetData('_goToPage'),
             handler: (event) => this.handlePageChange(event),
             priority: 20
         });

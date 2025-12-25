@@ -12,27 +12,21 @@ class FGMArtNetModule extends FGMFeatureModule {
 
         // Register handler for ArtNet table cell clicks
         this.on(FGMEventTypes.TABLE_CELL_CLICKED, {
-            filter: (event) => {
-                return event.data.field?.getFGMType() === FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS;
-            },
+            filter: FGMEventFilter.byFieldType(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS),
             handler: (event) => this.handleCellClick(event),
             priority: 10
         });
 
         // Register handler for ArtNet table row deletion
         this.on(FGMEventTypes.TABLE_ROW_DELETED, {
-            filter: (event) => {
-                return event.data.field?.getFGMType() === FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS;
-            },
+            filter: FGMEventFilter.byFieldType(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS),
             handler: (event) => this.handleRowDelete(event),
             priority: 10
         });
 
         // Register handler for ArtNet table row addition
         this.on(FGMEventTypes.TABLE_ROW_ADDED, {
-            filter: (event) => {
-                return event.data.field?.getFGMType() === FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS;
-            },
+            filter: FGMEventFilter.byFieldType(FGMTypes.ACTIONS.WINDOW.ARTNET_SETTINGS),
             handler: (event) => this.handleRowAdd(event),
             priority: 10
         });

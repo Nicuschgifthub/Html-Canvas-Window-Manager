@@ -33,7 +33,7 @@ class FGMEventTypes {
     static get SELECTION_CHANGED() { return 'programmer.selectionChanged'; } // Added // Added
 
     // Await action Events
-    static get AWAIT_KEYBOARD_INPUT() {}
+    static get AWAIT_KEYBOARD_INPUT() { }
 
     // Wildcard - matches all events
     static get ALL() { return '*'; }
@@ -158,6 +158,16 @@ class FGMEventFilter {
         return (event) => {
             const presetData = event.data.presetData || event.data.data;
             return presetData?.[property] === value;
+        };
+    }
+
+    /**
+     * Filter by presence of preset data property
+     */
+    static hasPresetData(property) {
+        return (event) => {
+            const presetData = event.data.presetData || event.data.data;
+            return presetData?.[property] !== undefined;
         };
     }
 

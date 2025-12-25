@@ -30,15 +30,11 @@ class FGMProgrammerModule extends FGMFeatureModule {
 
         // Register handler for programmer clear actions
         this.on(FGMEventTypes.PRESET_CLICKED, {
-            filter: (event) => {
-                const data = event.data.presetData || event.data.data;
-                const actionId = data?._actionId;
-                return [
-                    FGMTypes.ACTIONS.BUTTON.CLEAR_ALL,
-                    FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION,
-                    FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES
-                ].includes(actionId);
-            },
+            filter: FGMEventFilter.or(
+                FGMEventFilter.byPresetData('_actionId', FGMTypes.ACTIONS.BUTTON.CLEAR_ALL),
+                FGMEventFilter.byPresetData('_actionId', FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION),
+                FGMEventFilter.byPresetData('_actionId', FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES)
+            ),
             handler: (event) => {
                 const data = event.data.presetData || event.data.data;
                 const actionId = data._actionId;

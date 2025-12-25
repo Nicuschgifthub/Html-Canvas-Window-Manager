@@ -15,10 +15,7 @@ class FGMEditNameModule extends FGMFeatureModule {
         });
 
         this.on(FGMEventTypes.PRESET_CLICKED, {
-            filter: (event) => {
-                const data = event.data.presetData || event.data.data;
-                return data?._actionId === FGMTypes.ACTIONS.BUTTON.EDIT_NAME;
-            },
+            filter: FGMEventFilter.byPresetData('_actionId', FGMTypes.ACTIONS.BUTTON.EDIT_NAME),
             handler: (event) => {
                 this.handleInteraction(
                     new FGMHandleAwaitActionStore()
