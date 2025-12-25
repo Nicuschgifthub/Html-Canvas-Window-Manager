@@ -144,4 +144,15 @@ class FGMStore {
         }
         return false;
     }
+
+    static renamePreset(poolType, index, newName) {
+        if (this.presets[poolType]?.[index]) {
+            this.presets[poolType][index].name = newName;
+            if (typeof FGMEventBus !== 'undefined') {
+                FGMEventBus.emit(FGMEventTypes.PATCH_CHANGED);
+            }
+            return true;
+        }
+        return false;
+    }
 }

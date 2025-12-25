@@ -66,9 +66,17 @@ class FGMEditNameModule extends FGMFeatureModule {
         if (targetPreset) {
             targetPreset.setLabel(string);
 
-            const data = targetPreset.getData();
-            if (data && data.id && targetWindow.getSingleContextField().getFGMType() === FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL) {
-                FGMStore.updateFixtureMetadata(data.id, { label: string });
+            const poolType = targetWindow.getSingleContextField().getFGMType();
+            const presetIndex = targetWindow.getSingleContextField().presets.indexOf(targetPreset);
+
+            if (poolType === FGMTypes.PROGRAMMER.POOLS.FIXTURE_POOL) {
+                const data = targetPreset.getData();
+                if (data && data.id) {
+                    FGMStore.updateFixtureMetadata(data.id, { label: string });
+                }
+            } else if (presetIndex !== -1) {
+                // For other pools, sync with FGMStore.presets
+                FGMStore.renamePreset(poolType, presetIndex, string);
             }
         } else {
             targetWindow.getSingleContextField().setLabel(string);
