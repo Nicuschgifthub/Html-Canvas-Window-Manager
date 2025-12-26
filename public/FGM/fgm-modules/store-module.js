@@ -115,14 +115,20 @@ class FGMStoreModule extends FGMFeatureModule {
             storeData = [...FGMProgrammer.getSelection()];
             namePrefix = "Group";
         } else {
-            // Dimmer, Color, and Position pools are Universal by default (per user request)
-            const isUniversal = [
-                FGMTypes.PROGRAMMER.POOLS.DIMMER_POOL,
-                FGMTypes.PROGRAMMER.POOLS.COLOR_POOL,
-                FGMTypes.PROGRAMMER.POOLS.POSITION_POOL
-            ].includes(poolType);
+            // Presets are Selective by default (per user request for "fixture wise" saving and merging)
+            const isUniversal = false;
 
-            storeData = FGMProgrammer.getValuesForPool(poolType, isUniversal);
+            const newData = FGMProgrammer.getValuesForPool(poolType, isUniversal);
+
+            // Merge logic for Selective Presets
+            const existingPreset = FGMStore.getPreset(poolType, presetIndex);
+            if (existingPreset && existingPreset.data && !existingPreset.data._universal && !isUniversal) {
+                console.log(`[StoreModule] Merging new data into existing selective preset at index ${presetIndex}`);
+                storeData = { ...existingPreset.data, ...newData };
+            } else {
+                storeData = newData;
+            }
+
             namePrefix = "Preset";
         }
 
