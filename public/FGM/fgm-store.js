@@ -155,4 +155,36 @@ class FGMStore {
         }
         return false;
     }
+
+    /**
+     * Aggregates all fixture data into 512-byte DMX buffers per universe.
+     * @returns {Object} { [universeNumber]: Uint8Array(512) }
+     */
+    static getUniverseBuffers() {
+        const universes = {};
+
+        this.patchedFixtures.forEach(fixture => {
+            const uni = fixture.getUniverse() || 1;
+            const addr = fixture.getAddress() || 1; // 1-based
+
+            if (!universes[uni]) {
+                universes[uni] = new Uint8Array(512).fill(0);
+            }
+
+            const buffer = universes[uni];
+            const functions = fixture.getFunctions();
+
+            functions.forEach(func => {
+                const dmxVals = func.getDmxValues(); // { offset: value }
+                for (let offset in dmxVals) {
+                    const channelIndex = (addr - 1) + parseInt(offset);
+                    if (channelIndex >= 0 && channelIndex < 512) {
+                        buffer[channelIndex] = dmxVals[offset];
+                    }
+                }
+            });
+        });
+
+        return universes;
+    }
 }
