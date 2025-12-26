@@ -1,9 +1,14 @@
 class FGMFixtureFunction {
-    constructor(definition, channel, fineChannel = null) {
+    constructor(definition, channel, fineChannel = null, defaultValue = 0) {
         this.definition = definition;
         this.channel = channel; // 0-indexed offset from fixture start
         this.fineChannel = fineChannel;
-        this.value = 0; // Logic value 0-255
+        this.defaultValue = defaultValue;
+        this.value = defaultValue; // Logic value 0-255
+    }
+
+    resetToDefault() {
+        this.value = this.defaultValue;
     }
 
     setLogicValue(val) {
@@ -66,9 +71,14 @@ class FGMFixture {
         profile.functions.forEach(f => {
             const def = FGMFixtureFunctionDefinitions.getDefinitionByType(f.type);
             if (def) {
-                this.addFunction(new FGMFixtureFunction(def, f.channel, f.fineChannel));
+                this.addFunction(new FGMFixtureFunction(def, f.channel, f.fineChannel, f.default || 0));
             }
         });
+        return this;
+    }
+
+    resetToDefaults() {
+        this.functions.forEach(f => f.resetToDefault());
         return this;
     }
 

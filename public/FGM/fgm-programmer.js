@@ -64,6 +64,13 @@ class FGMProgrammer {
         this.data = {};
         this.selection = [];
         this.clearStep = 0;
+
+        // NEW: Revert all patched fixtures to their default values
+        const patched = FGMStore.getPatchedFixtures();
+        patched.forEach(fixture => {
+            fixture.resetToDefaults();
+        });
+
         if (typeof FGMEventBus !== 'undefined') {
             FGMEventBus.emit(FGMEventTypes.PROGRAMMER_VALUE_CHANGED);
             FGMEventBus.emit(FGMEventTypes.SELECTION_CHANGED, { selection: [] });

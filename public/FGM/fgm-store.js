@@ -179,7 +179,7 @@ class FGMStore {
             if (functions.length === 0) {
                 const library = this.getLibrary();
                 if (library) {
-                    const profile = library.find(p => p.shortName === fixture.getShortName());
+                    const profile = library.getProfile(fixture.getShortName());
                     if (profile) {
                         console.log(`[Store] Self-healing fixture ${fixture.getId()} with profile ${profile.shortName}`);
                         fixture.loadProfile(profile);
