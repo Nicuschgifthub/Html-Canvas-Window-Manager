@@ -127,7 +127,9 @@ class FGMFixturePatchModule extends FGMFeatureModule {
                 } else if (fieldName === 'address') {
                     fixture.setAddress(parseInt(string) || 1);
                 } else if (fieldName === 'universe') {
-                    fixture.setUniverse(parseInt(string) || 1);
+                    // Allow 0 as a valid universe
+                    const uni = parseInt(string);
+                    fixture.setUniverse(isNaN(uni) ? 1 : uni);
                 }
             }
         }
@@ -193,6 +195,8 @@ class FGMFixturePatchModule extends FGMFeatureModule {
             profile.shortName,
             profile.name || profile.shortName
         );
+
+        fixture.loadProfile(profile);
 
         fixture.setAddress(1);
         fixture.setUniverse(1);

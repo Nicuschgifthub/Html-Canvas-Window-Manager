@@ -81,10 +81,12 @@ class FGMArtNetModule extends FGMFeatureModule {
         if (fromTable && rowIndex !== undefined) {
             fromTable.updateCellValue(rowIndex, colIndex, string);
 
-            const fields = ['name', 'ip', 'subnet', 'universe'];
+            const fields = ['name', 'ip', 'subnet', 'universe', 'softUni'];
             const fieldName = fields[colIndex];
             if (fieldName) {
-                FGMStore.updateArtNetNode(rowIndex, fieldName, string);
+                // Handle numeric fields
+                const finalValue = (fieldName === 'softUni') ? parseInt(string) || 1 : string;
+                FGMStore.updateArtNetNode(rowIndex, fieldName, finalValue);
             }
         }
 
@@ -127,7 +129,7 @@ class FGMArtNetModule extends FGMFeatureModule {
         if (artNetWin) {
             const tableField = artNetWin.getSingleContextField();
             const nodes = FGMStore.getArtNetNodes();
-            const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe]);
+            const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe, n.softUni]);
             tableField.setRows(rows);
         }
     }
@@ -144,7 +146,8 @@ class FGMArtNetSender {
     constructor() {
         this.sequence = 0;
         this.lastLog = 0;
-        this.socket = null;
+        this.sockets = new Map(); // Keyed by remote IP
+        this.lastBridgeError = 0;
     }
 
     async send() {
@@ -155,16 +158,41 @@ class FGMArtNetSender {
 
         if (Object.keys(universes).length === 0) return;
 
-        for (const uniNum in universes) {
-            const data = universes[uniNum];
-            const packet = this.createArtDmxPacket(parseInt(uniNum), data);
+        for (const node of nodes) {
+            if (node.ip && node.ip !== "0.0.0.0") {
+                const softUni = (node.softUni !== undefined && node.softUni !== "") ? parseInt(node.softUni) : 1;
+                const dmxData = universes[softUni];
 
-            for (const node of nodes) {
-                this.transmit(node.ip, packet);
+                if (dmxData) {
+                    const artNetAddr = this.parseArtNetUniverse(node.universe);
+                    const packet = this.createArtDmxPacket(artNetAddr, dmxData);
+                    this.transmit(node.ip, packet);
+                } else if (this.sequence % 100 === 0) {
+                    console.warn(`[ArtNet] No DMX data for Software Universe ${softUni} (Node: ${node.ip})`);
+                }
             }
         }
-
         this.sequence = (this.sequence + 1) % 256;
+    }
+
+    /**
+     * Parses "Net:SubNet:Universe" or a simple number into a 15-bit Art-Net Address
+     */
+    parseArtNetUniverse(uniString) {
+        if (typeof uniString === 'number') return uniString;
+        if (!uniString || typeof uniString !== 'string') return 0;
+
+        const parts = uniString.split(':').map(p => parseInt(p.trim()));
+        if (parts.length === 3) {
+            // Art-Net 3/4: Net (7 bits) | Sub-Net (4 bits) | Universe (4 bits)
+            // 15-bit address = (Net << 8) | (SubNet << 4) | Universe
+            const net = parts[0] & 0x7F;
+            const sub = parts[1] & 0x0F;
+            const uni = parts[2] & 0x0F;
+            return (net << 8) | (sub << 4) | uni;
+        }
+
+        return parseInt(uniString) || 0;
     }
 
     /**
@@ -193,8 +221,9 @@ class FGMArtNetSender {
         view.setUint8(13, 0);
 
         // Universe (Port Address) - Little Endian
-        // Per Art-Net spec, this is the Port-Address of the target universe
-        view.setUint16(14, universeNum - 1, true);
+        // 1-to-1 Mapping: The UI value directy represents the Port-Address.
+        // This allows users to enter 0, 1, 2 etc. to match their node's expected Universe/Port.
+        view.setUint16(14, universeNum, true);
 
         // Length: 512 - Big Endian
         view.setUint16(16, 512, false);
@@ -207,36 +236,83 @@ class FGMArtNetSender {
     }
 
     async transmit(ip, packet) {
-        // Log sparingly (every 5 seconds)
         const now = Date.now();
+        const firstTime = !this.sockets.has(ip);
+
         if (now - this.lastLog > 5000) {
-            console.log(`[ArtNet] Streaming to ${ip}. Subscribed Universes:`, Object.keys(FGMStore.getUniverseBuffers()));
+            const uniList = Object.keys(FGMStore.getUniverseBuffers());
+            console.log(`[ArtNet] Streaming to ${ip}. Subscribed Port-Addresses: ${uniList}. Sequence: ${this.sequence}`);
+
+            // Log Header (18 bytes)
+            const headerHex = Array.from(packet.slice(0, 18)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+            console.log(`[ArtNet] Header: ${headerHex}`);
+
+            // Scan for non-zero DMX data and log if found
+            const dmxData = packet.slice(18);
+            let hasData = false;
+            for (let i = 0; i < dmxData.length; i++) {
+                if (dmxData[i] > 0) {
+                    hasData = true;
+                    break;
+                }
+            }
+
+            if (hasData) {
+                // Find first non-zero channel
+                let firstChan = -1;
+                for (let i = 0; i < dmxData.length; i++) {
+                    if (dmxData[i] > 0) {
+                        firstChan = i + 1;
+                        break;
+                    }
+                }
+
+                const rangeStart = Math.max(0, firstChan - 1);
+                const dmxHex = Array.from(dmxData.slice(rangeStart, rangeStart + 32)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+                console.log(`[ArtNet] DMX ACTIVITY! First Active Chan: ${firstChan}. Data from ${firstChan}: ${dmxHex}`);
+            } else {
+                console.log(`[ArtNet] DMX Data is currently ALL ZEROS (Blackout).`);
+            }
+
             this.lastLog = now;
         }
 
         try {
-            // THEORETICAL: Direct Sockets API usage
-            // In a standard browser, this requires specific flags or Isolated Web App context.
+            // STRATEGY 1: Direct Sockets (Chrome PWA/Isolated context or flags)
             if (typeof navigator.directSockets !== 'undefined') {
-                if (!this.socket) {
-                    this.socket = await navigator.directSockets.openUDPSocket({
+                let socket = this.sockets.get(ip);
+                if (!socket) {
+                    console.log(`[ArtNet] Opening Direct UDP Socket to ${ip}:6454`);
+                    socket = await navigator.directSockets.openUDPSocket({
                         remoteAddress: ip,
                         remotePort: 6454
                     });
+                    this.sockets.set(ip, socket);
                 }
-                const writer = this.socket.writable.getWriter();
+                const writer = socket.writable.getWriter();
                 await writer.write({ data: packet });
                 writer.releaseLock();
-            } else {
-                // FALLBACK: If the user is using a custom environment like NW.js or Electron, 
-                // they might have access to Node's 'dgram'. 
-                // If not, we just log once and wait for the platform to provide the capability.
-                if (now - this.lastLog < 100) { // Only log once per session or so
-                    // console.warn("[ArtNet] Direct Sockets not available in this browser context.");
-                }
+            }
+            // STRATEGY 2: Server Bridge Fallback (Standard Browser)
+            else {
+                this.sockets.set(ip, 'BRIDGE');
+                fetch('/api/artnet/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/octet-stream',
+                        'x-target-ip': ip,
+                        'x-target-port': '6454'
+                    },
+                    body: packet
+                }).catch(e => {
+                    if (now - this.lastBridgeError > 1000) {
+                        console.error("[ArtNet] Server Bridge Error:", e);
+                        this.lastBridgeError = now;
+                    }
+                });
             }
         } catch (e) {
-            // Error handling
+            if (firstTime) console.error(`[ArtNet] Socket Error to ${ip}:`, e);
         }
     }
 }

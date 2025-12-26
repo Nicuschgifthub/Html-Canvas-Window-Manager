@@ -100,10 +100,10 @@ class FGMBaseWindows {
 
     static artNetSettings() {
         const nodes = FGMStore.getArtNetNodes();
-        const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe]);
+        const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe, n.softUni]);
 
         const tableField = new HCWTableField('ArtNet Address Settings', FGMIds.newComponentId())
-            .setHeaders(['Name', 'IP Address', 'Subnet Mask', 'Universe'])
+            .setHeaders(['Name', 'IP Address', 'Subnet Mask', 'Universe', 'Soft Uni'])
             .setRows(rows)
             .onCellClick(FGMKernel.eventTableCellClicked)
             .onDeleteRow(FGMKernel.eventTableRowDeleted)

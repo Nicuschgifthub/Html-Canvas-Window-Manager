@@ -3,7 +3,7 @@ class FGMStore {
     static FGM_Class = null;
     static currentPage = null;
     static artNetNodes = [
-        { name: "MyArtNetNode", ip: "127.0.0.1", subnet: "255.0.0.0", universe: "0:0:1" }
+        { name: "MyArtNetNode", ip: "192.168.2.200", subnet: "255.0.0.0", universe: "0:0:0", softUni: 1 }
     ];
     static patchedFixtures = [];
     static library = null;
@@ -55,7 +55,8 @@ class FGMStore {
             name: "New Node",
             ip: "0.0.0.0",
             subnet: "255.0.0.0",
-            universe: "0:0:1"
+            universe: "0:0:0",
+            softUni: 1
         });
     }
 
@@ -162,9 +163,10 @@ class FGMStore {
      */
     static getUniverseBuffers() {
         const universes = {};
+        let activeChannels = 0;
 
         this.patchedFixtures.forEach(fixture => {
-            const uni = fixture.getUniverse() || 1;
+            const uni = fixture.getUniverse() !== undefined ? fixture.getUniverse() : 1;
             const addr = fixture.getAddress() || 1; // 1-based
 
             if (!universes[uni]) {
@@ -174,16 +176,49 @@ class FGMStore {
             const buffer = universes[uni];
             const functions = fixture.getFunctions();
 
-            functions.forEach(func => {
+            if (functions.length === 0) {
+                const library = this.getLibrary();
+                if (library) {
+                    const profile = library.find(p => p.shortName === fixture.getShortName());
+                    if (profile) {
+                        console.log(`[Store] Self-healing fixture ${fixture.getId()} with profile ${profile.shortName}`);
+                        fixture.loadProfile(profile);
+                    }
+                }
+            }
+
+            if (fixture.getFunctions().length === 0 && !fixture._warnedEmpty) {
+                console.warn(`[Store] Fixture ${fixture.getId()} (${fixture.getShortName()}) has NO functions. DMX will be 0. Try re-patching.`);
+                fixture._warnedEmpty = true;
+            }
+
+            fixture.getFunctions().forEach(func => {
                 const dmxVals = func.getDmxValues(); // { offset: value }
                 for (let offset in dmxVals) {
+                    // FIX: Library offsets in fixture-library.json are already 0-indexed.
+                    // addr is 1-based (standard DMX). So (addr - 1) is the 0-based start.
+                    // offset is 0-based (already from JSON).
                     const channelIndex = (addr - 1) + parseInt(offset);
+
                     if (channelIndex >= 0 && channelIndex < 512) {
-                        buffer[channelIndex] = dmxVals[offset];
+                        const val = dmxVals[offset];
+                        buffer[channelIndex] = val;
+                        if (val > 0) {
+                            activeChannels++;
+                        }
                     }
                 }
             });
         });
+
+        // Periodic debug log for DMX activity
+        if (!this._lastDmxLog || Date.now() - this._lastDmxLog > 3000) {
+            const activeUnis = Object.keys(universes);
+            if (activeUnis.length > 0) {
+                console.log(`[Store] DMX Aggregation: ${this.patchedFixtures.length} fixtures, ${activeChannels} active channels across universes: ${activeUnis.join(', ')}`);
+            }
+            this._lastDmxLog = Date.now();
+        }
 
         return universes;
     }

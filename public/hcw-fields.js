@@ -1626,8 +1626,9 @@ class HCWColorMapField extends HCWBaseField {
                 this.h = Math.max(0, Math.min(1, this.h));
                 this.s = Math.max(0, Math.min(1, this.s));
 
-                // Ensure there's some brightness if we were at 0
-                if (this.v === 0) this.v = 1.0;
+                // Robust fix for "Value Trap": Ensure brightness is at 100% on map touch.
+                // We check for falsy value to catch both 0 and undefined/NaN.
+                if (!this.v) this.v = 1.0;
             }
 
             else if (a.type === 'value') {

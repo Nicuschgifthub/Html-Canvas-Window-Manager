@@ -201,6 +201,7 @@ class FGMProgrammerModule extends FGMFeatureModule {
 
         const colors = FGMTypes.PROGRAMMER.COLORS;
         if (type === colors.COLOR_PICKER) {
+            console.log(`[ProgrammerModule] Color Picker Drag: R:${data.r} G:${data.g} B:${data.b} W:${data.white}`);
             if (data.r !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_R, data.r, true);
             if (data.g !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_G, data.g, true);
             if (data.b !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_B, data.b, true);

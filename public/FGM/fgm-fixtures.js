@@ -103,6 +103,8 @@ class FGMFixture {
         const func = this.functions.find(f => f.definition.type === type);
         if (func) {
             func.setLogicValue(value);
+        } else {
+            console.warn(`[Fixture] ${this.getId()} has no function of type ${type}`);
         }
     }
 

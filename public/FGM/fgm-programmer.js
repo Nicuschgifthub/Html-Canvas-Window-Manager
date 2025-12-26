@@ -92,6 +92,7 @@ class FGMProgrammer {
             const fixture = FGMStore.getPatchedFixtures().find(f => f.getId() === fid);
             if (fixture) {
                 fixture.updateProgrammerValue(attributeType, value);
+                if (!silent) console.log(`[Programmer] Fixture ${fid} updated: ${attributeType}=${value}`);
             }
         });
 
