@@ -71,7 +71,9 @@ class FGMFixture {
         profile.functions.forEach(f => {
             const def = FGMFixtureFunctionDefinitions.getDefinitionByType(f.type);
             if (def) {
-                this.addFunction(new FGMFixtureFunction(def, f.channel, f.fineChannel, f.default || 0));
+                const func = new FGMFixtureFunction(def, f.channel, f.fineChannel, f.default || 0);
+                if (f.indexs) func.wheelData = f.indexs;
+                this.addFunction(func);
             }
         });
         return this;
