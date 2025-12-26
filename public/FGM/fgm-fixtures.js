@@ -51,7 +51,7 @@ class FGMFixture {
         }
 
         this.dmx = {
-            address: 1,
+            address: 500,
             universe: 1
         }
 

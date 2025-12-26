@@ -384,6 +384,22 @@ class FGMBaseWindows {
         shutterEncoder.setParentWindow(shutterWindow);
         windowsForThisPage.shutterEncoder = shutterWindow;
 
+        // --- Gobo ---
+        const goboEncoder = new HCWColorWheelEncoderField('Gobo', FGMIds.newComponentId())
+            .onValueChange(FGMKernel.eventEncoderUpdate)
+            .setFGMType(FGMTypes.PROGRAMMER.BEAM.GOBO);
+
+        const goboWindow = new HCWWindow(1200, 500, 200, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(goboEncoder)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        goboEncoder.setParentWindow(goboWindow);
+        windowsForThisPage.goboEncoder = goboWindow;
+
         // --- Color Wheel ---
         const colorWheelEncoder = new HCWColorWheelEncoderField('Color Wheel', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventEncoderUpdate)

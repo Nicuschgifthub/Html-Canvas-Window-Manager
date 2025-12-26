@@ -70,6 +70,7 @@ class FGMwithHCW {
             .addWindow(baseFixtureControl.focusEncoder)
             .addWindow(baseFixtureControl.colorWheelEncoder)
             .addWindow(baseFixtureControl.shutterEncoder)
+            .addWindow(baseFixtureControl.goboEncoder)
     }
 
     saveShow() {

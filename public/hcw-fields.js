@@ -2317,7 +2317,8 @@ class HCWColorWheelEncoderField extends HCWEncoderField {
         this.centerColor = null;
         this.centerImage = null;
         this._loadedImage = null;
-        this.wheelData = null; // { "#ffffff": [0, 2], ... }
+        this.wheelData = null; // { "#ffffff": [[0,9],...], "/path/img.png": [[10,19]], ... }
+        this.iconCache = {}; // { path: ImageObject }
     }
 
     getType() {
@@ -2326,6 +2327,18 @@ class HCWColorWheelEncoderField extends HCWEncoderField {
 
     setWheelData(data) {
         this.wheelData = data;
+
+        // Preload icons if keys are paths
+        if (data) {
+            for (const key of Object.keys(data)) {
+                if (!key.startsWith('#') && !key.startsWith('rgb') && !this.iconCache[key] && key.includes('.')) {
+                    const img = new Image();
+                    img.src = key;
+                    img.onload = () => this.updateFrame();
+                    this.iconCache[key] = img;
+                }
+            }
+        }
         return this;
     }
 
@@ -2376,34 +2389,50 @@ class HCWColorWheelEncoderField extends HCWEncoderField {
             }
         }
 
+        // Helper to draw color or image segment
+        const drawSegment = (key, isLeft) => {
+            const img = this.iconCache[key];
+            if (img && img.complete) {
+                // Segment clipping for half-half
+                ctx.save();
+                ctx.beginPath();
+                if (activeKeys.length === 1) {
+                    ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
+                } else if (isLeft) {
+                    ctx.arc(cx, cy, innerRadius - 2, Math.PI / 2, (3 * Math.PI) / 2);
+                    ctx.lineTo(cx, cy);
+                } else {
+                    ctx.arc(cx, cy, innerRadius - 2, (3 * Math.PI) / 2, Math.PI / 2);
+                    ctx.lineTo(cx, cy);
+                }
+                ctx.clip();
+                ctx.drawImage(img, cx - innerRadius, cy - innerRadius, innerRadius * 2, innerRadius * 2);
+                ctx.restore();
+            } else {
+                ctx.beginPath();
+                if (activeKeys.length === 1) {
+                    ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
+                } else if (isLeft) {
+                    ctx.arc(cx, cy, innerRadius - 2, Math.PI / 2, (3 * Math.PI) / 2);
+                    ctx.lineTo(cx, cy);
+                } else {
+                    ctx.arc(cx, cy, innerRadius - 2, (3 * Math.PI) / 2, Math.PI / 2);
+                    ctx.lineTo(cx, cy);
+                }
+                ctx.fillStyle = (key.startsWith('#') || key.startsWith('rgb')) ? key : '#444';
+                ctx.fill();
+            }
+        };
+
         // Draw center part
         if (activeKeys.length > 0) {
             ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
-            ctx.clip();
-
             if (activeKeys.length === 1) {
-                // Solid color
-                ctx.fillStyle = activeKeys[0];
-                ctx.fill();
+                drawSegment(activeKeys[0], true);
             } else if (activeKeys.length >= 2) {
-                // Split color (half-half)
-                // Left half
-                ctx.beginPath();
-                ctx.arc(cx, cy, innerRadius, Math.PI / 2, (3 * Math.PI) / 2);
-                ctx.lineTo(cx, cy);
-                ctx.fillStyle = activeKeys[0];
-                ctx.fill();
-
-                // Right half
-                ctx.beginPath();
-                ctx.arc(cx, cy, innerRadius, (3 * Math.PI) / 2, Math.PI / 2);
-                ctx.lineTo(cx, cy);
-                ctx.fillStyle = activeKeys[1];
-                ctx.fill();
+                drawSegment(activeKeys[0], true);
+                drawSegment(activeKeys[1], false);
             }
-
             ctx.restore();
         } else if (this.centerColor) {
             // Fallback to default center color if no wheel match

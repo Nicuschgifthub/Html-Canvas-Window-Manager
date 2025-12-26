@@ -143,15 +143,17 @@ class FGMProgrammerModule extends FGMFeatureModule {
                     }
                 } else if (fieldType === 'COLOR_WHEEL_ENCODER_FIELD' && prog.COLORS) {
                     const colors = prog.COLORS;
-                    if (fgmType === colors.COLOR_WHEEL) {
-                        const val = (progData && progData[colors.COLOR_WHEEL]) ? progData[colors.COLOR_WHEEL].value : (progData ? undefined : 0);
+                    const beam = prog.BEAM;
+
+                    if (fgmType === colors.COLOR_WHEEL || fgmType === beam.GOBO) {
+                        const val = (progData && progData[fgmType]) ? progData[fgmType].value : (progData ? undefined : 0);
                         if (val !== undefined) field.setValue(val / 255);
 
                         // Sync wheel data from fixture profile
                         if (firstFid) {
                             const fixture = FGMStore.getPatchedFixtures().find(f => f.getId() === firstFid);
                             if (fixture) {
-                                const wheelFunc = fixture.getFunctions().find(fn => fn.definition.type === colors.COLOR_WHEEL);
+                                const wheelFunc = fixture.getFunctions().find(fn => fn.definition.type === fgmType);
                                 if (wheelFunc && wheelFunc.wheelData) {
                                     field.setWheelData(wheelFunc.wheelData);
                                 } else {
@@ -219,7 +221,7 @@ class FGMProgrammerModule extends FGMFeatureModule {
         }
 
         const beam = FGMTypes.PROGRAMMER.BEAM;
-        if (type === beam.ZOOM || type === beam.FOCUS || type === beam.SHUTTER) {
+        if (type === beam.ZOOM || type === beam.FOCUS || type === beam.SHUTTER || type === beam.GOBO) {
             FGMProgrammer.setAttributeValue(type, data.outer.value * 255);
         }
 
