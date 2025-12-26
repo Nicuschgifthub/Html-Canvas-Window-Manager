@@ -336,7 +336,31 @@ class FGMBaseWindows {
 
         windowsForThisPage.programmerActions = newPageActionsWindow;
 
+        const programmerSheetWin = this.programmerSheet();
+        windowsForThisPage.programmerSheet = programmerSheetWin;
+
         return windowsForThisPage;
+    }
+
+    static programmerSheet() {
+        const sheetField = new HCWTableField('Programmer Sheet', FGMIds.newComponentId())
+            .setRenderMode('list')
+            .setFGMType(FGMTypes.PROGRAMMER.POOLS.PROGRAMMER_SHEET)
+            .setHeaders(['Fixture'])
+            .setRows([]);
+
+        const sheetWindow = new HCWWindow(1100, 500, 600, 400)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(sheetField)
+            .setHidden(true)
+            .setMinSizes(200, 150)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        sheetField.setParentWindow(sheetWindow);
+
+        return sheetWindow;
     }
 
     static hiddenInputDevices() {

@@ -169,7 +169,8 @@ class FGMTypes {
                 get COLOR_POOL() { return 'p_pool_color'; },
                 get COLOR_WHEEL_POOL() { return 'p_pool_color_wheel'; },
                 get GOBO_WHEEL_POOL() { return 'p_pool_group_color_wheel'; },
-                get ALL_POOL() { return 'p_pool_all'; }
+                get ALL_POOL() { return 'p_pool_all'; },
+                get PROGRAMMER_SHEET() { return 'p_pool_programmer_sheet'; }
             }
         }
     }

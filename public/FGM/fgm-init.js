@@ -20,6 +20,7 @@ class FGMwithHCW {
         FGMModuleRegistry.register(new FGMFixturePatchModule());
         FGMModuleRegistry.register(new FGMPoolModule());
         FGMModuleRegistry.register(new FGMStoreModule());
+        FGMModuleRegistry.register(new FGMProgrammerSheetModule());
 
         // Initialize all modules
         FGMModuleRegistry.initializeAll();
@@ -64,6 +65,7 @@ class FGMwithHCW {
             .addWindow(baseFixtureControl.colorPool)
             .addWindow(baseFixtureControl.positionPool)
             .addWindow(baseFixtureControl.allPool)
+            .addWindow(baseFixtureControl.programmerSheet)
     }
 
     saveShow() {

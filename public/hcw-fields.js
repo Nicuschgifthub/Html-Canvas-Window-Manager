@@ -1820,6 +1820,7 @@ class HCWTableField extends HCWBaseField {
 
         this.headers = [];
         this.rows = [];
+        this.renderMode = 'table'; // 'table' or 'list'
         this.onCellClickCallback = null;
         this.onDeleteRowCallback = null;
         this.onAddRowCallback = null;
@@ -1877,6 +1878,12 @@ class HCWTableField extends HCWBaseField {
 
     setAddRowLabel(label) {
         this.addRowLabel = label;
+        return this;
+    }
+
+    setRenderMode(mode) {
+        this.renderMode = mode;
+        this.updateFrame();
         return this;
     }
 
@@ -1952,11 +1959,13 @@ class HCWTableField extends HCWBaseField {
     }
 
     _clampScroll() {
-        const rowsHeight = this.rows.length * this.rowHeight;
+        const rowH = this._getEffectiveRowHeight();
+        const rowsHeight = this.rows.length * rowH;
         const addBtnH = this.onAddRowCallback ? (this.addBtnHeight + 10) : 0;
         const contentHeight = rowsHeight + addBtnH;
 
-        const viewHeight = this.renderProps.sy - this.headerHeight;
+        const hH = this.renderMode === 'table' ? this.headerHeight : 0;
+        const viewHeight = this.renderProps.sy - hH;
 
         if (contentHeight <= viewHeight) {
             this.scrollY = 0;
@@ -1964,6 +1973,14 @@ class HCWTableField extends HCWBaseField {
             const minScroll = -(contentHeight - viewHeight + 10);
             this.scrollY = Math.min(0, Math.max(minScroll, this.scrollY));
         }
+    }
+
+    _getEffectiveRowHeight() {
+        if (this.renderMode === 'list') {
+            // Header: Value per line
+            return (this.headers.length) * 20 + 20;
+        }
+        return this.rowHeight;
     }
 
     updateCellValue(rowIndex, colIndex, newValue) {
@@ -1988,6 +2005,17 @@ class HCWTableField extends HCWBaseField {
         const ctx = HCW.ctx;
         if (!ctx) return;
 
+        if (this.renderMode === 'list') {
+            this._renderList(w, ctx);
+        } else {
+            this._renderTable(w, ctx);
+        }
+
+        ctx.restore();
+        ctx.textAlign = 'start';
+    }
+
+    _renderTable(w, ctx) {
         const pad = 10;
         const deleteColW = this.onDeleteRowCallback ? 40 : 0;
         const availableW = w.sx - pad * 2 - deleteColW;
@@ -2021,50 +2049,28 @@ class HCWTableField extends HCWBaseField {
         ctx.font = '13px Arial';
         this.rows.forEach((row, rowIndex) => {
             const rowY = startDrawY + rowIndex * this.rowHeight;
-
-            if (rowY + this.rowHeight < contentAreaY || rowY > w.y + w.sy) {
-                return;
-            }
+            if (rowY + this.rowHeight < contentAreaY || rowY > w.y + w.sy) return;
 
             ctx.fillStyle = rowIndex % 2 === 0 ? '#252525' : '#1e1e1e';
             ctx.fillRect(w.x, rowY, w.sx, this.rowHeight);
 
             row.forEach((cell, colIndex) => {
                 const cellX = w.x + pad + colIndex * colW;
-
                 ctx.fillStyle = '#bbb';
                 ctx.fillText(cell, cellX + colW / 2, rowY + this.rowHeight / 2 + 5);
 
                 this.renderProps.cells.push({
-                    x: cellX,
-                    y: rowY,
-                    w: colW,
-                    h: this.rowHeight,
-                    rowIndex,
-                    colIndex,
-                    value: cell
+                    x: cellX, y: rowY, w: colW, h: this.rowHeight, rowIndex, colIndex, value: cell
                 });
             });
 
             if (this.onDeleteRowCallback) {
-                const delX = w.x2 - pad - deleteColW + 5;
-                const delY = rowY + 5;
-                const delW = deleteColW - 10;
-                const delH = this.rowHeight - 10;
-
+                const b = this._getDeleteButtonProps(w, rowY, pad, deleteColW);
                 ctx.fillStyle = '#770000';
-                ctx.fillRect(delX, delY, delW, delH);
+                ctx.fillRect(b.x, b.y, b.w, b.h);
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 12px Arial';
-                ctx.fillText('X', delX + delW / 2, delY + delH / 2 + 5);
-
-                this.renderProps.deleteButtons.push({
-                    x: delX,
-                    y: delY,
-                    w: delW,
-                    h: delH,
-                    rowIndex
-                });
+                ctx.fillText('X', b.x + b.w / 2, b.y + b.h / 2 + 5);
+                this.renderProps.deleteButtons.push({ ...b, rowIndex });
             }
 
             ctx.strokeStyle = '#333';
@@ -2074,38 +2080,15 @@ class HCWTableField extends HCWBaseField {
             ctx.stroke();
         });
 
-        if (this.onAddRowCallback) {
-            const addBtnY = startDrawY + this.rows.length * this.rowHeight + 10;
-
-            if (addBtnY < w.y + w.sy && addBtnY + this.addBtnHeight > contentAreaY) {
-                const addBtnX = w.x + pad;
-                const addBtnW = w.sx - pad * 2;
-
-                ctx.fillStyle = '#006600';
-                ctx.fillRect(addBtnX, addBtnY, addBtnW, this.addBtnHeight);
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 14px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(this.addRowLabel, addBtnX + addBtnW / 2, addBtnY + this.addBtnHeight / 2 + 5);
-
-                this.renderProps.addButton = {
-                    x: addBtnX,
-                    y: addBtnY,
-                    w: addBtnW,
-                    h: this.addBtnHeight
-                };
-            }
-        }
+        if (this.onAddRowCallback) this._drawAddButton(w, ctx, contentAreaY, startDrawY);
 
         ctx.restore();
-
-        ctx.strokeStyle = '#333';
-        ctx.beginPath();
         ctx.save();
         ctx.beginPath();
         ctx.rect(w.x, contentAreaY, w.sx, contentAreaH);
         ctx.clip();
 
+        ctx.strokeStyle = '#333';
         for (let i = 1; i < this.headers.length; i++) {
             const x = w.x + pad + i * colW;
             ctx.beginPath();
@@ -2113,9 +2096,88 @@ class HCWTableField extends HCWBaseField {
             ctx.lineTo(x, w.y2);
             ctx.stroke();
         }
-        ctx.restore();
+    }
 
-        ctx.textAlign = 'start';
+    _renderList(w, ctx) {
+        const pad = 10;
+        ctx.fillStyle = '#1e1e1e';
+        ctx.fillRect(w.x, w.y, w.sx, w.sy);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(w.x, w.y, w.sx, w.sy);
+        ctx.clip();
+
+        const startDrawY = w.y + this.scrollY;
+        const rowH = this._getEffectiveRowHeight();
+
+        this.rows.forEach((row, rowIndex) => {
+            const rowY = startDrawY + rowIndex * rowH;
+            if (rowY + rowH < w.y || rowY > w.y + w.sy) return;
+
+            // Background for each fixture "block"
+            ctx.fillStyle = rowIndex % 2 === 0 ? '#252525' : '#1e1e1e';
+            ctx.fillRect(w.x, rowY, w.sx, rowH);
+
+            // Left side "Selection" bar if active (if it were implemented, here we just use color)
+            ctx.fillStyle = '#333';
+            ctx.fillRect(w.x, rowY, 0, rowH);
+
+            ctx.textAlign = 'left';
+            row.forEach((cell, colIndex) => {
+                const header = this.headers[colIndex] || "";
+                const lineY = rowY + colIndex * 20 + 20;
+
+                if (colIndex === 0) {
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 13px Arial';
+                    ctx.fillText(cell, w.x + pad, lineY);
+                } else {
+                    ctx.fillStyle = '#888';
+                    ctx.font = '12px Monospace';
+                    ctx.fillText(`${header}:`, w.x + pad, lineY);
+
+                    ctx.fillStyle = '#bbb';
+                    ctx.fillText(cell, w.x + pad + 100, lineY);
+                }
+
+                // Register as cell for interaction
+                this.renderProps.cells.push({
+                    x: w.x, y: lineY - 15, w: w.sx, h: 20, rowIndex, colIndex, value: cell
+                });
+            });
+
+            ctx.strokeStyle = '#444';
+            ctx.beginPath();
+            ctx.moveTo(w.x, rowY + rowH);
+            ctx.lineTo(w.x2, rowY + rowH);
+            ctx.stroke();
+        });
+
+        if (this.onAddRowCallback) this._drawAddButton(w, ctx, w.y, startDrawY);
+    }
+
+    _getDeleteButtonProps(w, rowY, pad, deleteColW) {
+        return {
+            x: w.x2 - pad - deleteColW + 5,
+            y: rowY + 5,
+            w: deleteColW - 10,
+            h: this.rowHeight - 10
+        };
+    }
+
+    _drawAddButton(w, ctx, contentAreaY, startDrawY) {
+        const rowH = this._getEffectiveRowHeight();
+        const addBtnY = startDrawY + this.rows.length * rowH + 10;
+        if (addBtnY < w.y + w.sy && addBtnY + this.addBtnHeight > contentAreaY) {
+            const x = w.x + 10, w_btn = w.sx - 20;
+            ctx.fillStyle = '#006600';
+            ctx.fillRect(x, addBtnY, w_btn, this.addBtnHeight);
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.fillText(this.addRowLabel, x + w_btn / 2, addBtnY + this.addBtnHeight / 2 + 5);
+            this.renderProps.addButton = { x, y: addBtnY, w: w_btn, h: this.addBtnHeight };
+        }
     }
 }
 
