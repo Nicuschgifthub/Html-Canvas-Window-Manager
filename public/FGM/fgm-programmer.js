@@ -49,12 +49,14 @@ class FGMProgrammer {
             FGMEventBus.emit(FGMEventTypes.SELECTION_CHANGED, { selection: this.selection });
         }
     }
-
     static clearActive() {
         for (let fid in this.data) {
             for (let attr in this.data[fid]) {
                 this.data[fid][attr].active = false;
             }
+        }
+        if (typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PROGRAMMER_VALUE_CHANGED);
         }
     }
 
@@ -62,6 +64,10 @@ class FGMProgrammer {
         this.data = {};
         this.selection = [];
         this.clearStep = 0;
+        if (typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PROGRAMMER_VALUE_CHANGED);
+            FGMEventBus.emit(FGMEventTypes.SELECTION_CHANGED, { selection: [] });
+        }
     }
 
     static hasActiveValues() {
@@ -73,7 +79,8 @@ class FGMProgrammer {
         return false;
     }
 
-    static setAttributeValue(attributeType, value) {
+    static setAttributeValue(attributeType, value, silent = false) {
+        if (!silent) console.log(`[Programmer] Setting ${attributeType} to ${value} for selection`);
         this.selection.forEach(fid => {
             if (!this.data[fid]) this.data[fid] = {};
 
@@ -89,6 +96,16 @@ class FGMProgrammer {
         });
 
         this.clearStep = 0;
+
+        if (!silent && typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PROGRAMMER_VALUE_CHANGED);
+        }
+    }
+
+    static emitValueChanged() {
+        if (typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PROGRAMMER_VALUE_CHANGED);
+        }
     }
 
     static getSelection() {
@@ -126,16 +143,28 @@ class FGMProgrammer {
         const isAllPool = poolType === FGMTypes.PROGRAMMER.POOLS.ALL_POOL;
 
         if (isUniversal) {
-            const firstFid = this.selection[0];
-            const fixtureData = this.data[firstFid];
-            if (!fixtureData) return null;
+            // Find the first fixture in the selection that actually has data for the relevant attributes
+            let sourceFixtureData = null;
+            for (let fid of this.selection) {
+                const fData = this.data[fid];
+                if (!fData) continue;
+
+                // Check if this fixture has any of the requested attributes
+                const hasRelevant = Object.keys(fData).some(attr => isAllPool || (relevantAttributes && relevantAttributes.includes(attr)));
+                if (hasRelevant) {
+                    sourceFixtureData = fData;
+                    break;
+                }
+            }
+
+            if (!sourceFixtureData) return null;
 
             const universalValues = {};
             let hasData = false;
 
-            for (let attr in fixtureData) {
+            for (let attr in sourceFixtureData) {
                 if (isAllPool || (relevantAttributes && relevantAttributes.includes(attr))) {
-                    universalValues[attr] = { ...fixtureData[attr] };
+                    universalValues[attr] = { ...sourceFixtureData[attr] };
                     hasData = true;
                 }
             }
@@ -174,19 +203,18 @@ class FGMProgrammer {
             }
         } else if (data && data._universal) {
             const values = data.values;
+            console.log("[Programmer] Universal Preset recalled. Attributes:", Object.keys(values));
             this.selection.forEach(fid => {
                 if (!this.data[fid]) this.data[fid] = {};
                 for (let attr in values) {
                     const state = values[attr];
                     this.data[fid][attr] = { ...state };
                     const fixture = FGMStore.getPatchedFixtures().find(f => f.getId() === fid);
-                    if (fixture) {
-                        fixture.updateProgrammerValue(attr, state.value);
-                    }
+                    if (fixture) fixture.updateProgrammerValue(attr, state.value);
                 }
             });
-            console.log("[Programmer] Universal Preset recalled of type:", type);
         } else {
+            console.log("[Programmer] Selective Preset recalled. Fixture IDs:", Object.keys(data));
             for (let fid in data) {
                 if (!this.data[fid]) this.data[fid] = {};
                 if (!this.selection.includes(fid)) {
@@ -202,11 +230,10 @@ class FGMProgrammer {
                     }
                 }
             }
-            console.log("[Programmer] Selective Preset recalled of type:", type);
         }
 
-        this.clearStep = 0;
         if (typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PROGRAMMER_VALUE_CHANGED);
             FGMEventBus.emit(FGMEventTypes.SELECTION_CHANGED, { selection: this.selection });
         }
     }

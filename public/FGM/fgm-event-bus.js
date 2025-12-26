@@ -30,7 +30,8 @@ class FGMEventTypes {
     static get INIT() { return 'system.init'; }
     static get PAGE_CHANGE() { return 'system.pageChange'; }
     static get PATCH_CHANGED() { return 'system.patchChanged'; }
-    static get SELECTION_CHANGED() { return 'programmer.selectionChanged'; } // Added // Added
+    static get SELECTION_CHANGED() { return 'programmer.selectionChanged'; }
+    static get PROGRAMMER_VALUE_CHANGED() { return 'programmer.valueChanged'; }
 
     // Await action Events
     static get AWAIT_KEYBOARD_INPUT() { }

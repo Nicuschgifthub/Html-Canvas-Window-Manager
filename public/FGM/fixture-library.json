@@ -19,7 +19,7 @@
                 "type": "TILT8BIT",
                 "channel": 3
             },
-             {
+            {
                 "type": "TILT16BIT",
                 "channel": 4
             },

@@ -58,7 +58,98 @@ class FGMProgrammerModule extends FGMFeatureModule {
             priority: 10
         });
 
+        // Sync UI on selection or value change
+        this.on(FGMEventTypes.SELECTION_CHANGED, () => this.syncUIControls());
+        this.on(FGMEventTypes.PROGRAMMER_VALUE_CHANGED, () => this.syncUIControls());
+
+        this.isSyncing = false;
+
         console.log('[ProgrammerModule] Initialized');
+    }
+
+    syncUIControls() {
+        if (this.isSyncing) return;
+        this.isSyncing = true;
+
+        try {
+            const hcw = FGMStore.getHCW();
+            if (!hcw) return;
+
+            const selection = FGMProgrammer.getSelection();
+            const firstFid = selection.length > 0 ? selection[0] : null;
+            const allProgData = FGMProgrammer.getData();
+            const progData = firstFid ? allProgData[firstFid] : null;
+
+            if (progData) {
+                console.log(`[ProgrammerModule] Syncing UI for Fixture ${firstFid}. Attributes:`, Object.keys(progData));
+            }
+
+            // Get a reference once
+            const prog = FGMTypes.PROGRAMMER;
+            if (!prog) return;
+
+            hcw.getWindows().forEach(win => {
+                const field = win.getSingleContextField();
+                if (!field) return;
+
+                // CRITICAL: Don't sync the field the user is currently touching!
+                if (typeof HCW !== 'undefined' && HCW.pointer && HCW.pointer.contextwindow === field) {
+                    return;
+                }
+
+                const fgmType = field.getFGMType();
+                if (!fgmType) return;
+
+                const fieldType = field.getType();
+
+                if (fieldType === 'FADER_FIELD') {
+                    const attrData = progData ? progData[fgmType] : null;
+                    if (attrData && attrData.value !== undefined) {
+                        field.setValue(attrData.value / 255);
+                    } else if (!progData) {
+                        field.setValue(0);
+                    }
+                } else if (fieldType === 'ENCODER_FIELD' && prog.POSITION) {
+                    const pos = prog.POSITION;
+                    if (fgmType === pos.PAN_ENCODER) {
+                        const pan8 = (progData && progData[pos.PAN_8Bit]) ? progData[pos.PAN_8Bit].value : (progData ? undefined : 0);
+                        const pan16 = (progData && progData[pos.PAN_16Bit]) ? progData[pos.PAN_16Bit].value : (progData ? undefined : 0);
+                        if (pan8 !== undefined || pan16 !== undefined) {
+                            field.setValue(pan8 !== undefined ? pan8 / 255 : field.value, pan16 !== undefined ? pan16 / 255 : field.value2);
+                        }
+                    } else if (fgmType === pos.TILT_ENCODER) {
+                        const tilt8 = (progData && progData[pos.TILT_8Bit]) ? progData[pos.TILT_8Bit].value : (progData ? undefined : 0);
+                        const tilt16 = (progData && progData[pos.TILT_16Bit]) ? progData[pos.TILT_16Bit].value : (progData ? undefined : 0);
+                        if (tilt8 !== undefined || tilt16 !== undefined) {
+                            field.setValue(tilt8 !== undefined ? tilt8 / 255 : field.value, tilt16 !== undefined ? tilt16 / 255 : field.value2);
+                        }
+                    }
+                } else if (fieldType === 'COLOR_MAP_FIELD' && prog.COLORS) {
+                    const colors = prog.COLORS;
+                    if (fgmType === colors.COLOR_PICKER) {
+                        const getVal = (attr) => {
+                            if (!progData) return undefined; // Protect UI state on clear
+                            return (progData[attr] && progData[attr].value !== undefined) ? progData[attr].value : undefined;
+                        };
+
+                        field.setColor({
+                            r: getVal(colors.COLOR_R),
+                            g: getVal(colors.COLOR_G),
+                            b: getVal(colors.COLOR_B),
+                            white: getVal(colors.COLOR_W),
+                            amber: getVal(colors.COLOR_A),
+                            uv: getVal(colors.COLOR_U)
+                        });
+                    }
+                }
+            });
+        } catch (err) {
+            console.error("[ProgrammerModule] Sync Error:", err);
+        } finally {
+            this.isSyncing = false;
+        }
+
+        if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
     }
 
     handleFixtureSelection(event) {
@@ -75,6 +166,7 @@ class FGMProgrammerModule extends FGMFeatureModule {
     }
 
     handleFader(event) {
+        if (this.isSyncing) return;
         const { field: fromFader, data } = event.data;
         const type = fromFader.getFGMType();
 
@@ -84,33 +176,39 @@ class FGMProgrammerModule extends FGMFeatureModule {
     }
 
     handleEncoder(event) {
+        if (this.isSyncing) return;
         const { field: fromEncoder, data } = event.data;
         const type = fromEncoder.getFGMType();
 
         if (!type) return;
 
-        if (type === FGMTypes.PROGRAMMER.POSITION.PAN_ENCODER) {
-            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.PAN_8Bit, data.outer.value * 255);
-            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.PAN_16Bit, data.inner.value * 255);
+        const pos = FGMTypes.PROGRAMMER.POSITION;
+        if (type === pos.PAN_ENCODER) {
+            FGMProgrammer.setAttributeValue(pos.PAN_8Bit, data.outer.value * 255, true);
+            FGMProgrammer.setAttributeValue(pos.PAN_16Bit, data.inner.value * 255, false); // Emit on last
         }
 
-        if (type === FGMTypes.PROGRAMMER.POSITION.TILT_ENCODER) {
-            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.TILT_8Bit, data.outer.value * 255);
-            FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.POSITION.TILT_16Bit, data.inner.value * 255);
+        if (type === pos.TILT_ENCODER) {
+            FGMProgrammer.setAttributeValue(pos.TILT_8Bit, data.outer.value * 255, true);
+            FGMProgrammer.setAttributeValue(pos.TILT_16Bit, data.inner.value * 255, false); // Emit on last
         }
     }
 
     handleColorPicker(event) {
+        if (this.isSyncing) return;
         const { field: fromColorPicker, data } = event.data;
         const type = fromColorPicker.getFGMType();
 
-        if (type === FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER) {
-            if (data.r !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_R, data.r);
-            if (data.g !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_G, data.g);
-            if (data.b !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_B, data.b);
-            if (data.white !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_W, data.white);
-            if (data.amber !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_A, data.amber);
-            if (data.uv !== undefined) FGMProgrammer.setAttributeValue(FGMTypes.PROGRAMMER.COLORS.COLOR_U, data.uv);
+        const colors = FGMTypes.PROGRAMMER.COLORS;
+        if (type === colors.COLOR_PICKER) {
+            if (data.r !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_R, data.r, true);
+            if (data.g !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_G, data.g, true);
+            if (data.b !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_B, data.b, true);
+            if (data.white !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_W, data.white, true);
+            if (data.amber !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_A, data.amber, true);
+            if (data.uv !== undefined) FGMProgrammer.setAttributeValue(colors.COLOR_U, data.uv, true);
+
+            FGMProgrammer.emitValueChanged();
         }
     }
 }

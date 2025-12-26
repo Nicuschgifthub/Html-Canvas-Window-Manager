@@ -1625,6 +1625,9 @@ class HCWColorMapField extends HCWBaseField {
                 this.s = 1 - ((mouseY - m.y) / m.h);
                 this.h = Math.max(0, Math.min(1, this.h));
                 this.s = Math.max(0, Math.min(1, this.s));
+
+                // Ensure there's some brightness if we were at 0
+                if (this.v === 0) this.v = 1.0;
             }
 
             else if (a.type === 'value') {

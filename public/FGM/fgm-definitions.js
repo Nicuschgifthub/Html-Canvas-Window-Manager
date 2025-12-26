@@ -73,14 +73,23 @@ class FGMFixtureFunctionDefinitions {
     static get MAP() {
         return {
             DIMMER: this.DIMMER,
-            PAN: this.PAN,
-            TILT: this.TILT,
+            PAN8BIT: this.PAN8BIT,
+            PAN16BIT: this.PAN16BIT,
+            TILT: this.TILT16BIT,
+            TILT8BIT: this.TILT8BIT,
+            TILT16BIT: this.TILT16BIT,
             COLOR_R: this.COLOR_R,
             COLOR_G: this.COLOR_G,
             COLOR_B: this.COLOR_B,
             COLOR_W: this.COLOR_W,
             COLOR_A: this.COLOR_A,
-            COLOR_U: this.COLOR_U
+            COLOR_U: this.COLOR_U,
+            RED: this.COLOR_R,
+            GREEN: this.COLOR_G,
+            BLUE: this.COLOR_B,
+            WHITE: this.COLOR_W,
+            AMBER: this.COLOR_A,
+            UV: this.COLOR_U
         }
     }
 
@@ -89,8 +98,12 @@ class FGMFixtureFunctionDefinitions {
     }
 
     static get DIMMER() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.DIMMERS.MAIN, "Dimmer"); }
-    static get PAN() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.POSITION.PAN_16Bit, "Pan", true); }
-    static get TILT() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.POSITION.TILT_16Bit, "Tilt", true); }
+    static get PAN8BIT() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.POSITION.PAN_8Bit, "Pan (Coarse)"); }
+    static get PAN16BIT() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.POSITION.PAN_16Bit, "Pan (Fine)"); }
+    static get TILT8BIT() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.POSITION.TILT_8Bit, "Tilt (Coarse)"); }
+    static get TILT16BIT() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.POSITION.TILT_16Bit, "Tilt (Fine)"); }
+    static get PAN() { return this.PAN16BIT; }
+    static get TILT() { return this.TILT16BIT; }
 
     static get COLOR_R() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_R, "Red"); }
     static get COLOR_G() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_G, "Green"); }
