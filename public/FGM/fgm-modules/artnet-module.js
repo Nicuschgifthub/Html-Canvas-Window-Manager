@@ -241,11 +241,11 @@ class FGMArtNetSender {
 
         if (now - this.lastLog > 5000) {
             const uniList = Object.keys(FGMStore.getUniverseBuffers());
-            console.log(`[ArtNet] Streaming to ${ip}. Subscribed Port-Addresses: ${uniList}. Sequence: ${this.sequence}`);
+            // console.log(`[ArtNet] Streaming to ${ip}. Subscribed Port-Addresses: ${uniList}. Sequence: ${this.sequence}`);
 
             // Log Header (18 bytes)
             const headerHex = Array.from(packet.slice(0, 18)).map(b => b.toString(16).padStart(2, '0')).join(' ');
-            console.log(`[ArtNet] Header: ${headerHex}`);
+            // console.log(`[ArtNet] Header: ${headerHex}`);
 
             // Scan for non-zero DMX data and log if found
             const dmxData = packet.slice(18);
@@ -269,9 +269,9 @@ class FGMArtNetSender {
 
                 const rangeStart = Math.max(0, firstChan - 1);
                 const dmxHex = Array.from(dmxData.slice(rangeStart, rangeStart + 32)).map(b => b.toString(16).padStart(2, '0')).join(' ');
-                console.log(`[ArtNet] DMX ACTIVITY! First Active Chan: ${firstChan}. Data from ${firstChan}: ${dmxHex}`);
+                // console.log(`[ArtNet] DMX ACTIVITY! First Active Chan: ${firstChan}. Data from ${firstChan}: ${dmxHex}`);
             } else {
-                console.log(`[ArtNet] DMX Data is currently ALL ZEROS (Blackout).`);
+                // console.log(`[ArtNet] DMX Data is currently ALL ZEROS (Blackout).`);
             }
 
             this.lastLog = now;
@@ -282,7 +282,7 @@ class FGMArtNetSender {
             if (typeof navigator.directSockets !== 'undefined') {
                 let socket = this.sockets.get(ip);
                 if (!socket) {
-                    console.log(`[ArtNet] Opening Direct UDP Socket to ${ip}:6454`);
+                    // console.log(`[ArtNet] Opening Direct UDP Socket to ${ip}:6454`);
                     socket = await navigator.directSockets.openUDPSocket({
                         remoteAddress: ip,
                         remotePort: 6454

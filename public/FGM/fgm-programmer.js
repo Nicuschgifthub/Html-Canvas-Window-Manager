@@ -222,22 +222,24 @@ class FGMProgrammer {
                 }
             });
         } else {
-            console.log("[Programmer] Selective Preset recalled. Fixture IDs:", Object.keys(data));
-            for (let fid in data) {
-                if (!this.data[fid]) this.data[fid] = {};
-                if (!this.selection.includes(fid)) {
-                    this.selection.push(fid);
-                }
+            console.log("[Programmer] Selective Preset recalled. Current selection:", this.selection);
 
-                for (let attr in data[fid]) {
-                    const state = data[fid][attr];
+            // Only apply values to fixtures that are currently in the selection
+            this.selection.forEach(fid => {
+                const presetData = data[fid];
+                if (!presetData) return; // This fixture isn't in the preset
+
+                if (!this.data[fid]) this.data[fid] = {};
+
+                for (let attr in presetData) {
+                    const state = presetData[attr];
                     this.data[fid][attr] = { ...state };
                     const fixture = FGMStore.getPatchedFixtures().find(f => f.getId() === fid);
                     if (fixture) {
                         fixture.updateProgrammerValue(attr, state.value);
                     }
                 }
-            }
+            });
         }
 
         if (typeof FGMEventBus !== 'undefined') {
