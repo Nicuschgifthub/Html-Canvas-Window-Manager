@@ -26,22 +26,22 @@
             {
                 "type": "PAN8BIT",
                 "channel": 0,
-                "default": 0
+                "default": 255
             },
             {
                 "type": "PAN16BIT",
                 "channel": 1,
-                "default": 0
+                "default": 255
             },
             {
                 "type": "TILT8BIT",
                 "channel": 2,
-                "default": 0
+                "default": 255
             },
             {
                 "type": "TILT16BIT",
                 "channel": 3,
-                "default": 0
+                "default": 255
             },
             {
                 "type": "COLOR_R",
@@ -109,22 +109,22 @@
             {
                 "type": "PAN8BIT",
                 "channel": 0,
-                "default": 0
+                "default": 255
             },
             {
                 "type": "PAN16BIT",
                 "channel": 1,
-                "default": 0
+                "default": 255
             },
             {
                 "type": "TILT8BIT",
                 "channel": 2,
-                "default": 0
+                "default": 255
             },
             {
                 "type": "TILT16BIT",
                 "channel": 3,
-                "default": 0
+                "default": 255
             },
             {
                 "type": "DIMMER",

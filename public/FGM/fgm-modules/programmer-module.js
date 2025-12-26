@@ -140,9 +140,25 @@ class FGMProgrammerModule extends FGMFeatureModule {
                             amber: getVal(colors.COLOR_A),
                             uv: getVal(colors.COLOR_U)
                         });
-                    } else if (fgmType === colors.COLOR_WHEEL) {
+                    }
+                } else if (fieldType === 'COLOR_WHEEL_ENCODER_FIELD' && prog.COLORS) {
+                    const colors = prog.COLORS;
+                    if (fgmType === colors.COLOR_WHEEL) {
                         const val = (progData && progData[colors.COLOR_WHEEL]) ? progData[colors.COLOR_WHEEL].value : (progData ? undefined : 0);
                         if (val !== undefined) field.setValue(val / 255);
+
+                        // Sync wheel data from fixture profile
+                        if (firstFid) {
+                            const fixture = FGMStore.getPatchedFixtures().find(f => f.getId() === firstFid);
+                            if (fixture) {
+                                const wheelFunc = fixture.getFunctions().find(fn => fn.definition.type === colors.COLOR_WHEEL);
+                                if (wheelFunc && wheelFunc.wheelData) {
+                                    field.setWheelData(wheelFunc.wheelData);
+                                } else {
+                                    field.setWheelData(null);
+                                }
+                            }
+                        }
                     }
                 } else if (fieldType === 'ENCODER_FIELD' && prog.BEAM) {
                     const beam = prog.BEAM;

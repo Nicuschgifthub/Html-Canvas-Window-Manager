@@ -2513,10 +2513,16 @@ class HCWColorWheelEncoderField extends HCWEncoderField {
         this.centerColor = null;
         this.centerImage = null;
         this._loadedImage = null;
+        this.wheelData = null; // { "#ffffff": [0, 2], ... }
     }
 
     getType() {
         return 'COLOR_WHEEL_ENCODER_FIELD';
+    }
+
+    setWheelData(data) {
+        this.wheelData = data;
+        return this;
     }
 
     setCenterColor(color) {
@@ -2547,20 +2553,43 @@ class HCWColorWheelEncoderField extends HCWEncoderField {
         const cy = this.renderProps.centerY;
         const innerRadius = this.renderProps.innerRadius;
 
+        // Dynamic lookup based on wheelData
+        let activeColor = this.centerColor;
+        let activeImage = this._loadedImage;
+
+        if (this.wheelData) {
+            const dmxVal = Math.round(this.value * 255);
+            for (const [key, range] of Object.entries(this.wheelData)) {
+                if (dmxVal >= range[0] && dmxVal <= range[1]) {
+                    // key could be a hex color or a path to an image
+                    if (key.startsWith('#') || key.startsWith('rgb')) {
+                        activeColor = key;
+                        activeImage = null;
+                    } else {
+                        // Assume key is an image path - if we wanted to support images here, 
+                        // we'd need to preload them. For now, let's treat it as a label/placeholder
+                        // or just ignore if it's not a color for now.
+                        activeColor = '#444'; // Generic indicator for "something is there"
+                    }
+                    break;
+                }
+            }
+        }
+
         // Draw center part
-        if (this.centerColor || this._loadedImage) {
+        if (activeColor || (activeImage && activeImage.complete)) {
             ctx.save();
             ctx.beginPath();
             ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
             ctx.clip();
 
-            if (this.centerColor) {
-                ctx.fillStyle = this.centerColor;
+            if (activeColor) {
+                ctx.fillStyle = activeColor;
                 ctx.fill();
             }
 
-            if (this._loadedImage && this._loadedImage.complete) {
-                ctx.drawImage(this._loadedImage, cx - innerRadius, cy - innerRadius, innerRadius * 2, innerRadius * 2);
+            if (activeImage && activeImage.complete) {
+                ctx.drawImage(activeImage, cx - innerRadius, cy - innerRadius, innerRadius * 2, innerRadius * 2);
             }
 
             ctx.restore();
