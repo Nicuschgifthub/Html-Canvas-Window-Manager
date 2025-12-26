@@ -140,6 +140,19 @@ class FGMStore {
         return this.presets[poolType]?.[index] || null;
     }
 
+    static getPresetDataById(presetId) {
+        for (let poolType in this.presets) {
+            const pool = this.presets[poolType];
+            for (let i = 0; i < pool.length; i++) {
+                const preset = pool[i];
+                if (preset && preset.data && preset.data.id === presetId) {
+                    return preset.data;
+                }
+            }
+        }
+        return null;
+    }
+
     static swapPresets(poolType, index1, index2) {
         if (!this.presets[poolType]) return false;
 
