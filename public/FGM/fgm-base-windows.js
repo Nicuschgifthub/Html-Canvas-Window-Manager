@@ -368,6 +368,22 @@ class FGMBaseWindows {
         focusEncoder.setParentWindow(focusWindow);
         windowsForThisPage.focusEncoder = focusWindow;
 
+        // --- Shutter ---
+        const shutterEncoder = new HCWEncoderField('Shutter', FGMIds.newComponentId())
+            .onValueChange(FGMKernel.eventEncoderUpdate)
+            .setFGMType(FGMTypes.PROGRAMMER.BEAM.SHUTTER);
+
+        const shutterWindow = new HCWWindow(1000, 710, 200, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(shutterEncoder)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        shutterEncoder.setParentWindow(shutterWindow);
+        windowsForThisPage.shutterEncoder = shutterWindow;
+
         // --- Color Wheel ---
         const colorWheelEncoder = new HCWColorWheelEncoderField('Color Wheel', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventEncoderUpdate)

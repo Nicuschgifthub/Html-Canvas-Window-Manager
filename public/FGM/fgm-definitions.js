@@ -92,7 +92,8 @@ class FGMFixtureFunctionDefinitions {
             UV: this.COLOR_U,
             COLOR_WHEEL: this.COLOR_WHEEL,
             ZOOM: this.ZOOM,
-            FOCUS: this.FOCUS
+            FOCUS: this.FOCUS,
+            SHUTTER: this.SHUTTER
         }
     }
 
@@ -117,6 +118,7 @@ class FGMFixtureFunctionDefinitions {
     static get COLOR_WHEEL() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.COLORS.COLOR_WHEEL, "Color Wheel"); }
     static get ZOOM() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.BEAM.ZOOM, "Zoom"); }
     static get FOCUS() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.BEAM.FOCUS, "Focus"); }
+    static get SHUTTER() { return new FGMFixtureFunctionDefinition(FGMTypes.PROGRAMMER.BEAM.SHUTTER, "Shutter"); }
 }
 
 class FGMTypes {
@@ -170,7 +172,8 @@ class FGMTypes {
             },
             BEAM: {
                 get ZOOM() { return 'ZOOM'; },
-                get FOCUS() { return 'FOCUS'; }
+                get FOCUS() { return 'FOCUS'; },
+                get SHUTTER() { return 'SHUTTER'; }
             },
             POOLS: {
                 get FIXTURE_POOL() { return 'p_pool_fixture'; },

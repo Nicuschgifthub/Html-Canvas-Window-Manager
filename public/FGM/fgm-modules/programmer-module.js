@@ -146,7 +146,7 @@ class FGMProgrammerModule extends FGMFeatureModule {
                     }
                 } else if (fieldType === 'ENCODER_FIELD' && prog.BEAM) {
                     const beam = prog.BEAM;
-                    if (fgmType === beam.ZOOM || fgmType === beam.FOCUS) {
+                    if (fgmType === beam.ZOOM || fgmType === beam.FOCUS || fgmType === beam.SHUTTER) {
                         const val = (progData && progData[fgmType]) ? progData[fgmType].value : (progData ? undefined : 0);
                         if (val !== undefined) field.setValue(val / 255);
                     }
@@ -203,7 +203,7 @@ class FGMProgrammerModule extends FGMFeatureModule {
         }
 
         const beam = FGMTypes.PROGRAMMER.BEAM;
-        if (type === beam.ZOOM || type === beam.FOCUS) {
+        if (type === beam.ZOOM || type === beam.FOCUS || type === beam.SHUTTER) {
             FGMProgrammer.setAttributeValue(type, data.outer.value * 255);
         }
 

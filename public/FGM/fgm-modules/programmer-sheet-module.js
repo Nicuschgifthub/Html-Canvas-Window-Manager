@@ -21,7 +21,8 @@ class FGMProgrammerSheetModule extends FGMFeatureModule {
             'COLOR_U': 'Color',
             'COLOR_WHEEL': 'Color',
             'ZOOM': 'Beam',
-            'FOCUS': 'Beam'
+            'FOCUS': 'Beam',
+            'SHUTTER': 'Beam'
         };
 
         // Short labels for condensed display
@@ -35,6 +36,7 @@ class FGMProgrammerSheetModule extends FGMFeatureModule {
             'COLOR_WHEEL': 'CW',
             'ZOOM': 'Z',
             'FOCUS': 'F',
+            'SHUTTER': 'S',
             'PAN8BIT': 'P',
             'PAN16BIT': 'Pf',
             'TILT8BIT': 'T',

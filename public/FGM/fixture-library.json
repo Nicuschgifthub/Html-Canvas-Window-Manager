@@ -8,9 +8,9 @@
                 "channel": 5,
                 "default": 0
             },
-             {
+            {
                 "type": "SHUTTER",
-                "channel": 5,
+                "channel": 6,
                 "default": 255,
                 "strobe": {
                     "min": 10,
@@ -19,9 +19,14 @@
                 "open": 255
             },
             {
+                "type": "ZOOM",
+                "channel": 15,
+                "default": 0
+            },
+            {
                 "type": "PAN8BIT",
                 "channel": 0,
-                "default": 127
+                "default": 0
             },
             {
                 "type": "PAN16BIT",
@@ -31,7 +36,7 @@
             {
                 "type": "TILT8BIT",
                 "channel": 2,
-                "default": 127
+                "default": 0
             },
             {
                 "type": "TILT16BIT",
@@ -94,6 +99,45 @@
                 "type": "COLOR_B",
                 "channel": 3,
                 "default": 255
+            }
+        ]
+    },
+    {
+        "name": "MuvySpotOne",
+        "shortName": "SpotOne",
+        "functions": [
+            {
+                "type": "PAN8BIT",
+                "channel": 0,
+                "default": 0
+            },
+            {
+                "type": "PAN16BIT",
+                "channel": 1,
+                "default": 0
+            },
+            {
+                "type": "TILT8BIT",
+                "channel": 2,
+                "default": 0
+            },
+            {
+                "type": "TILT16BIT",
+                "channel": 3,
+                "default": 0
+            },
+            {
+                "type": "DIMMER",
+                "channel": 7,
+                "default": 0
+            },
+            {
+                "type": "COLOR_WHEEL",
+                "channel": 4,
+                "default": 255,
+                "indexs": {
+                    "#ffffff": [0,2]
+                }
             }
         ]
     }
