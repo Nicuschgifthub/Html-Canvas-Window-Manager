@@ -214,6 +214,9 @@ class FGMTypes {
                 },
                 get CLEAR_SELECTION() {
                     return 'a_button_clear_selection';
+                },
+                get MOVE() {
+                    return 'a_button_move';
                 }
             },
             KEYBOARD: {

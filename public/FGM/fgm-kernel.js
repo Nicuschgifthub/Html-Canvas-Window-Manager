@@ -81,6 +81,11 @@ class FGMSubAction {
 
         if (!typeMatches) return false;
 
+        // Check filter first
+        if (req.filter && typeof req.filter === 'function') {
+            if (!req.filter(payload)) return false;
+        }
+
         // Special case: If we are awaiting both a preset and a window click, 
         // give the preset click priority by delaying the window click resolution.
         if (eventType === FGMEventTypes.WINDOW_CLICKED && req.types && req.types.includes(FGMEventTypes.PRESET_CLICKED)) {
@@ -88,16 +93,13 @@ class FGMSubAction {
             const currentRequest = this.pendingRequest;
 
             queueMicrotask(() => {
+                // If it hasn't been resolved by PRESET_CLICKED in the same task
                 if (this.resolvePromise === resolve && this.pendingRequest === currentRequest) {
                     this.clearAwaitingAction();
                     resolve(payload);
                 }
             });
             return true;
-        }
-
-        if (req.filter && typeof req.filter === 'function') {
-            if (!req.filter(payload)) return false;
         }
 
         const resolve = this.resolvePromise;

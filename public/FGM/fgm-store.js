@@ -124,6 +124,12 @@ class FGMStore {
 
     static savePreset(poolType, index, name, data) {
         if (!this.presets[poolType]) this.presets[poolType] = [];
+
+        // Ensure data has a unique ID for identification
+        if (data && typeof data === 'object' && !data.id) {
+            data.id = FGMIds.getNewId('preset');
+        }
+
         this.presets[poolType][index] = { name, data };
 
         if (typeof FGMEventBus !== 'undefined') {
@@ -133,6 +139,25 @@ class FGMStore {
 
     static getPreset(poolType, index) {
         return this.presets[poolType]?.[index] || null;
+    }
+
+    /**
+     * Swaps two presets in a pool.
+     */
+    static swapPresets(poolType, index1, index2) {
+        if (!this.presets[poolType]) return false;
+
+        const p1 = this.presets[poolType][index1];
+        const p2 = this.presets[poolType][index2];
+
+        // Perform the swap (even if one is undefined, it clears/moves)
+        this.presets[poolType][index1] = p2;
+        this.presets[poolType][index2] = p1;
+
+        if (typeof FGMEventBus !== 'undefined') {
+            FGMEventBus.emit(FGMEventTypes.PATCH_CHANGED);
+        }
+        return true;
     }
 
     static deletePreset(poolType, index) {

@@ -20,6 +20,7 @@ class FGMwithHCW {
         FGMModuleRegistry.register(new FGMFixturePatchModule());
         FGMModuleRegistry.register(new FGMPoolModule());
         FGMModuleRegistry.register(new FGMStoreModule());
+        FGMModuleRegistry.register(new FGMMoveModule());
         FGMModuleRegistry.register(new FGMProgrammerSheetModule());
 
         // Initialize all modules

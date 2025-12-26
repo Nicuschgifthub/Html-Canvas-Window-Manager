@@ -321,6 +321,7 @@ class FGMBaseWindows {
             .onPresetPress(FGMKernel.eventPresetClicked)
             .addPreset(new HCWPreset("Edit Name").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.EDIT_NAME }))
             .addPreset(new HCWPreset("Store").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.STORE }))
+            .addPreset(new HCWPreset("Move").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.MOVE }))
             .addPreset(new HCWPreset("Delete").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.DELETE }))
             .addPreset(new HCWPreset("Clear Selec.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION }))
             .addPreset(new HCWPreset("Release Fixt.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES }))

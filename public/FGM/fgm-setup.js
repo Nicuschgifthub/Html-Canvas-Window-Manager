@@ -23,6 +23,7 @@ class FGMLoadFiles {
             '/FGM/fgm-modules/page-module.js',            // Page module
             '/FGM/fgm-modules/pool-module.js',            // Pool module
             '/FGM/fgm-modules/store-module.js',           // Store module
+            '/FGM/fgm-modules/move-module.js',            // Move module
             '/FGM/fgm-modules/programmer-sheet-module.js',// Programmer sheet module
             '/FGM/fgm-base-windows.js',
             '/FGM/fgm-init.js'
