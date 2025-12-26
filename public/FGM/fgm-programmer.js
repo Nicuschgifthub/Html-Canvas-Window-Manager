@@ -65,7 +65,6 @@ class FGMProgrammer {
         this.selection = [];
         this.clearStep = 0;
 
-        // NEW: Revert all patched fixtures to their default values
         const patched = FGMStore.getPatchedFixtures();
         patched.forEach(fixture => {
             fixture.resetToDefaults();
@@ -225,10 +224,9 @@ class FGMProgrammer {
         } else {
             console.log("[Programmer] Selective Preset recalled. Current selection:", this.selection);
 
-            // Only apply values to fixtures that are currently in the selection
             this.selection.forEach(fid => {
                 const presetData = data[fid];
-                if (!presetData) return; // This fixture isn't in the preset
+                if (!presetData) return;
 
                 if (!this.data[fid]) this.data[fid] = {};
 

@@ -249,6 +249,8 @@ class FGMKernel {
     static eventWindowClicked(window) {
         const payload = { window: window };
 
+        console.log(window)
+
         if (FGMSubAction.checkAndResolve(FGMEventTypes.WINDOW_CLICKED, payload)) {
             return;
         }

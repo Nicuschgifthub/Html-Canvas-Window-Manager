@@ -10,13 +10,10 @@ class FGMPoolModule extends FGMFeatureModule {
     init() {
         console.log('[PoolModule] Initializing...');
 
-        // Refresh pools on patch change
         this.on(FGMEventTypes.PATCH_CHANGED, () => this.refreshPools());
 
-        // Update selection highlights on selection change
         this.on(FGMEventTypes.SELECTION_CHANGED, () => this.updatePoolSelection());
 
-        // Refresh everything initially
         this.refreshPools();
         console.log('[PoolModule] Initialized');
     }
@@ -46,7 +43,6 @@ class FGMPoolModule extends FGMFeatureModule {
                     return;
                 }
 
-                // Selective Pools (Group, All, or any Map-based data)
                 let fixtureIdsInPreset = [];
                 if (Array.isArray(data)) {
                     fixtureIdsInPreset = data;
@@ -101,7 +97,7 @@ class FGMPoolModule extends FGMFeatureModule {
         this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.DIMMER_POOL, (preset, index) => {
             const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.DIMMER_POOL, index);
             if (stored) {
-                preset.setLabel(stored.name).setData(stored.data).setColor("#574b4bff");
+                preset.setLabel(stored.name).setData(stored.data).setColor(FGMColors.POOLS.DIMMER_POOL);
             } else {
                 preset.setLabel("").setData(null).setColor(null);
             }
@@ -111,7 +107,7 @@ class FGMPoolModule extends FGMFeatureModule {
         this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.COLOR_POOL, (preset, index) => {
             const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.COLOR_POOL, index);
             if (stored) {
-                preset.setLabel(stored.name).setData(stored.data).setColor("#8e44ad");
+                preset.setLabel(stored.name).setData(stored.data).setColor(FGMColors.POOLS.COLOR_POOL);
             } else {
                 preset.setLabel("").setData(null).setColor(null);
             }
@@ -121,7 +117,7 @@ class FGMPoolModule extends FGMFeatureModule {
         this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.POSITION_POOL, (preset, index) => {
             const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.POSITION_POOL, index);
             if (stored) {
-                preset.setLabel(stored.name).setData(stored.data).setColor("#2980b9");
+                preset.setLabel(stored.name).setData(stored.data).setColor(FGMColors.POOLS.POSITION_POOL);
             } else {
                 preset.setLabel("").setData(null).setColor(null);
             }
@@ -131,7 +127,7 @@ class FGMPoolModule extends FGMFeatureModule {
         this.refreshSpecificPool(FGMTypes.PROGRAMMER.POOLS.ALL_POOL, (preset, index) => {
             const stored = FGMStore.getPreset(FGMTypes.PROGRAMMER.POOLS.ALL_POOL, index);
             if (stored) {
-                preset.setLabel(stored.name).setData(stored.data).setColor("#27ae60");
+                preset.setLabel(stored.name).setData(stored.data).setColor(FGMColors.POOLS.ALL_POOL);
             } else {
                 preset.setLabel("").setData(null).setColor(null);
             }

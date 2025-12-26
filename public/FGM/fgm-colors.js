@@ -19,4 +19,12 @@ class FGMColors {
             QUICK_INPUT: "#c2c505ff" // This window will be open until the user has input a value
         }
     }
+    static get POOLS(){
+        return {
+            DIMMER_POOL: "#574b4bff",
+            ALL_POOL: "#27ae60",
+            POSITION_POOL: "#2980b9",
+            COLOR_POOL: "#8e44ad"
+        }
+    }
 }

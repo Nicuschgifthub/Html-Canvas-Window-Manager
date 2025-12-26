@@ -5,11 +5,10 @@ class FGMMoveModule extends FGMFeatureModule {
     }
 
     init() {
-        // Listen for the Move action button click
         this.on(FGMEventTypes.PRESET_CLICKED, {
             filter: FGMEventFilter.byPresetData('_actionId', FGMTypes.ACTIONS.BUTTON.MOVE),
             handler: (event) => this.handleMoveButton(event),
-            priority: 20 // Higher priority to intercept before other handlers
+            priority: 20
         });
     }
 
@@ -27,11 +26,9 @@ class FGMMoveModule extends FGMFeatureModule {
         }
 
         try {
-            // 1. Await SOURCE preset
             const sourceEvent = await FGMSubAction.awaitAction({
                 types: [FGMEventTypes.PRESET_CLICKED, FGMEventTypes.WINDOW_CLICKED],
                 filter: (payload) => {
-                    // Ignore action buttons (buttons with _actionId)
                     if (payload.singlePreset && payload.singlePreset.data?._actionId) return false;
                     return true;
                 }
@@ -46,7 +43,6 @@ class FGMMoveModule extends FGMFeatureModule {
             const sourceField = sourceEvent.field;
             const sourcePoolType = sourceField.getFGMType();
 
-            // Find index in the field's preset array
             const sourceIndex = sourceField.presets.indexOf(sourcePreset);
 
             if (sourceIndex === -1) {
@@ -56,11 +52,9 @@ class FGMMoveModule extends FGMFeatureModule {
 
             console.log(`[MoveModule] Source selected: ${sourcePreset.name} at index ${sourceIndex} in ${sourcePoolType}`);
 
-            // 2. Await DESTINATION preset
             const destEvent = await FGMSubAction.awaitAction({
                 types: [FGMEventTypes.PRESET_CLICKED, FGMEventTypes.WINDOW_CLICKED],
                 filter: (payload) => {
-                    // If it's a preset click, ensure it's in the same pool type and NOT an action button
                     if (payload.singlePreset) {
                         return payload.field.getFGMType() === sourcePoolType && !payload.singlePreset.data?._actionId;
                     }
@@ -88,7 +82,6 @@ class FGMMoveModule extends FGMFeatureModule {
 
             console.log(`[MoveModule] Destination selected: ${destPreset.name} at index ${destIndex}`);
 
-            // 3. Execute SWAP
             FGMStore.swapPresets(sourcePoolType, sourceIndex, destIndex);
 
             console.log(`[MoveModule] Swap complete for ${sourcePoolType}`);

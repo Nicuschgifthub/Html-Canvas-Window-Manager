@@ -10,7 +10,7 @@ class FGMBaseWindows {
             pageField.addPreset(new HCWPreset(`Page ${i}`).setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _goToPage: i }));
         }
 
-        const newWindow = new HCWWindow(0, 0, 50, 400)
+        const newWindow = new HCWWindow(0, 0, 100, 500)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(pageField)
             .setMinSizes(100, 100)
@@ -247,7 +247,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventFaderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.DIMMERS.MAIN)
 
-        const newFaderWindow = new HCWWindow(0, 500, 80, 400)
+        const newFaderWindow = new HCWWindow(0, 500, 100, 400)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(dimFader)
             .setHidden(true)
@@ -285,7 +285,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventEncoderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.POSITION.TILT_ENCODER)
 
-        const newtiltEncoderWindow = new HCWWindow(100, 710, 200, 200)
+        const newtiltEncoderWindow = new HCWWindow(100, 700, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(tiltEncoder)
             .setMinSizes(100, 100)
@@ -326,7 +326,7 @@ class FGMBaseWindows {
             .addPreset(new HCWPreset("Clear Selec.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.CLEAR_SELECTION }))
             .addPreset(new HCWPreset("Release Fixt.").setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _actionId: FGMTypes.ACTIONS.BUTTON.CLEAR_GHOST_VALUES }))
 
-        const newPageActionsWindow = new HCWWindow(700, 500, 100, 500)
+        const newPageActionsWindow = new HCWWindow(1100, 700, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(pageActions)
             .setHidden(true)
@@ -342,7 +342,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventEncoderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.BEAM.ZOOM);
 
-        const zoomWindow = new HCWWindow(800, 500, 200, 200)
+        const zoomWindow = new HCWWindow(700, 500, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(zoomEncoder)
             .setHidden(true)
@@ -358,7 +358,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventEncoderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.BEAM.FOCUS);
 
-        const focusWindow = new HCWWindow(800, 700, 200, 200)
+        const focusWindow = new HCWWindow(700, 700, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(focusEncoder)
             .setHidden(true)
@@ -374,7 +374,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventEncoderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.BEAM.SHUTTER);
 
-        const shutterWindow = new HCWWindow(1000, 710, 200, 200)
+        const shutterWindow = new HCWWindow(900, 700, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(shutterEncoder)
             .setHidden(true)
@@ -390,7 +390,7 @@ class FGMBaseWindows {
             .onValueChange(FGMKernel.eventEncoderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.BEAM.GOBO);
 
-        const goboWindow = new HCWWindow(1200, 500, 200, 200)
+        const goboWindow = new HCWWindow(1100, 500, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(goboEncoder)
             .setHidden(true)
@@ -407,7 +407,7 @@ class FGMBaseWindows {
             .setFGMType(FGMTypes.PROGRAMMER.COLORS.COLOR_WHEEL)
             .setCenterColor('#fff'); // Default white center
 
-        const colorWheelWindow = new HCWWindow(1000, 500, 200, 200)
+        const colorWheelWindow = new HCWWindow(900, 500, 200, 200)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(colorWheelEncoder)
             .setHidden(true)

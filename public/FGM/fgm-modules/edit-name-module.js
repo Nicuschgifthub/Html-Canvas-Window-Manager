@@ -75,7 +75,6 @@ class FGMEditNameModule extends FGMFeatureModule {
                     FGMStore.updateFixtureMetadata(data.id, { label: string });
                 }
             } else if (presetIndex !== -1) {
-                // For other pools, sync with FGMStore.presets
                 FGMStore.renamePreset(poolType, presetIndex, string);
             }
         } else {
