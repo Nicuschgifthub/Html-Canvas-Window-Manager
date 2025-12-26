@@ -349,7 +349,7 @@ class FGMBaseWindows {
             .setHeaders(['Fixture'])
             .setRows([]);
 
-        const sheetWindow = new HCWWindow(1100, 500, 600, 400)
+        const sheetWindow = new HCWWindow(1300, 0, 600, 500)
             .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
             .addContextField(sheetField)
             .setHidden(true)
