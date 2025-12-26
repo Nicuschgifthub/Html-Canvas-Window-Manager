@@ -5,58 +5,58 @@
         "functions": [
             {
                 "type": "DIMMER",
-                "channel": 0,
+                "channel": 5,
                 "default": 0
+            },
+             {
+                "type": "SHUTTER",
+                "channel": 5,
+                "default": 255,
+                "strobe": {
+                    "min": 10,
+                    "max": 245
+                },
+                "open": 255
             },
             {
                 "type": "PAN8BIT",
-                "channel": 1,
+                "channel": 0,
                 "default": 127
             },
             {
                 "type": "PAN16BIT",
-                "channel": 2,
+                "channel": 1,
                 "default": 0
             },
             {
                 "type": "TILT8BIT",
-                "channel": 3,
+                "channel": 2,
                 "default": 127
             },
             {
                 "type": "TILT16BIT",
-                "channel": 4,
+                "channel": 3,
                 "default": 0
             },
             {
                 "type": "COLOR_R",
-                "channel": 5,
-                "default": 255
-            },
-            {
-                "type": "COLOR_G",
-                "channel": 6,
-                "default": 255
-            },
-            {
-                "type": "COLOR_B",
                 "channel": 7,
                 "default": 255
             },
             {
-                "type": "COLOR_W",
+                "type": "COLOR_G",
                 "channel": 8,
                 "default": 255
             },
             {
-                "type": "COLOR_A",
+                "type": "COLOR_B",
                 "channel": 9,
-                "default": 0
+                "default": 255
             },
             {
-                "type": "COLOR_U",
+                "type": "COLOR_W",
                 "channel": 10,
-                "default": 0
+                "default": 255
             }
         ]
     },

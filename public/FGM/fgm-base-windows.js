@@ -336,6 +336,55 @@ class FGMBaseWindows {
 
         windowsForThisPage.programmerActions = newPageActionsWindow;
 
+        // --- Zoom ---
+        const zoomEncoder = new HCWEncoderField('Zoom', FGMIds.newComponentId())
+            .onValueChange(FGMKernel.eventEncoderUpdate)
+            .setFGMType(FGMTypes.PROGRAMMER.BEAM.ZOOM);
+
+        const zoomWindow = new HCWWindow(800, 500, 200, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(zoomEncoder)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        zoomEncoder.setParentWindow(zoomWindow);
+        windowsForThisPage.zoomEncoder = zoomWindow;
+
+        // --- Focus ---
+        const focusEncoder = new HCWEncoderField('Focus', FGMIds.newComponentId())
+            .onValueChange(FGMKernel.eventEncoderUpdate)
+            .setFGMType(FGMTypes.PROGRAMMER.BEAM.FOCUS);
+
+        const focusWindow = new HCWWindow(800, 700, 200, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(focusEncoder)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        focusEncoder.setParentWindow(focusWindow);
+        windowsForThisPage.focusEncoder = focusWindow;
+
+        // --- Color Wheel ---
+        const colorWheelEncoder = new HCWColorWheelEncoderField('Color Wheel', FGMIds.newComponentId())
+            .onValueChange(FGMKernel.eventEncoderUpdate)
+            .setFGMType(FGMTypes.PROGRAMMER.COLORS.COLOR_WHEEL)
+            .setCenterColor('#fff'); // Default white center
+
+        const colorWheelWindow = new HCWWindow(1000, 500, 200, 200)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(colorWheelEncoder)
+            .setHidden(true)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL);
+
+        colorWheelEncoder.setParentWindow(colorWheelWindow);
+        windowsForThisPage.colorWheelEncoder = colorWheelWindow;
+
         const programmerSheetWin = this.programmerSheet();
         windowsForThisPage.programmerSheet = programmerSheetWin;
 

@@ -140,6 +140,15 @@ class FGMProgrammerModule extends FGMFeatureModule {
                             amber: getVal(colors.COLOR_A),
                             uv: getVal(colors.COLOR_U)
                         });
+                    } else if (fgmType === colors.COLOR_WHEEL) {
+                        const val = (progData && progData[colors.COLOR_WHEEL]) ? progData[colors.COLOR_WHEEL].value : (progData ? undefined : 0);
+                        if (val !== undefined) field.setValue(val / 255);
+                    }
+                } else if (fieldType === 'ENCODER_FIELD' && prog.BEAM) {
+                    const beam = prog.BEAM;
+                    if (fgmType === beam.ZOOM || fgmType === beam.FOCUS) {
+                        const val = (progData && progData[fgmType]) ? progData[fgmType].value : (progData ? undefined : 0);
+                        if (val !== undefined) field.setValue(val / 255);
                     }
                 }
             });
@@ -191,6 +200,16 @@ class FGMProgrammerModule extends FGMFeatureModule {
         if (type === pos.TILT_ENCODER) {
             FGMProgrammer.setAttributeValue(pos.TILT_8Bit, data.outer.value * 255, true);
             FGMProgrammer.setAttributeValue(pos.TILT_16Bit, data.inner.value * 255, false); // Emit on last
+        }
+
+        const beam = FGMTypes.PROGRAMMER.BEAM;
+        if (type === beam.ZOOM || type === beam.FOCUS) {
+            FGMProgrammer.setAttributeValue(type, data.outer.value * 255);
+        }
+
+        const colors = FGMTypes.PROGRAMMER.COLORS;
+        if (type === colors.COLOR_WHEEL) {
+            FGMProgrammer.setAttributeValue(type, data.outer.value * 255);
         }
     }
 

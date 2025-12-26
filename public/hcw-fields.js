@@ -2506,3 +2506,64 @@ class HCWSearchField extends HCWBaseField {
         ctx.textAlign = 'start';
     }
 } */
+
+class HCWColorWheelEncoderField extends HCWEncoderField {
+    constructor(encoderText = 'Color Wheel', id = Date.now()) {
+        super(encoderText, id);
+        this.centerColor = null;
+        this.centerImage = null;
+        this._loadedImage = null;
+    }
+
+    getType() {
+        return 'COLOR_WHEEL_ENCODER_FIELD';
+    }
+
+    setCenterColor(color) {
+        this.centerColor = color;
+        this.updateFrame();
+        return this;
+    }
+
+    setCenterImage(src) {
+        this.centerImage = src;
+        if (src) {
+            this._loadedImage = new Image();
+            this._loadedImage.src = src;
+            this._loadedImage.onload = () => this.updateFrame();
+        } else {
+            this._loadedImage = null;
+        }
+        this.updateFrame();
+        return this;
+    }
+
+    render(contextwindow) {
+        // First run normal encoder render
+        super.render(contextwindow);
+
+        const ctx = HCW.ctx;
+        const cx = this.renderProps.centerX;
+        const cy = this.renderProps.centerY;
+        const innerRadius = this.renderProps.innerRadius;
+
+        // Draw center part
+        if (this.centerColor || this._loadedImage) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
+            ctx.clip();
+
+            if (this.centerColor) {
+                ctx.fillStyle = this.centerColor;
+                ctx.fill();
+            }
+
+            if (this._loadedImage && this._loadedImage.complete) {
+                ctx.drawImage(this._loadedImage, cx - innerRadius, cy - innerRadius, innerRadius * 2, innerRadius * 2);
+            }
+
+            ctx.restore();
+        }
+    }
+}

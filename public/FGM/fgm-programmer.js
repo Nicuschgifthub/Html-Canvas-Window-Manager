@@ -137,7 +137,8 @@ class FGMProgrammer {
                 FGMTypes.PROGRAMMER.COLORS.COLOR_B,
                 FGMTypes.PROGRAMMER.COLORS.COLOR_W,
                 FGMTypes.PROGRAMMER.COLORS.COLOR_A,
-                FGMTypes.PROGRAMMER.COLORS.COLOR_U
+                FGMTypes.PROGRAMMER.COLORS.COLOR_U,
+                FGMTypes.PROGRAMMER.COLORS.COLOR_WHEEL
             ],
             [FGMTypes.PROGRAMMER.POOLS.POSITION_POOL]: [
                 FGMTypes.PROGRAMMER.POSITION.PAN_8Bit,

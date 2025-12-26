@@ -18,7 +18,10 @@ class FGMProgrammerSheetModule extends FGMFeatureModule {
             'COLOR_B': 'Color',
             'COLOR_W': 'Color',
             'COLOR_A': 'Color',
-            'COLOR_U': 'Color'
+            'COLOR_U': 'Color',
+            'COLOR_WHEEL': 'Color',
+            'ZOOM': 'Beam',
+            'FOCUS': 'Beam'
         };
 
         // Short labels for condensed display
@@ -29,6 +32,9 @@ class FGMProgrammerSheetModule extends FGMFeatureModule {
             'COLOR_W': 'W',
             'COLOR_A': 'A',
             'COLOR_U': 'U',
+            'COLOR_WHEEL': 'CW',
+            'ZOOM': 'Z',
+            'FOCUS': 'F',
             'PAN8BIT': 'P',
             'PAN16BIT': 'Pf',
             'TILT8BIT': 'T',
@@ -69,8 +75,8 @@ class FGMProgrammerSheetModule extends FGMFeatureModule {
         });
 
         const sortedCategories = Array.from(activeCategories).sort((a, b) => {
-            // Force some order: Intensity first, then Position, then Color, then others
-            const order = { 'Intensity': 0, 'Position': 1, 'Color': 2 };
+            // Force some order: Intensity first, then Position, then Beam, then Color, then others
+            const order = { 'Intensity': 0, 'Position': 1, 'Beam': 2, 'Color': 3 };
             const orderA = order[a] !== undefined ? order[a] : 99;
             const orderB = order[b] !== undefined ? order[b] : 99;
             return orderA - orderB || a.localeCompare(b);

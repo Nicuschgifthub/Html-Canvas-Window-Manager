@@ -66,6 +66,9 @@ class FGMwithHCW {
             .addWindow(baseFixtureControl.positionPool)
             .addWindow(baseFixtureControl.allPool)
             .addWindow(baseFixtureControl.programmerSheet)
+            .addWindow(baseFixtureControl.zoomEncoder)
+            .addWindow(baseFixtureControl.focusEncoder)
+            .addWindow(baseFixtureControl.colorWheelEncoder)
     }
 
     saveShow() {
