@@ -2311,202 +2311,6 @@ class HCWSearchField extends HCWBaseField {
         ctx.textAlign = 'start';
     }
 }
-/* 
-class HCWSearchField extends HCWBaseField {
-    constructor(fieldName = 'Search', id = Date.now()) {
-        super(fieldName, id);
-
-        this.searchValue = "";
-        this.results = [];
-        this.onResultClickCallback = null;
-        this.onSearchRequestCallback = null;
-
-        // Scrolling Properties
-        this.scrollY = 0;
-        this._dragLastY = null;
-        this._clickStartY = null;
-        this._potentialClick = false;
-
-        this.headerHeight = 40;
-        this.resultItemHeight = 45;
-        this.gap = 5;
-        this.padding = 10;
-
-        this.renderProps = {
-            startX: null,
-            startY: null,
-            endX: null,
-            endY: null,
-            sx: null,
-            sy: null,
-            resultButtons: []
-        };
-    }
-
-    setSearchValue(val) {
-        this.searchValue = val;
-        this.updateFrame();
-        return this;
-    }
-
-    setResults(results) {
-        // Removed .slice(0, 5) to allow for scrolling through many results
-        this.results = results;
-        this.scrollY = 0; // Reset scroll on new search
-        this.updateFrame();
-        return this;
-    }
-
-    onResultClick(cb) {
-        this.onResultClickCallback = cb;
-        return this;
-    }
-
-    onSearchRequest(cb) {
-        this.onSearchRequestCallback = cb;
-        return this;
-    }
-
-    getType() {
-        return 'SEARCH_FIELD';
-    }
-
-    _interaction(interaction) {
-        const { mouseX, mouseY, type, deltaY } = interaction;
-
-        if (type === 'mousedown') {
-            this._clickStartY = mouseY;
-            this._dragLastY = mouseY;
-            this._potentialClick = true;
-
-        } else if (type === 'mousemove') {
-            if (this._dragLastY !== null) {
-                const dy = mouseY - this._dragLastY;
-                
-                // If moved more than 5px, it's a drag, not a click
-                if (Math.abs(mouseY - this._clickStartY) > 5) {
-                    this._potentialClick = false;
-                }
-
-                this.scrollY += dy;
-                this._clampScroll();
-                this.updateFrame();
-                this._dragLastY = mouseY;
-            }
-
-        } else if (type === 'mouseup') {
-            if (this._potentialClick) {
-                // Check if we hit a result button
-                const hitResult = this.renderProps.resultButtons.find(b =>
-                    mouseX >= b.x && mouseX <= b.x + b.w &&
-                    mouseY >= b.y && mouseY <= b.y + b.h
-                );
-
-                if (hitResult && this.onResultClickCallback) {
-                    this.onResultClickCallback(this.parentWindow, this, hitResult.result);
-                } else {
-                    // If clicked in header or empty area, open keyboard
-                    if (this.onSearchRequestCallback) {
-                        this.onSearchRequestCallback(this.parentWindow, this);
-                    }
-                }
-            }
-            this._dragLastY = null;
-            this._potentialClick = false;
-
-        } else if (type === 'scroll') {
-            this.scrollY -= deltaY;
-            this._clampScroll();
-            this.updateFrame();
-        }
-    }
-
-    _clampScroll() {
-        const contentHeight = this.results.length * (this.resultItemHeight + this.gap);
-        const viewHeight = this.renderProps.sy - (this.headerHeight + this.padding * 2);
-
-        if (contentHeight <= viewHeight) {
-            this.scrollY = 0;
-        } else {
-            const minScroll = -(contentHeight - viewHeight + 10);
-            this.scrollY = Math.min(0, Math.max(minScroll, this.scrollY));
-        }
-    }
-
-    render(w) {
-        this.renderProps.startX = w.x;
-        this.renderProps.startY = w.y;
-        this.renderProps.endX = w.x2;
-        this.renderProps.endY = w.y2;
-        this.renderProps.sx = w.sx;
-        this.renderProps.sy = w.sy;
-        this.renderProps.resultButtons = [];
-
-        const ctx = HCW.ctx;
-        if (!ctx) return;
-
-        const pad = this.padding;
-
-        // 1. Background
-        ctx.fillStyle = '#1b1717';
-        ctx.fillRect(w.x, w.y, w.sx, w.sy);
-
-        // 2. Header (Sticky at top)
-        ctx.fillStyle = '#333';
-        ctx.fillRect(w.x + pad, w.y + pad, w.sx - pad * 2, this.headerHeight);
-
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(this.searchValue || "Click to search...", w.x + pad + 10, w.y + pad + this.headerHeight / 2 + 6);
-
-        // 3. Results List with Clipping
-        ctx.save();
-        const clipY = w.y + pad + this.headerHeight + this.gap;
-        const clipH = w.sy - (pad * 2 + this.headerHeight + this.gap);
-        
-        ctx.beginPath();
-        ctx.rect(w.x, clipY, w.sx, clipH);
-        ctx.clip();
-
-        let currentY = clipY + this.scrollY;
-
-        this.results.forEach((result, index) => {
-            const rx = w.x + pad;
-            const rw = w.sx - pad * 2;
-            const rh = this.resultItemHeight;
-
-            // Only draw if within visible vertical bounds (optimization)
-            if (currentY + rh > clipY && currentY < clipY + clipH) {
-                ctx.fillStyle = '#2a2a2a';
-                ctx.fillRect(rx, currentY, rw, rh);
-
-                ctx.fillStyle = '#00ff95';
-                ctx.font = 'bold 13px Arial';
-                ctx.fillText(result.name || "Unknown Fixture", rx + 10, currentY + 18);
-
-                ctx.fillStyle = '#bbb';
-                ctx.font = '11px Arial';
-                ctx.fillText(result.shortName || result.type || '', rx + 10, currentY + 35);
-
-                // Store for interaction
-                this.renderProps.resultButtons.push({
-                    x: rx,
-                    y: currentY,
-                    w: rw,
-                    h: rh,
-                    result: result
-                });
-            }
-
-            currentY += rh + this.gap;
-        });
-
-        ctx.restore();
-        ctx.textAlign = 'start';
-    }
-} */
-
 class HCWColorWheelEncoderField extends HCWEncoderField {
     constructor(encoderText = 'Color Wheel', id = Date.now()) {
         super(encoderText, id);
@@ -2554,44 +2358,61 @@ class HCWColorWheelEncoderField extends HCWEncoderField {
         const innerRadius = this.renderProps.innerRadius;
 
         // Dynamic lookup based on wheelData
-        let activeColor = this.centerColor;
-        let activeImage = this._loadedImage;
+        const activeKeys = [];
 
         if (this.wheelData) {
             const dmxVal = Math.round(this.value * 255);
-            for (const [key, range] of Object.entries(this.wheelData)) {
-                if (dmxVal >= range[0] && dmxVal <= range[1]) {
-                    // key could be a hex color or a path to an image
-                    if (key.startsWith('#') || key.startsWith('rgb')) {
-                        activeColor = key;
-                        activeImage = null;
-                    } else {
-                        // Assume key is an image path - if we wanted to support images here, 
-                        // we'd need to preload them. For now, let's treat it as a label/placeholder
-                        // or just ignore if it's not a color for now.
-                        activeColor = '#444'; // Generic indicator for "something is there"
+            for (const [key, ranges] of Object.entries(this.wheelData)) {
+                // Determine if any range in this color matches
+                // Support both old format [min, max] and new format [[min, max], ...]
+                const rangeArray = Array.isArray(ranges[0]) ? ranges : [ranges];
+
+                for (const range of rangeArray) {
+                    if (dmxVal >= range[0] && dmxVal <= range[1]) {
+                        activeKeys.push(key);
+                        break;
                     }
-                    break;
                 }
             }
         }
 
         // Draw center part
-        if (activeColor || (activeImage && activeImage.complete)) {
+        if (activeKeys.length > 0) {
             ctx.save();
             ctx.beginPath();
             ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
             ctx.clip();
 
-            if (activeColor) {
-                ctx.fillStyle = activeColor;
+            if (activeKeys.length === 1) {
+                // Solid color
+                ctx.fillStyle = activeKeys[0];
+                ctx.fill();
+            } else if (activeKeys.length >= 2) {
+                // Split color (half-half)
+                // Left half
+                ctx.beginPath();
+                ctx.arc(cx, cy, innerRadius, Math.PI / 2, (3 * Math.PI) / 2);
+                ctx.lineTo(cx, cy);
+                ctx.fillStyle = activeKeys[0];
+                ctx.fill();
+
+                // Right half
+                ctx.beginPath();
+                ctx.arc(cx, cy, innerRadius, (3 * Math.PI) / 2, Math.PI / 2);
+                ctx.lineTo(cx, cy);
+                ctx.fillStyle = activeKeys[1];
                 ctx.fill();
             }
 
-            if (activeImage && activeImage.complete) {
-                ctx.drawImage(activeImage, cx - innerRadius, cy - innerRadius, innerRadius * 2, innerRadius * 2);
-            }
-
+            ctx.restore();
+        } else if (this.centerColor) {
+            // Fallback to default center color if no wheel match
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.fillStyle = this.centerColor;
+            ctx.fill();
             ctx.restore();
         }
     }
