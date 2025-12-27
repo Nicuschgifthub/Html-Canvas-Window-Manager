@@ -103,7 +103,7 @@ class FGMBaseWindows {
         const rows = nodes.map(n => [n.name, n.ip, n.subnet, n.universe, n.softUni]);
 
         const tableField = new HCWTableField('ArtNet Address Settings', FGMIds.newComponentId())
-            .setHeaders(['Name', 'IP Address', 'Subnet Mask', 'Universe', 'Soft Uni'])
+            .setHeaders(['Label', 'Device IP', 'Subnet Mask', 'Device Univ.', 'Local Univ.'])
             .setRows(rows)
             .onCellClick(FGMKernel.eventTableCellClicked)
             .onDeleteRow(FGMKernel.eventTableRowDeleted)
