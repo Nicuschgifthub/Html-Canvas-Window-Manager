@@ -23,10 +23,6 @@ class FGMBaseWindows {
         return newWindow;
     }
 
-    static setupPage() {
-        return;
-    }
-
     static inOut() {
         let windowsForThisPage = [];
 
@@ -261,7 +257,6 @@ class FGMBaseWindows {
         windowsForThisPage.dimFader = newFaderWindow;
 
         // Position Pan
-
         const panEncoder = new HCWEncoderField('Pan', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventEncoderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.POSITION.PAN_ENCODER)
@@ -280,7 +275,6 @@ class FGMBaseWindows {
         windowsForThisPage.panEncoder = newPanEncoderWindow;
 
         // Position Tilt
-
         const tiltEncoder = new HCWEncoderField('Tilt', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventEncoderUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.POSITION.TILT_ENCODER)
@@ -299,7 +293,6 @@ class FGMBaseWindows {
         windowsForThisPage.tiltEncoder = newtiltEncoderWindow;
 
         // Color Picker
-
         const colorPicker = new HCWColorMapField('Color Picker', FGMIds.newComponentId())
             .onValueChange(FGMKernel.eventColorPickerUpdate)
             .setFGMType(FGMTypes.PROGRAMMER.COLORS.COLOR_PICKER)
@@ -449,7 +442,6 @@ class FGMBaseWindows {
         let windowsForThisPage = {};
 
         // Keyboard
-
         const inputKeyboard = new HCWKeyboardField('Keyboard', FGMIds.newComponentId())
             .onEnter(FGMKernel.eventKeyboardOnEnter)
             .onValueChange(FGMKernel.eventKeyboardUpdate)
