@@ -5,6 +5,7 @@ class FGMBaseWindows {
 
         pageField.addPreset(new HCWPreset(`Setup`).setDefaultColor(FGMColors.PAGES.MENUS.SETUP).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.SETUP }));
         pageField.addPreset(new HCWPreset(`Fixture Cnt.`).setDefaultColor(FGMColors.PAGES.MENUS.FIXTURE_CONTROL).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL }));
+        pageField.addPreset(new HCWPreset(`Seq page`).setDefaultColor(FGMColors.PAGES.MENUS.FIXTURE_CONTROL).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL }));
 
         for (let i = 0; i < pageCount; i++) {
             pageField.addPreset(new HCWPreset(`Page ${i}`).setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _goToPage: i }));

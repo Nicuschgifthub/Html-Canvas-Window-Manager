@@ -33,7 +33,8 @@ class FGMPageHandler {
         return {
             SETUP: 'setup_page',
             LINK_SETTINGS: 'link_settings',
-            FIXTURE_CONTROL: 'fixture_control'
+            FIXTURE_CONTROL: 'fixture_control',
+            SEQ_EDITOR: 'seq_editor'
         }
     }
 }
