@@ -8,17 +8,14 @@ class HCWSequenceEditor extends HCWBaseField {
             { label: 'Part', width: 40 },
             { label: '▼', width: 30 },
             { label: 'Name', width: 250 },
-            { label: 'Trig', width: 150, sub: ['Type', 'Time', 'Sound'] },
+            { label: 'Trig', width: 150, sub: ['Type', 'Time'] },
             { label: 'Duration', width: 80 },
-            { label: 'Cue', width: 100, sub: ['Fade', 'Delay'] },
-            { label: 'Snap Delay', width: 60 },
+            { label: 'Fade', width: 100, sub: ['In', 'Out'] },
+            { label: 'Delay', width: 100, sub: ['In', 'Out'] },
+            { label: 'CMD', width: 300 }, // Command
+            { label: 'MIB', width: 70 }, // Move In Black
             { label: 'Release', width: 70 },
-            { label: 'Break', width: 100 },
             { label: 'Assert', width: 60 },
-            { label: 'Allow Duplicates', width: 70 },
-            { label: 'Tracking Distance', width: 70 },
-            { label: 'Sync', width: 50 },
-            { label: 'Morph', width: 50 },
             { label: 'Transition', width: 80 }
         ];
 
@@ -51,10 +48,8 @@ class HCWSequenceEditor extends HCWBaseField {
 
     _initMockData() {
         this.rows = [
-            { lock: 'PL', no: '0', part: '', name: 'CueZero', trig: { type: '', time: '', sound: '' }, duration: '0', cue: { fade: '0', delay: '0' }, snap: '0', transition: 'Linear' },
-            { lock: '', no: '1', part: '0', name: 'Intro', trig: { type: 'Go', time: '0', sound: '' }, duration: '5', cue: { fade: '5', delay: '0' }, snap: '0', release: '<Yes>', transition: 'Linear', active: true },
-            { lock: '', no: '2', part: '0', name: 'Limo Pickup', trig: { type: 'Go', time: '0', sound: '' }, duration: '3', cue: { fade: '3', delay: '0' }, snap: '0', break: "'Only Dimmer' Filter", transition: 'Linear' },
-            { lock: '', no: '', part: '2', name: '    [Straight Front]', trig: { type: '', time: '', sound: '' }, duration: '3', cue: { fade: '0', delay: '3' }, snap: '0', transition: 'Linear' },
+            { lock: 'PL', no: '0', part: '', name: 'CueZero', trig: { type: '', time: '' }, duration: '0', fade: { in: '0', out: '0' }, delay: { in: '0', out: '0' }, transition: 'Linear', cmd: '', mib: '' },
+            { lock: '', no: '1', part: '0', name: 'Intro', trig: { type: 'Go', time: '0' }, duration: '5', fade: { in: '5', out: '5' }, delay: { in: '0', out: '0' }, transition: 'Linear', active: true, cmd: '', mib: '' },
         ];
     }
 
@@ -66,20 +61,43 @@ class HCWSequenceEditor extends HCWBaseField {
 
     updateRowsFromSequence() {
         if (!this.sequence) return;
-        this.rows = this.sequence.cues.map((cue, index) => {
-            return {
-                id: cue.id,
-                lock: '',
-                no: (index + 1).toString(),
-                part: '0',
-                name: cue.name,
-                trig: { type: 'Go', time: '0', sound: '' },
-                duration: cue.inFade.toString(),
-                cue: { fade: cue.inFade.toString(), delay: cue.delay.toString() },
-                snap: '0',
-                transition: 'Linear'
-            };
-        });
+        this.rows = this.sequence.cues;
+        this.updateFrame();
+    }
+
+    setCellValue(rowIndex, colIndex, subIndex, newValue) {
+        if (rowIndex < 0 || rowIndex >= this.rows.length) return;
+
+        const row = this.rows[rowIndex];
+        const col = this.columns[colIndex];
+
+        console.log(`[HCWSequenceEditor] Setting Value: Row ${rowIndex}, Col ${col.label}, Sub ${subIndex} -> ${newValue}`);
+
+        if (this.sequence) {
+            // Updating real Cue object
+            const cue = row; // Assuming rows are the cue objects now
+            switch (col.label) {
+                case 'Name': cue.name = newValue; break;
+                case 'Fade':
+                    if (subIndex === 0) cue.inFade = parseFloat(newValue) || 0;
+                    else cue.outFade = newValue === "" ? null : (parseFloat(newValue) || 0);
+                    break;
+                case 'Delay':
+                    if (subIndex === 0) cue.inDelay = parseFloat(newValue) || 0;
+                    else cue.outDelay = newValue === "" ? null : (parseFloat(newValue) || 0);
+                    break;
+                case 'Trig':
+                    if (subIndex === 0) cue.trigType = newValue;
+                    else cue.trigTime = parseFloat(newValue) || 0;
+                    break;
+                case 'CMD': cue.cmd = newValue; break;
+                case 'MIB': cue.mib = newValue; break;
+            }
+        } else {
+            // Updating mock data
+            // (Similar logic for mock data if needed)
+        }
+
         this.updateFrame();
     }
 
@@ -102,7 +120,6 @@ class HCWSequenceEditor extends HCWBaseField {
     }
 
     selectCell(rowIndex, colIndex, subIndex = -1) {
-        console.log(`[HCWSequenceEditor] selectCell called for Row: ${rowIndex}, Col: ${colIndex}, Sub: ${subIndex}`);
         this.selectedCell = { rowIndex, colIndex, subIndex };
         this.updateFrame();
         return this;
@@ -113,8 +130,6 @@ class HCWSequenceEditor extends HCWBaseField {
     }
 
     _interaction(interaction) {
-        console.log(`[HCWSequenceEditor] Interaction: ${interaction.type}`, interaction);
-
         if (interaction.type === 'scroll') {
             this.scrollY -= interaction.deltaY;
             this.updateFrame();
@@ -125,11 +140,8 @@ class HCWSequenceEditor extends HCWBaseField {
             const relX = (interaction.mouseX || 0) - this.parentWindow.contextwindow.x;
             const relY = (interaction.mouseY || 0) - this.parentWindow.contextwindow.y;
 
-            console.log(`[HCWSequenceEditor] Rel Coordinates: (${relX}, ${relY}), ContextWindow:`, this.parentWindow.contextwindow);
-
             if (relY > this.headerHeight) {
                 const rowIndex = Math.floor((relY - this.headerHeight - this.scrollY) / this.rowHeight);
-                console.log(`[HCWSequenceEditor] Calculated Row Index: ${rowIndex}, ScrollY: ${this.scrollY}`);
 
                 if (rowIndex >= 0 && rowIndex < this.rows.length) {
                     // Find Column
@@ -151,16 +163,9 @@ class HCWSequenceEditor extends HCWBaseField {
                     }
 
                     if (colIndex !== -1) {
-                        console.log(`[HCWSequenceEditor] Selecting Cell: Row ${rowIndex}, Col ${colIndex} (${this.columns[colIndex].label}), Sub ${subIndex}`);
                         this.selectCell(rowIndex, colIndex, subIndex);
-                    } else {
-                        console.log(`[HCWSequenceEditor] No column found for relX: ${relX}`);
                     }
-                } else {
-                    console.log(`[HCWSequenceEditor] Row index out of bounds or above header.`);
                 }
-            } else {
-                console.log(`[HCWSequenceEditor] Clicked on header area.`);
             }
         }
     }
@@ -313,16 +318,21 @@ class HCWSequenceEditor extends HCWBaseField {
     _getRowValueByCol(row, col) {
         // If row is a Cue object, map its properties
         if (this.sequence) {
-            const cue = this.sequence.cues[this.rows.indexOf(row)];
+            const cue = row;
             if (cue) {
                 switch (col.label) {
                     case 'Lock': return '';
                     case 'No': return (this.rows.indexOf(row) + 1).toString();
                     case 'Part': return '0';
                     case 'Name': return cue.name || '';
-                    case 'Duration': return (cue.inFade || 0).toString();
-                    case 'Cue': return { fade: (cue.inFade || 0).toString(), delay: (cue.delay || 0).toString() };
-                    case 'Trig': return { type: 'Go', time: '0', sound: '' };
+                    case 'Duration': return '0'; // Logic for duration later
+                    case 'Fade': return { in: (cue.inFade || 0).toString(), out: (cue.getOutFade()).toString() };
+                    case 'Delay': return { in: (cue.inDelay || 0).toString(), out: (cue.getOutDelay()).toString() };
+                    case 'Trig': return { type: cue.trigType || 'Go', time: (cue.trigTime || 0).toString() };
+                    case 'CMD': return cue.cmd || '';
+                    case 'MIB': return cue.mib || 'None';
+                    case 'Release': return '';
+                    case 'Assert': return '';
                     case 'Transition': return 'Linear';
                     default: return '';
                 }
@@ -338,15 +348,12 @@ class HCWSequenceEditor extends HCWBaseField {
             case 'Name': return row.name || '';
             case 'Trig': return row.trig || {};
             case 'Duration': return row.duration || '';
-            case 'Cue': return row.cue || {};
-            case 'Snap Delay': return row.snap || '';
+            case 'Fade': return row.fade || {};
+            case 'Delay': return row.delay || {};
+            case 'CMD': return row.cmd || '';
+            case 'MIB': return row.mib || '';
             case 'Release': return row.release || '';
-            case 'Break': return row.break || '';
             case 'Assert': return row.assert || '';
-            case 'Allow Duplicates': return row.allowDuplicates || '';
-            case 'Tracking Distance': return row.trackingDistance || '';
-            case 'Sync': return row.sync || '';
-            case 'Morph': return row.morph || '';
             case 'Transition': return row.transition || '';
             default: return '';
         }

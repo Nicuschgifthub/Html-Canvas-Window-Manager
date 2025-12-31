@@ -3,8 +3,16 @@ class Cue {
         this.id = FGMIds.getNewId('cue');
         this.name = name;
         this.inFade = 2; // Default 2s fade
-        this.outFade = 0;
-        this.delay = 0;
+        this.outFade = null; // null means same as inFade in gMA3 usually
+        this.inDelay = 0;
+        this.outDelay = null;
+
+        this.trigType = 'Go'; // Go, Time, Follow, Wait
+        this.trigTime = 0;
+
+        this.cmd = ""; // Command string
+        this.mib = "None"; // MIB mode
+
         this.data = {}; // { fixtureId: { attribute: { value, presetId } } }
     }
 
@@ -44,21 +52,19 @@ class Cue {
         return this;
     }
 
-    addFixtureGroupOrId(id) {
-        // Implementation for group-based content if desired
-    }
-
     getId() { return this.id; }
     getName() { return this.name; }
     setName(name) { this.name = name; return this; }
 
     getInFade() { return this.inFade; }
-    getOutFade() { return this.outFade; }
-    getDelay() { return this.delay; }
+    getOutFade() { return this.outFade ?? this.inFade; }
+    getInDelay() { return this.inDelay; }
+    getOutDelay() { return this.outDelay ?? this.inDelay; }
 
-    setInFade(value) { this.inFade = value; return this; }
-    setOutFade(value) { this.outFade = value; return this; }
-    setDelay(value) { this.delay = value; return this; }
+    setSetting(key, value) {
+        this[key] = value;
+        return this;
+    }
 
     getContent() { return this.data; }
 
@@ -68,7 +74,12 @@ class Cue {
             name: this.name,
             inFade: this.inFade,
             outFade: this.outFade,
-            delay: this.delay,
+            inDelay: this.inDelay,
+            outDelay: this.outDelay,
+            trigType: this.trigType,
+            trigTime: this.trigTime,
+            cmd: this.cmd,
+            mib: this.mib,
             data: this.data
         };
     }
@@ -77,8 +88,13 @@ class Cue {
         const cue = new Cue(json.name);
         cue.id = json.id || FGMIds.getNewId('cue');
         cue.inFade = json.inFade ?? 2;
-        cue.outFade = json.outFade ?? 0;
-        cue.delay = json.delay ?? 0;
+        cue.outFade = json.outFade ?? null;
+        cue.inDelay = json.inDelay ?? 0;
+        cue.outDelay = json.outDelay ?? null;
+        cue.trigType = json.trigType || 'Go';
+        cue.trigTime = json.trigTime ?? 0;
+        cue.cmd = json.cmd || "";
+        cue.mib = json.mib || "None";
         cue.data = json.data || {};
         return cue;
     }
