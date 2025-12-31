@@ -5,7 +5,7 @@ class FGMBaseWindows {
 
         pageField.addPreset(new HCWPreset(`Setup`).setDefaultColor(FGMColors.PAGES.MENUS.SETUP).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.SETUP }));
         pageField.addPreset(new HCWPreset(`Fixture Cnt.`).setDefaultColor(FGMColors.PAGES.MENUS.FIXTURE_CONTROL).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL }));
-        pageField.addPreset(new HCWPreset(`Seq page`).setDefaultColor(FGMColors.PAGES.MENUS.FIXTURE_CONTROL).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.FIXTURE_CONTROL }));
+        pageField.addPreset(new HCWPreset(`Seq page`).setDefaultColor(FGMColors.PAGES.MENUS.FIXTURE_CONTROL).setData({ _goToPage: FGMPageHandler.PAGE_ENUMS.SEQ_EDITOR }));
 
         for (let i = 0; i < pageCount; i++) {
             pageField.addPreset(new HCWPreset(`Page ${i}`).setDefaultColor(FGMColors.PAGES.BACKGROUND).setData({ _goToPage: i }));
@@ -458,5 +458,22 @@ class FGMBaseWindows {
         windowsForThisPage.keyboard = newKeyboardWindow;
 
         return windowsForThisPage;
+    }
+
+    static sequenceEditor() {
+        const editorField = new HCWSequenceEditor('Sequence Editor', FGMIds.newComponentId())
+
+        const editorWindow = new HCWWindow(100, 0, 1200, 600)
+            .setTouchZoneColor(FGMColors.TOUCHZONE.BACKGROUND)
+            .addContextField(editorField)
+            .setHidden(true)
+            .setMinSizes(400, 300)
+            .setId(FGMIds.newWindowId())
+            .onPress(FGMKernel.eventWindowClicked)
+            .setPageId(FGMPageHandler.PAGE_ENUMS.SEQ_EDITOR);
+
+        editorField.setParentWindow(editorWindow);
+
+        return editorWindow;
     }
 }

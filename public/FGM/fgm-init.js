@@ -48,6 +48,8 @@ class FGMwithHCW {
 
         const fixtureTable = FGMBaseWindows.fixtureTable();
 
+        const seqEditor = FGMBaseWindows.sequenceEditor();
+
         FGMStore.getHCW()
             .addWindow(basePages)
             .addWindow(baseFixtureControl.dimFader)
@@ -72,6 +74,7 @@ class FGMwithHCW {
             .addWindow(baseFixtureControl.colorWheelEncoder)
             .addWindow(baseFixtureControl.shutterEncoder)
             .addWindow(baseFixtureControl.goboEncoder)
+            .addWindow(seqEditor)
     }
 
     saveShow() {
