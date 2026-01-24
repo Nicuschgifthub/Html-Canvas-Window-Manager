@@ -1,2 +1,3 @@
 Rewrite the entire pressing thing to be handeled as commands
-like pressing STORE writes store then you can press anything else that is the req type
+like pressing STORE writes store then you can press anything
+else that is the req type
