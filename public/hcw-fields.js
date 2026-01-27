@@ -30,6 +30,7 @@ class ACTION_TYPES {
     }
 }
 
+// Add render Props to this as a Base function... from .render()
 class HCWBaseField {
     constructor(text, id = Date.now()) {
         this.text = text;
@@ -1508,11 +1509,6 @@ class HCWColorMapField extends HCWBaseField {
 
     getType() {
         return 'COLOR_MAP_FIELD';
-    }
-
-    onValueChange(cb) {
-        this.onColorChangeCallback = cb;
-        return this;
     }
 
     getColors() {

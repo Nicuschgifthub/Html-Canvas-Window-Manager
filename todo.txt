@@ -3,12 +3,19 @@ like pressing STORE writes store then you can press anything
 else that is the req type
 
 
+- optimize hcw-fields...
+
 - Fader Module fix the click on finger so that you can drag it down without it beeing stick to the pointer
 
 - Fix window issue on some modules
-- Add / rewrite the action bus to register button presses etc as commands
 
-Main Things that should exist
+- Add the action bus to register button presses etc as commands
+
+So that commands are build like
+
+STORE preset_1.1 preset_2.2 etc...
+
+Main actions that should exist
 
 Dimmer (flood)
 Store
@@ -18,3 +25,7 @@ Clear Selection
 Clear Programmer
 Move
 
+
+Single Action
+
+Pressing preset recalls it...
