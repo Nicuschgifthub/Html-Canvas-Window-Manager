@@ -1,3 +1,19 @@
 Rewrite the entire pressing thing to be handeled as commands
 like pressing STORE writes store then you can press anything
 else that is the req type
+
+
+- Fader Module fix the click on finger so that you can drag it down without it beeing stick to the pointer
+
+- Fix window issue on some modules
+- Add / rewrite the action bus to register button presses etc as commands
+
+Main Things that should exist
+
+Dimmer (flood)
+Store
+Edit
+Edit Name
+Clear Selection
+Clear Programmer
+Move
