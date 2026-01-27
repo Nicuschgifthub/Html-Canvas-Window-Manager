@@ -1,3 +1,35 @@
+class ACTION_TYPES {
+    static get ENCODER_VALUE_UPDATE() {
+        return 'ACTION_BUTTON_PRESS';
+    }
+
+    static get FADER_VALUE_UPDATE() {
+        return 'ACTION_FADER_VALUE_UPDATE';
+    }
+
+    static get PRESET_PRESS() {
+        return 'ACTION_PRESET_PRESSED';
+    }
+
+    static get COLOR_FIELD_UPDATE() {
+        return 'ACTION_COLOR_FIELD_UPDATE';
+    }
+
+    static get TABLE_UPDATES() {
+        return {
+            get CELL_DELETE() {
+                return 'ACTION_TABLE_CELL_DELETE';
+            },
+            get CELL_ADD() {
+                return 'ACTION_TABLE_CELL_ADD';
+            },
+            get CELL_PRESS() {
+                return 'ACTION_TABLE_CELL_PRESS';
+            }
+        }
+    }
+}
+
 class HCWBaseField {
     constructor(text, id = Date.now()) {
         this.text = text;
@@ -5,6 +37,7 @@ class HCWBaseField {
         this.fgmType = null;
         this.parentWindow = null;
         this.renderProps = {};
+        this.actionFunction = null;
     }
 
     getId() {
@@ -49,6 +82,27 @@ class HCWBaseField {
         return ['parentWindow', 'onValueChangeCallback', 'onPresetPressCallback', 'onEnterCallback', 'onColorChangeCallback'];
     }
 
+    getActionFunction() {
+        this.actionFunction;
+    }
+
+    onAction(newFunction) {
+        this.actionFunction = newFunction;
+    }
+
+    emitAction(type, data = {}) {
+        if (!this.getActionFunction()) {
+            console.log(`No Action function set on ${this.getFGMType()} data will be voided.`);
+            return;
+        }
+
+        data.parentWindow = this.parentWindow;
+        data.fgmType = this.fgmType;
+        data.id = this.id;
+        data.fieldClass = this;
+        this.onAction(type, data);
+    }
+
     toJSON() {
         const copy = { ...this };
         this.getExcludedJSONKeys().forEach(key => delete copy[key]);
@@ -73,7 +127,6 @@ class HCWFaderField extends HCWBaseField {
 
         this.value = 0.0; // 0.0 to 1.0
         this.displayType = 'byte'; // 'value', 'byte', 'percent'
-        this.onValueChangeCallback = null;
 
         this.renderProps = {
             colors: {
@@ -102,13 +155,13 @@ class HCWFaderField extends HCWBaseField {
         this.value = Math.max(0, Math.min(1, val));
 
         if (oldVal !== this.value) {
-            if (this.onValueChangeCallback) {
-                this.onValueChangeCallback(this.parentWindow, this, {
-                    value: this.value,
-                    byte: Math.round(this.value * 255),
-                    percent: Math.round(this.value * 100)
-                });
-            }
+
+            this.emitAction(ACTION_TYPES.FADER_VALUE_UPDATE, {
+                value: this.value,
+                byte: Math.round(this.value * 255),
+                percent: Math.round(this.value * 100)
+            });
+
             this.updateFrame();
         }
         return this;
@@ -124,11 +177,6 @@ class HCWFaderField extends HCWBaseField {
 
     getValue() {
         return this.value;
-    }
-
-    onValueChange(callback) {
-        this.onValueChangeCallback = callback;
-        return this;
     }
 
     _getFormattedValue() {
@@ -193,7 +241,6 @@ class HCWEncoderField extends HCWBaseField {
         this.value2 = 0.0;
 
         this.displayType = 'byte';
-        this.onValueChangeCallback = null;
 
         this.renderProps = {
             colors: {
@@ -218,11 +265,6 @@ class HCWEncoderField extends HCWBaseField {
         return 'ENCODER_FIELD';
     }
 
-    onFieldPress(callback) {
-        this.onFieldPressCallback = callback;
-        return this;
-    }
-
     setValue(val1, val2 = null) {
         let v1 = val1;
         let v2 = (val2 !== null) ? val2 : this.value2;
@@ -245,21 +287,19 @@ class HCWEncoderField extends HCWBaseField {
     }
 
     _triggerCallback() {
-        if (this.onValueChangeCallback) {
-            this.onValueChangeCallback(this.parentWindow, this, {
-                outer: {
-                    value: this.value,
-                    byte: Math.round(this.value * 255),
-                    percent: Math.round(this.value * 100)
-                },
-                inner: {
-                    value: this.value2,
-                    byte: Math.round(this.value2 * 255),
-                    percent: Math.round(this.value2 * 100)
-                },
-                combinedByte: Math.round(this.value * 255) + Math.round(this.value2 * 255)
-            });
-        }
+        this.emitAction(ACTION_TYPES.ENCODER_VALUE_UPDATE, {
+            outer: {
+                value: this.value,
+                byte: Math.round(this.value * 255),
+                percent: Math.round(this.value * 100)
+            },
+            inner: {
+                value: this.value2,
+                byte: Math.round(this.value2 * 255),
+                percent: Math.round(this.value2 * 100)
+            },
+            combinedByte: Math.round(this.value * 255) + Math.round(this.value2 * 255)
+        });
     }
 
     setDisplayType(type) {
@@ -272,11 +312,6 @@ class HCWEncoderField extends HCWBaseField {
 
     getValue() {
         return this.value;
-    }
-
-    onValueChange(callback) {
-        this.onValueChangeCallback = callback;
-        return this;
     }
 
     _getFormattedValue(val) {
@@ -547,7 +582,6 @@ class HCWPresetField extends HCWBaseField {
         super(fieldName, id);
 
         this.presets = [];
-        this.onPresetPressCallback = null;
 
         this.scrollY = 0;
 
@@ -641,11 +675,6 @@ class HCWPresetField extends HCWBaseField {
         this.presets = [];
     }
 
-    onPresetPress(callback) {
-        this.onPresetPressCallback = callback;
-        return this;
-    }
-
     _interaction(interaction) {
         if (interaction.type === 'mousedown') {
             const { mouseX, mouseY } = interaction;
@@ -683,7 +712,7 @@ class HCWPresetField extends HCWBaseField {
                 const preset = this.presets[this._pressedIndex];
                 if (preset) {
                     if (this.onPresetPressCallback) {
-                        this.onPresetPressCallback(this.parentWindow, this, preset.data, preset);
+                        this.emitAction(ACTION_TYPES.PRESET_PRESS, { preset, presetData: preset.data });
                     } else {
                         console.warn("HCWPresetField: Clicked presest '" + preset.name + "' but no callback set.");
                     }
@@ -836,6 +865,7 @@ class HCWPresetField extends HCWBaseField {
     }
 }
 
+// Not updated using the actions class definitions
 class HCWNumberField extends HCWBaseField {
     constructor(fieldName = 'Numpad', id = Date.now()) {
         super(fieldName, id);
@@ -1098,6 +1128,7 @@ class HCWNumberField extends HCWBaseField {
     }
 }
 
+// Not updated using the actions class definitions
 class HCWKeyboardField extends HCWBaseField {
     constructor(fieldName = 'Keyboard', id = Date.now()) {
         super(fieldName, id);
@@ -1450,9 +1481,6 @@ class HCWColorMapField extends HCWBaseField {
         this.v = 1;
 
         this.extra = { white: 0, amber: 0, uv: 0 };
-        this.fgmType = null;
-
-        this.onColorChangeCallback = null;
 
         this._colorMapCanvas = null;
         this._colorMapSize = 0;
@@ -1535,9 +1563,7 @@ class HCWColorMapField extends HCWBaseField {
     }
 
     _trigger() {
-        if (this.onColorChangeCallback) {
-            this.onColorChangeCallback(this.parentWindow, this, this.getColors());
-        }
+        this.emitAction(ACTION_TYPES.COLOR_FIELD_UPDATE, { colors: this.getColors() });
         this.updateFrame();
     }
 
@@ -1821,9 +1847,6 @@ class HCWTableField extends HCWBaseField {
         this.headers = [];
         this.rows = [];
         this.renderMode = 'table'; // 'table' or 'list'
-        this.onCellClickCallback = null;
-        this.onDeleteRowCallback = null;
-        this.onAddRowCallback = null;
         this.addRowLabel = '+ Add New Element';
 
         this.rowHeight = 35;
@@ -1858,21 +1881,6 @@ class HCWTableField extends HCWBaseField {
     setRows(rows) {
         this.rows = rows;
         this.updateFrame();
-        return this;
-    }
-
-    onCellClick(cb) {
-        this.onCellClickCallback = cb;
-        return this;
-    }
-
-    onDeleteRow(cb) {
-        this.onDeleteRowCallback = cb;
-        return this;
-    }
-
-    onAddRow(cb) {
-        this.onAddRowCallback = cb;
         return this;
     }
 
@@ -1924,8 +1932,12 @@ class HCWTableField extends HCWBaseField {
                     clickY >= c.y && clickY <= c.y + c.h
                 );
 
-                if (hitCell && this.onCellClickCallback) {
-                    this.onCellClickCallback(this.parentWindow, this, hitCell.rowIndex, hitCell.colIndex, hitCell.value);
+                if (hitCell) {
+                    this.emitAction(ACTION_TYPES.TABLE_UPDATES.CELL_PRESS, {
+                        rowIndex: hitCell.rowIndex,
+                        colIndex: hitCell.colIndex,
+                        value: hitCell.value
+                    })
                 }
                 else {
                     const hitDelete = this.renderProps.deleteButtons.find(b =>
@@ -1934,7 +1946,9 @@ class HCWTableField extends HCWBaseField {
                     );
 
                     if (hitDelete && this.onDeleteRowCallback) {
-                        this.onDeleteRowCallback(this.parentWindow, this, hitDelete.rowIndex);
+                        this.emitAction(ACTION_TYPES.TABLE_UPDATES.CELL_DELETE, {
+                            rowIndex: hitDelete.rowIndex,
+                        })
                     }
                     else {
                         const hitAdd = this.renderProps.addButton;
@@ -1943,7 +1957,7 @@ class HCWTableField extends HCWBaseField {
                             clickX >= hitAdd.x && clickX <= hitAdd.x + hitAdd.w &&
                             clickY >= hitAdd.y && clickY <= hitAdd.y + hitAdd.h) {
 
-                            this.onAddRowCallback(this.parentWindow, this);
+                            this.emitAction(ACTION_TYPES.TABLE_UPDATES.CELL_DELETE, {})
                         }
                     }
                 }
@@ -2017,7 +2031,7 @@ class HCWTableField extends HCWBaseField {
 
     _renderTable(w, ctx) {
         const pad = 10;
-        const deleteColW = this.onDeleteRowCallback ? 40 : 0;
+        const deleteColW = 40; // This was the line to turn vible on / off
         const availableW = w.sx - pad * 2 - deleteColW;
         const colW = availableW / (this.headers.length || 1);
 
@@ -2080,7 +2094,8 @@ class HCWTableField extends HCWBaseField {
             ctx.stroke();
         });
 
-        if (this.onAddRowCallback) this._drawAddButton(w, ctx, contentAreaY, startDrawY);
+        // if (this.onAddRowCallback)
+        this._drawAddButton(w, ctx, contentAreaY, startDrawY);
 
         ctx.restore();
         ctx.save();
@@ -2154,7 +2169,8 @@ class HCWTableField extends HCWBaseField {
             ctx.stroke();
         });
 
-        if (this.onAddRowCallback) this._drawAddButton(w, ctx, w.y, startDrawY);
+        // if (this.onAddRowCallback) 
+        this._drawAddButton(w, ctx, w.y, startDrawY);
     }
 
     _getDeleteButtonProps(w, rowY, pad, deleteColW) {
