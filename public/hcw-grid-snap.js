@@ -36,6 +36,5 @@ class HCWGridSnap {
                 window.sy += HCW.grid.pointDistanceY;
             }
         });
-
     }
 }

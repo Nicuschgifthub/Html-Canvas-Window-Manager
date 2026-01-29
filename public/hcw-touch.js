@@ -196,10 +196,6 @@ class HCWWindowActions {
     );
 }
 
-class HCWContextActions {
-
-}
-
 class HCWTouch {
     static _eventMouseToCords(e) {
         const rect = HCW.canvas.getBoundingClientRect();
@@ -260,8 +256,8 @@ class HCWTouch {
             HCW.pointer.focusedField = contextHit.field;
             contextHit.field._interaction({ type: 'mousedown', mouseX, mouseY });
         } else if (!windowParts.window) {
-            if (typeof FGMKernel !== 'undefined' && FGMKernel.eventBackgroundClicked) {
-                FGMKernel.eventBackgroundClicked(mouseX, mouseY);
+            if (typeof FGMEvents !== 'undefined' && FGMEvents.backgroundClicked) {
+                FGMEvents.backgroundClicked();
             }
         }
 
@@ -350,11 +346,12 @@ class HCWTouch {
             const dist = Math.sqrt(Math.pow(mouseX - HCW.pointer._windowPressStartX, 2) + Math.pow(mouseY - HCW.pointer._windowPressStartY, 2));
 
             if (dist < 5) {
-                FGMKernel.eventWindowClicked(HCW.pointer._windowPressCandidate);
+
+                FGMEvents.onAction(GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED, { window: HCW.pointer._windowPressCandidate });
 
                 const contextHit = HCWInteraction.getContextHitByCords(mouseX, mouseY);
                 if (!contextHit.field && HCW.pointer._windowPressCandidate.onPressCallback) {
-                    HCW.pointer._windowPressCandidate.onPressCallback(HCW.pointer._windowPressCandidate);
+                    // HCW.pointer._windowPressCandidate.onPressCallback(HCW.pointer._windowPressCandidate);
                 }
             }
             HCW.pointer._windowPressCandidate = null;

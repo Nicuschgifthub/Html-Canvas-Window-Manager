@@ -30,16 +30,18 @@ class GLOBAL_TYPES {
                         return 'ACTION_TABLE_CELL_PRESS';
                     }
                 }
-            }
-        }
-    }
+            },
 
-
-    static get WINDOW_UPDATE() {
-        return {
-            get SOME() {
-                return 'WINDOW_UPDATE_SOME';
-            }
+           get WINDOW() {
+                return {
+                    get CLICKED() {
+                        return 'ACTION_WINDOW_CLICKED';
+                    },
+                    get RESIZE() {
+                        return 'ACTION_WINDOW_RESIZE';
+                    }
+                }
+            },
         }
     }
 

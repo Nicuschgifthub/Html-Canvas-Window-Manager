@@ -1,5 +1,9 @@
 class FGMEvents {
 
+    static backgroundClicked(){
+        
+    }
+
     static onRenderUpdate() {
 
     }

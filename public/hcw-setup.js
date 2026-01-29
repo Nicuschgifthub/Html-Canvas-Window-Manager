@@ -81,11 +81,12 @@ class HCWSetup {
         return this;
     }
 
-    setGrid(everyPixelX, everyPixelY, crosslineLength = 0.2, lineColor = '#373737') {
-        HCW.grid.pointDistanceX = everyPixelX;
-        HCW.grid.pointDistanceY = everyPixelY;
-        HCW.grid.lineColor = lineColor;
-        HCW.grid.crossLineLength = crosslineLength;
+    setGrid(data = { everyPixelX: 100, everyPixelY: 100, crosslineLength: 0.2, lineColor: '#373737' }) {
+
+        HCW.grid.pointDistanceX = data.everyPixelX;
+        HCW.grid.pointDistanceY = data.everyPixelY;
+        HCW.grid.lineColor = data.lineColor;
+        HCW.grid.crossLineLength = data.crosslineLength;
         return this;
     }
 
