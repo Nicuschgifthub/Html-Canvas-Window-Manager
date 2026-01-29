@@ -1,6 +1,6 @@
 class FGMEvents {
 
-    static onRenderUpdate(){
+    static onRenderUpdate() {
 
     }
 

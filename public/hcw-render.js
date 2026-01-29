@@ -89,7 +89,6 @@ class HCWRender {
             this.drawWindow(window);
         });
 
-
         FGMEvents.onRenderUpdate();
     }
 }
