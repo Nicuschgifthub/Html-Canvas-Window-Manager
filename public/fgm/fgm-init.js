@@ -1,7 +1,7 @@
 class FGMLoadFiles {
     static files() {
         return [
-            // '/FGM/fgm-ids.js',
+            '/fgm/fgm-event-bridge.js',
         ]
     }
 

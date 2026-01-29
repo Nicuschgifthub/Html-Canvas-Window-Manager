@@ -17,7 +17,7 @@ let HCW = {
         contextdrag: false,
         focusedField: null,
 
-        // [Global]
+        // Global
         dragging: false,
         lastMouseX: null,
         lastMouseY: null,
@@ -92,10 +92,6 @@ class HCWSetup {
 
     getWindows() {
         return HCW.windows;
-    }
-
-    restoreData() {
-
     }
 
     files() {
