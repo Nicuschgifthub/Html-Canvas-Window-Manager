@@ -1,35 +1,3 @@
-class ACTION_TYPES {
-    static get ENCODER_VALUE_UPDATE() {
-        return 'ACTION_BUTTON_PRESS';
-    }
-
-    static get FADER_VALUE_UPDATE() {
-        return 'ACTION_FADER_VALUE_UPDATE';
-    }
-
-    static get PRESET_PRESS() {
-        return 'ACTION_PRESET_PRESSED';
-    }
-
-    static get COLOR_FIELD_UPDATE() {
-        return 'ACTION_COLOR_FIELD_UPDATE';
-    }
-
-    static get TABLE_UPDATES() {
-        return {
-            get CELL_DELETE() {
-                return 'ACTION_TABLE_CELL_DELETE';
-            },
-            get CELL_ADD() {
-                return 'ACTION_TABLE_CELL_ADD';
-            },
-            get CELL_PRESS() {
-                return 'ACTION_TABLE_CELL_PRESS';
-            }
-        }
-    }
-}
-
 // Add render Props to this as a Base function... from .render()
 class HCWBaseField {
     constructor(text, id = Date.now()) {
@@ -157,7 +125,7 @@ class HCWFaderField extends HCWBaseField {
 
         if (oldVal !== this.value) {
 
-            this.emitAction(ACTION_TYPES.FADER_VALUE_UPDATE, {
+            this.emitAction(GLOBAL_TYPES.ACTIONS.FADER_VALUE_UPDATE, {
                 value: this.value,
                 byte: Math.round(this.value * 255),
                 percent: Math.round(this.value * 100)
@@ -288,7 +256,7 @@ class HCWEncoderField extends HCWBaseField {
     }
 
     _triggerCallback() {
-        this.emitAction(ACTION_TYPES.ENCODER_VALUE_UPDATE, {
+        this.emitAction(GLOBAL_TYPES.ACTIONS.ENCODER_VALUE_UPDATE, {
             outer: {
                 value: this.value,
                 byte: Math.round(this.value * 255),
@@ -713,7 +681,7 @@ class HCWPresetField extends HCWBaseField {
                 const preset = this.presets[this._pressedIndex];
                 if (preset) {
                     if (this.onPresetPressCallback) {
-                        this.emitAction(ACTION_TYPES.PRESET_PRESS, { preset, presetData: preset.data });
+                        this.emitAction(GLOBAL_TYPES.ACTIONS.PRESET_PRESS, { preset, presetData: preset.data });
                     } else {
                         console.warn("HCWPresetField: Clicked presest '" + preset.name + "' but no callback set.");
                     }
@@ -1559,7 +1527,7 @@ class HCWColorMapField extends HCWBaseField {
     }
 
     _trigger() {
-        this.emitAction(ACTION_TYPES.COLOR_FIELD_UPDATE, { colors: this.getColors() });
+        this.emitAction(GLOBAL_TYPES.ACTIONS.COLOR_FIELD_UPDATE, { colors: this.getColors() });
         this.updateFrame();
     }
 
@@ -1929,7 +1897,7 @@ class HCWTableField extends HCWBaseField {
                 );
 
                 if (hitCell) {
-                    this.emitAction(ACTION_TYPES.TABLE_UPDATES.CELL_PRESS, {
+                    this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS, {
                         rowIndex: hitCell.rowIndex,
                         colIndex: hitCell.colIndex,
                         value: hitCell.value
@@ -1942,7 +1910,7 @@ class HCWTableField extends HCWBaseField {
                     );
 
                     if (hitDelete && this.onDeleteRowCallback) {
-                        this.emitAction(ACTION_TYPES.TABLE_UPDATES.CELL_DELETE, {
+                        this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_DELETE, {
                             rowIndex: hitDelete.rowIndex,
                         })
                     }
@@ -1953,7 +1921,7 @@ class HCWTableField extends HCWBaseField {
                             clickX >= hitAdd.x && clickX <= hitAdd.x + hitAdd.w &&
                             clickY >= hitAdd.y && clickY <= hitAdd.y + hitAdd.h) {
 
-                            this.emitAction(ACTION_TYPES.TABLE_UPDATES.CELL_DELETE, {})
+                            this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_DELETE, {})
                         }
                     }
                 }
