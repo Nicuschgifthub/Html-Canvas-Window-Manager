@@ -116,7 +116,7 @@ class HCWFaderField extends HCWBaseField {
     }
 
     getType() {
-        return 'FADER_FIELD';
+        return GLOBAL_TYPES.CONTEXT_FIELDS.FADER;
     }
 
     setValue(val) {
@@ -231,7 +231,7 @@ class HCWEncoderField extends HCWBaseField {
     }
 
     getType() {
-        return 'ENCODER_FIELD';
+        return GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER;
     }
 
     setValue(val1, val2 = null) {
@@ -445,6 +445,10 @@ class HCWPreset {
         this.selectionState = 0; // 0: None, 1: Partial, 2: Full
     }
 
+    getType() {
+        return GLOBAL_TYPES.CONTEXT_FIELDS.SINGLE_PRESET;
+    }
+
     getLabel() {
         return this.name;
     }
@@ -582,7 +586,7 @@ class HCWPresetField extends HCWBaseField {
     }
 
     getType() {
-        return 'PRESET_FIELD';
+        return GLOBAL_TYPES.CONTEXT_FIELDS.PRESETS;
     }
 
     toJSON() {
@@ -884,6 +888,10 @@ class HCWNumberField extends HCWBaseField {
         this._dragLastY = null;
     }
 
+    getType() {
+        return GLOBAL_TYPES.CONTEXT_FIELDS.NUMBER_KEYPAD;
+    }
+
     setValue(val) {
         this.value = String(val);
         this.cursorPos = this.value.length;
@@ -1153,7 +1161,7 @@ class HCWKeyboardField extends HCWBaseField {
     }
 
     getType() {
-        return 'KEYBOARD_FIELD';
+        return GLOBAL_TYPES.CONTEXT_FIELDS.KEYBOARD;
     }
 
     setValue(val) {
@@ -1476,7 +1484,7 @@ class HCWColorMapField extends HCWBaseField {
     }
 
     getType() {
-        return 'COLOR_MAP_FIELD';
+        return GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT;
     }
 
     getColors() {
@@ -1836,6 +1844,10 @@ class HCWTableField extends HCWBaseField {
         };
     }
 
+    getType() {
+        return GLOBAL_TYPES.CONTEXT_FIELDS.TABLE;
+    }
+
     setHeaders(headers) {
         this.headers = headers;
         this.updateFrame();
@@ -1857,10 +1869,6 @@ class HCWTableField extends HCWBaseField {
         this.renderMode = mode;
         this.updateFrame();
         return this;
-    }
-
-    getType() {
-        return 'TABLE_FIELD';
     }
 
     _interaction(interaction) {
@@ -2183,6 +2191,10 @@ class HCWSearchField extends HCWBaseField {
         };
     }
 
+    getType() {
+        return GLOBAL_TYPES.CONTEXT_FIELDS.SEARCH_BOX;
+    }
+
     setSearchValue(val) {
         this.searchValue = val;
         this.updateFrame();
@@ -2203,10 +2215,6 @@ class HCWSearchField extends HCWBaseField {
     onSearchRequest(cb) {
         this.onSearchRequestCallback = cb;
         return this;
-    }
-
-    getType() {
-        return 'SEARCH_FIELD';
     }
 
     _interaction(interaction) {
@@ -2302,7 +2310,7 @@ class HCWColorWheelEncoderField extends HCWEncoderField {
     }
 
     getType() {
-        return 'COLOR_WHEEL_ENCODER_FIELD';
+        return GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_WHEEL_ENCODER;
     }
 
     setWheelData(data) {

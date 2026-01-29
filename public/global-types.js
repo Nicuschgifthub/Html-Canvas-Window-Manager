@@ -32,7 +32,7 @@ class GLOBAL_TYPES {
                 }
             },
 
-           get WINDOW() {
+            get WINDOW() {
                 return {
                     get CLICKED() {
                         return 'ACTION_WINDOW_CLICKED';
@@ -42,6 +42,44 @@ class GLOBAL_TYPES {
                     }
                 }
             },
+        }
+    }
+
+    static get CONTEXT_FIELDS() {
+        return {
+            get FADER() {
+                return 'CONTEXT_FIELD_FADER';
+            },
+            get ENCODER() {
+                return 'CONTEXT_FIELD_ENCODER';
+            },
+            get SINGLE_PRESET() {
+                return 'CONTEXT_FIELD_SINGLE_PRESET';
+            },
+            get PRESETS() {
+                return 'CONTEXT_FIELD_PRESET';
+            },
+            get NUMBER_KEYPAD() {
+                return 'CONTEXT_FIELD_NUMBER_KEYPAD';
+            },
+            get KEYBOARD() {
+                return 'CONTEXT_FIELD_KEYBOARD';
+            },
+            get COLOR_MAP_INPUT() {
+                return 'CONTEXT_FIELD_COLOR_MAP_INPUT';
+            },
+            get TABLE() {
+                return 'CONTEXT_FIELD_TABLE';
+            },
+            get SEARCH_BOX() {
+                return 'CONTEXT_FIELD_SEARCH_BOX';
+            },
+            get COLOR_WHEEL_ENCODER() {
+                return 'CONTEXT_FIELD_COLOR_WHEEL_ENCODER';
+            },
+            get SEQUENCE_EDITOR() {
+                return 'CONTEXT_FIELD_SEQUENCE_EDITOR';
+            }
         }
     }
 

@@ -1,11 +1,11 @@
 class FGMWindowManger {
 
-    createFader(){
+    createFader() {
 
     }
 
-    createEncoderWheel(){
-        
+    createEncoderWheel() {
+
     }
 
 }
