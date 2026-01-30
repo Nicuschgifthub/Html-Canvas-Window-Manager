@@ -378,30 +378,19 @@ const HCWFactory = {
     classList: {
         HCWWindow,
         HCWBaseField,
-        HCWFaderField
+        HCWFaderField,
+        HCWPresetField, // New
+        HCWPreset       // New
     },
 
-    /**
-     * Converts a class instance (or array of instances) into a JSON string
-     * Handles the custom toJSON logic of nested fields automatically.
-     */
     serialize(data) {
-        try {
-            return JSON.stringify(data);
-        } catch (e) {
-            console.error("Factory failed to serialize:", e);
-            return null;
-        }
+        return JSON.stringify(data);
     },
 
-    /**
-     * Rebuilds class instances from JSON string or Object
-     * Handles single objects or Arrays of objects.
-     */
     reconstruct(json) {
         const data = typeof json === 'string' ? JSON.parse(json) : json;
 
-        // Handle Arrays (e.g., if you saved all windows at once)
+        // Handle Arrays of Windows
         if (Array.isArray(data)) {
             return data.map(item => this.reconstruct(item));
         }
@@ -409,30 +398,35 @@ const HCWFactory = {
         if (!data || !data.className) return data;
 
         const TargetClass = this.classList[data.className];
-        if (!TargetClass) {
-            console.warn(`Class ${data.className} not found in Factory.`);
-            return data;
-        }
+        if (!TargetClass) return data;
 
-        // 1. Instantiate the specific class
         const instance = new TargetClass();
 
-        // 2. Recursively reconstruct nested objects that have a className
+        // Deep Reconstruction
         for (let key in data) {
-            if (data[key] && typeof data[key] === 'object' && data[key].className) {
+            // 1. Handle Nested Arrays (like the .presets array)
+            if (Array.isArray(data[key])) {
+                data[key] = data[key].map(item => this.reconstruct(item));
+            }
+            // 2. Handle Single Nested Objects (like .contextfield)
+            else if (data[key] && typeof data[key] === 'object' && data[key].className) {
                 data[key] = this.reconstruct(data[key]);
             }
         }
 
-        // 3. Merge properties
         Object.assign(instance, data);
 
-        // 4. Post-reconstruction cleanup
+        // --- Post-Process: Link Parents ---
         if (instance._init) instance._init();
 
-        // Link context field back to window parent
+        // Link Window -> Field
         if (instance instanceof HCWWindow && instance.contextfield) {
             instance.contextfield.setParentWindow(instance);
+        }
+
+        // Link Field -> Presets
+        if (instance instanceof HCWPresetField && instance.presets) {
+            instance.presets.forEach(p => p.setParentField(instance));
         }
 
         return instance;
