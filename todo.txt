@@ -29,3 +29,5 @@ Move
 Single Action
 
 Pressing preset recalls it...
+
+- clamp canvas draw render so context cannot be rendered out of its window when scaled to small

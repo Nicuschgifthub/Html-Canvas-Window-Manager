@@ -94,6 +94,17 @@ class GLOBAL_TYPES {
                     }
                 }
             },
+
+            get SEARCH_UPDATES() {
+                return {
+                    get RESULT_PRESS() {
+                        return 'ACTION_SEARCH_RESULT_PRESS';
+                    },
+                    get SEARCH_BAR_PRESS() {
+                        return 'ACTION_SEARCH_BAR_PRESS';
+                    }
+                }
+            }
         }
     }
 
