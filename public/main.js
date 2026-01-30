@@ -1,7 +1,17 @@
 const start = () => {
 
     const faderContext = new HCWFaderField("Dimmer 01", Date.now())
-        .setValue(0.5);
+        .setValue(0.5)
+
+    const presetContext = new HCWPresetField("My Sets", Date.now())
+        .addPreset(
+
+            new HCWPreset()
+                .setLabel("Preset")
+                .setColor("#ff00ff")
+                .setData({ _best: null })
+        )
+        .onAction(FGMEvents.onAction)
 
     const window = new HCWWindow({ x: 100, y: 100, sx: 100, sy: 300 })
         .setMinSizes(100, 100)

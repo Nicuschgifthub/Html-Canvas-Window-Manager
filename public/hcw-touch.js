@@ -341,12 +341,9 @@ class HCWTouch {
             const dist = Math.sqrt(Math.pow(mouseX - HCW.pointer._windowPressStartX, 2) + Math.pow(mouseY - HCW.pointer._windowPressStartY, 2));
 
             if (dist < 5) {
-
-                FGMEvents.onAction(GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED, { window: HCW.pointer._windowPressCandidate });
-
                 const contextHit = HCWInteraction.getContextHitByCords(mouseX, mouseY);
-                if (!contextHit.field && HCW.pointer._windowPressCandidate.onPressCallback) {
-                    // HCW.pointer._windowPressCandidate.onPressCallback(HCW.pointer._windowPressCandidate);
+                if (!contextHit.field) { // && HCW.pointer._windowPressCandidate.onPressCallback
+                    FGMEvents.onAction(GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED, { window: HCW.pointer._windowPressCandidate });
                 }
             }
             HCW.pointer._windowPressCandidate = null;

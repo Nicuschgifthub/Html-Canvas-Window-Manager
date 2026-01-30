@@ -52,24 +52,30 @@ class HCWBaseField {
     }
 
     getActionFunction() {
-        this.actionFunction;
+        return this.actionFunction;
     }
 
     onAction(newFunction) {
         this.actionFunction = newFunction;
+        return this;
     }
 
     emitAction(type, data = {}) {
-        if (!this.getActionFunction()) {
-            console.log(`No Action function set on ${this.getFGMType()} data will be voided.`);
-            return;
+        // If not set, try to set the default global handler
+        if (typeof this.actionFunction !== 'function' && typeof FGMEvents !== 'undefined') {
+            this.actionFunction = FGMEvents.onAction;
         }
 
-        data.parentWindow = this.parentWindow;
-        data.fgmType = this.fgmType;
-        data.id = this.id;
-        data.fieldClass = this;
-        this.onAction(type, data);
+        if (typeof this.actionFunction === 'function') {
+            data.parentWindow = this.parentWindow;
+            data.fgmType = this.fgmType;
+            data.id = this.id;
+            data.fieldClass = this;
+
+            this.actionFunction(type, data);
+        } else {
+            console.warn(`Action ${type} skipped: No handler found locally or in FGMEvents.`);
+        }
     }
 
     toJSON() {
@@ -207,6 +213,8 @@ class HCWFaderField extends HCWBaseField {
 class HCWEncoderField extends HCWBaseField {
     constructor(encoderText = 'Encoder', id = Date.now()) {
         super(encoderText, id);
+
+        this.className = 'HCWEncoderField';
 
         this.value = 0.0;
         this.value2 = 0.0;
@@ -433,34 +441,57 @@ class HCWEncoderField extends HCWBaseField {
         }
     }
 }
-
 class HCWPreset {
-    constructor(name, color = null, defaultColor = null, data = {}, id = null, progress = null) {
-        this.id = id || (Date.now() + Math.random());
+    constructor(name = "Preset") {
+        this.className = 'HCWPreset';
+        this.id = (Date.now() + Math.random());
         this.name = name;
-        this.color = color;
-        this.defaultColor = defaultColor;
-        this.data = data;
-        this.progress = progress;
+        this.color = null;
+        this.defaultColor = null;
+        this.data = null;
+        this.progress = 0;
         this.parentField = null;
         this.flashing = false;
-        this.selectionState = 0; // 0: None, 1: Partial, 2: Full
+        this.selectionState = 0;
     }
 
-    getType() {
-        return GLOBAL_TYPES.CONTEXT_FIELDS.SINGLE_PRESET;
+    getId() { return this.id; }
+    getName() { return this.name; }
+    getLabel() { return this.name; }
+    getColor() { return this.color; }
+    getDefaultColor() { return this.defaultColor; }
+    getData() { return this.data; }
+    getProgress() { return this.progress; }
+    getType() { return GLOBAL_TYPES.CONTEXT_FIELDS.SINGLE_PRESET; }
+    getParentField() { return this.parentField; }
+    isFlashing() { return this.flashing; }
+    getSelectionState() { return this.selectionState; }
+    isSelected() { return this.selectionState > 0; }
+
+    setId(id) { this.id = id; return this; }
+    setName(name) { this.name = name; return this; }
+    setLabel(name) { this.name = name; return this; }
+    setColor(color) { this.color = color; return this; }
+    setDefaultColor(color) { this.defaultColor = color; return this; }
+    setData(data) { this.data = data; return this; }
+    setProgress(progress) { this.progress = progress; return this; }
+    setParentField(field) { this.parentField = field; return this; }
+    setFlashing(flashing) { this.flashing = flashing; return this; }
+
+    setSelectionState(state) {
+        this.selectionState = state;
+        return this;
     }
 
-    getLabel() {
-        return this.name;
+    setSelected(selected) {
+        this.selectionState = selected ? 2 : 0;
+        return this;
     }
 
-    getParentField() {
-        return this.parentField;
-    }
-
-    setParentField(field) {
-        this.parentField = field;
+    update(updates = {}) {
+        Object.keys(updates).forEach(key => {
+            if (this.hasOwnProperty(key)) this[key] = updates[key];
+        });
         return this;
     }
 
@@ -476,75 +507,6 @@ class HCWPreset {
         return this;
     }
 
-    getId() { return this.id; }
-    getName() { return this.name; }
-    getColor() { return this.color; }
-    getDefaultColor() { return this.defaultColor; }
-    getData() { return this.data; }
-    getProgress() { return this.progress; }
-
-    setLabel(name) {
-        this.name = name;
-        return this;
-    }
-
-    setColor(color) {
-        this.color = color;
-        return this;
-    }
-
-    setDefaultColor(color) {
-        this.defaultColor = color;
-        return this;
-    }
-
-    setData(data) {
-        this.data = data;
-        return this;
-    }
-
-    setProgress(progress) {
-        this.progress = progress;
-        return this;
-    }
-
-    setFlashing(flashing) {
-        this.flashing = flashing;
-        return this;
-    }
-
-    isFlashing() {
-        return this.flashing;
-    }
-
-    setSelectionState(state) {
-        this.selectionState = state;
-        return this;
-    }
-
-    getSelectionState() {
-        return this.selectionState;
-    }
-
-    setSelected(selected) {
-        this.selectionState = selected ? 2 : 0;
-        return this;
-    }
-
-    isSelected() {
-        return this.selectionState > 0;
-    }
-
-    update(updates = {}) {
-        if (updates.name !== undefined) this.name = updates.name;
-        if (updates.color !== undefined) this.color = updates.color;
-        if (updates.data !== undefined) this.data = updates.data;
-        if (updates.progress !== undefined) this.progress = updates.progress;
-        if (updates.defaultColor !== undefined) this.defaultColor = updates.defaultColor;
-
-        return this;
-    }
-
     forceRerender() {
         if (this.parentField && typeof HCWRender !== 'undefined') {
             HCWRender.updateFrame();
@@ -555,6 +517,8 @@ class HCWPreset {
 class HCWPresetField extends HCWBaseField {
     constructor(fieldName = 'Presets', id = Date.now()) {
         super(fieldName, id);
+
+        this.className = 'HCWPresetField';
 
         this.presets = [];
 
@@ -585,6 +549,11 @@ class HCWPresetField extends HCWBaseField {
 
         this._dragLastY = null;
         this._pressedIndex = -1;
+    }
+
+    toJSON() {
+        const copy = super.toJSON();
+        return copy;
     }
 
     getType() {
@@ -686,11 +655,7 @@ class HCWPresetField extends HCWBaseField {
             if (this._potentialClick && this._pressedIndex !== -1) {
                 const preset = this.presets[this._pressedIndex];
                 if (preset) {
-                    if (this.onPresetPressCallback) {
-                        this.emitAction(GLOBAL_TYPES.ACTIONS.PRESET_PRESS, { preset, presetData: preset.data });
-                    } else {
-                        console.warn("HCWPresetField: Clicked presest '" + preset.name + "' but no callback set.");
-                    }
+                    this.emitAction(GLOBAL_TYPES.ACTIONS.PRESET_PRESS, { preset, presetData: preset.data });
                 }
             }
 
