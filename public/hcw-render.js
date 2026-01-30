@@ -54,12 +54,9 @@ class HCWRender {
 
     }
 
-    static drawContextFields(window) {
-        if (!window.contextfields || window.contextfields.length === 0) return;
-
-        window.contextfields.forEach(field => {
-            field.render(window.contextwindow);
-        });
+    static drawContextField(window) {
+        if (!window.getContextField()) return;
+        window.getContextField().render(window.contextwindow);
     }
 
     static drawWindow(window) {
@@ -68,7 +65,7 @@ class HCWRender {
 
         this._drawBaseBox(window);
         this._drawTouchZones(window);
-        this.drawContextFields(window);
+        this.drawContextField(window);
     }
 
     static updateFrame() {

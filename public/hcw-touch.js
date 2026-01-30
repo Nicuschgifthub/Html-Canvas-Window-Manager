@@ -72,21 +72,17 @@ class HCWInteraction {
         if (!windows || windows.length === 0) return { window: null, field: null };
         let window = windows[0];
 
-        if (window.contextfields && window.contextfields.length > 0) {
-            for (let i = 0; i < window.contextfields.length; i++) {
-                const field = window.contextfields[i];
-                const rp = field.renderProps;
+        if (window.contextfield) {
+            const field = window.contextfield;
+            const rp = field.renderProps;
 
-                if (!rp || rp.startX === null) continue; // Not rendered yet
-                // When renderprops dont exist the element will not have interaction called at all
-
-                if (mouseX >= rp.startX && mouseX <= rp.endX &&
-                    mouseY >= rp.startY && mouseY <= rp.endY) {
-                    return { window, field };
-                }
+            if (!rp || rp.startX === null) return; // Not rendered yet
+            // When renderprops dont exist the element will not have interaction called at all
+            if (mouseX >= rp.startX && mouseX <= rp.endX &&
+                mouseY >= rp.startY && mouseY <= rp.endY) {
+                return { window, field };
             }
         }
-
         return { window, field: null };
     }
 }
@@ -298,7 +294,6 @@ class HCWTouch {
         if (HCWWindowActions.getMovingWindow()) {
             const win = HCWWindowActions.getMovingWindow();
             HCWWindowActions.moveEnd();
-            // Resolve Collisions on drop
             if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
                 HCWWindow.resolveCollisions(win);
             }
@@ -340,7 +335,7 @@ class HCWTouch {
             }
         }
 
-        // Check for Window Press (Renaming etc)
+        // Check for Window Clicked
         if (HCW.pointer._windowPressCandidate) {
             const { mouseX, mouseY } = HCWTouch._eventMouseToCords(e);
             const dist = Math.sqrt(Math.pow(mouseX - HCW.pointer._windowPressStartX, 2) + Math.pow(mouseY - HCW.pointer._windowPressStartY, 2));
