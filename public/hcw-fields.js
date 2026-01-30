@@ -1843,8 +1843,7 @@ class HCWTableField extends HCWBaseField {
     _clampScroll() {
         const rowH = this._getEffectiveRowHeight();
         const rowsHeight = this.rows.length * rowH;
-        
-        // Include the Add Button and some bottom padding (20px) in the total height calculation
+
         const addBtnTotalH = (this.addRowLabel != null) ? (this.addBtnHeight + 20) : 10;
         const contentHeight = rowsHeight + addBtnTotalH;
 
@@ -1854,7 +1853,6 @@ class HCWTableField extends HCWBaseField {
         if (contentHeight <= viewHeight) {
             this.scrollY = 0;
         } else {
-            // minScroll is the furthest "up" we can pull the content
             const minScroll = -(contentHeight - viewHeight);
             this.scrollY = Math.min(0, Math.max(minScroll, this.scrollY));
         }
@@ -1901,7 +1899,7 @@ class HCWTableField extends HCWBaseField {
 
     _renderTable(w, ctx) {
         const pad = 10;
-        const deleteColW = 40; 
+        const deleteColW = 40;
         const availableW = w.sx - pad * 2 - deleteColW;
         const colW = availableW / (this.headers.length || 1);
 
@@ -1964,18 +1962,6 @@ class HCWTableField extends HCWBaseField {
             ctx.stroke();
         });
 
-        if (this.addRowLabel != null) {
-            this._drawAddButton(w, ctx, contentAreaY, startDrawY);
-        }
-
-        ctx.restore();
-        
-        // Border/Lines redraw for static parts
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(w.x, contentAreaY, w.sx, contentAreaH);
-        ctx.clip();
-
         ctx.strokeStyle = '#333';
         for (let i = 1; i < this.headers.length; i++) {
             const x = w.x + pad + i * colW;
@@ -1984,6 +1970,11 @@ class HCWTableField extends HCWBaseField {
             ctx.lineTo(x, w.y2);
             ctx.stroke();
         }
+
+        if (this.addRowLabel != null) {
+            this._drawAddButton(w, ctx, contentAreaY, startDrawY);
+        }
+
         ctx.restore();
     }
 
@@ -2057,13 +2048,15 @@ class HCWTableField extends HCWBaseField {
         const x = w.x + 10;
         const w_btn = w.sx - 20;
 
-        // Register coordinates regardless of visibility so click detection works
         this.renderProps.addButton = { x, y: addBtnY, w: w_btn, h: this.addBtnHeight };
 
-        // Draw only if it intersects the visible area
         if (addBtnY < w.y + w.sy && addBtnY + this.addBtnHeight > contentAreaY) {
+            ctx.fillStyle = '#1e1e1e';
+            ctx.fillRect(x, addBtnY, w_btn, this.addBtnHeight);
+
             ctx.fillStyle = '#006600';
             ctx.fillRect(x, addBtnY, w_btn, this.addBtnHeight);
+
             ctx.fillStyle = '#fff';
             ctx.textAlign = 'center';
             ctx.font = 'bold 13px Arial';
