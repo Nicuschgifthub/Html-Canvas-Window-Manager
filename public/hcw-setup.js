@@ -134,10 +134,6 @@ class HCWSetup {
 
 class HCWWindow {
     constructor(obj = {}) {
-
-
-        console.log(obj)
-
         const defaults = {
             x: 100,
             y: 100,
