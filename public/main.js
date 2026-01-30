@@ -28,10 +28,22 @@ const start = () => {
                 .setData({ _best: null })
         )
 
-    const window = new HCWWindow({ x: 100, y: 100, sx: 100, sy: 300 })
+    const encoderContext = new HCWEncoderField("Encoder 1", Date.now())
+        .setValue(0, 0)
+
+    const keyboardContext = new HCWKeyboardField("Keyboard 1", Date.now())
+
+    const numberContext = new HCWNumberField("Keyboard 1", Date.now())
+
+    const tableContext = new HCWTableField("Keyboard 1", Date.now())
+
+    const colorWheelContext = new HCWColorWheelEncoderField("Keyboard 1", Date.now())
+
+
+    const window = new HCWWindow({ x: 100, y: 100, sx: 800, sy: 400 })
         .setMinSizes(100, 100)
         .setId(Date.now())
-        .setContextField(presetContext);
+        .setContextField(keyboardContext);
 
 
 

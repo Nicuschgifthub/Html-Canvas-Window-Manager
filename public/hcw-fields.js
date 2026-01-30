@@ -441,6 +441,7 @@ class HCWEncoderField extends HCWBaseField {
         }
     }
 }
+
 class HCWPreset {
     constructor(name = "Preset") {
         this.className = 'HCWPreset';
@@ -816,6 +817,8 @@ class HCWNumberField extends HCWBaseField {
         super(fieldName, id);
         this.type = 'numpad';
 
+        this.className = 'HCWNumberField';
+
         this.value = "";
         this.cursorPos = 0;
         this.onEnterCallback = null;
@@ -1077,10 +1080,12 @@ class HCWNumberField extends HCWBaseField {
     }
 }
 
-// Not updated using the actions class definitions
 class HCWKeyboardField extends HCWBaseField {
     constructor(fieldName = 'Keyboard', id = Date.now()) {
         super(fieldName, id);
+
+        this.className = 'HCWKeyboardField';
+
         this.type = 'keyboard';
 
         this.value = "";
@@ -1143,27 +1148,23 @@ class HCWKeyboardField extends HCWBaseField {
         return this;
     }
 
-    onEnter(callback) {
-        this.onEnterCallback = callback;
-        return this;
-    }
-
-    onValueChange(callback) {
-        this.onValueChangeCallback = callback;
-        return this;
-    }
-
     _handleInput(key) {
+        const KBD_ACTIONS = GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES;
+        let actionTriggered = KBD_ACTIONS.KEY_PRESSED;
+
         if (key === 'ENTER' || key === 'Enter') {
+            actionTriggered = KBD_ACTIONS.RETURN_PRESSED;
             if (this.onEnterCallback) {
                 this.onEnterCallback(this.parentWindow, this, this.value);
             }
         } else if (key === '<=' || key === 'Backspace') {
+            actionTriggered = KBD_ACTIONS.BACKSPACE_PRESSED;
             if (this.cursorPos > 0) {
                 this.value = this.value.slice(0, this.cursorPos - 1) + this.value.slice(this.cursorPos);
                 this.cursorPos--;
             }
         } else if (key === 'DELETE') {
+            actionTriggered = KBD_ACTIONS.DELETE_ALL_PRESSED;
             this.value = "";
             this.cursorPos = 0;
         } else if (key === 'Delete' || key === 'entf') {
@@ -1171,13 +1172,16 @@ class HCWKeyboardField extends HCWBaseField {
                 this.value = this.value.slice(0, this.cursorPos) + this.value.slice(this.cursorPos + 1);
             }
         } else if (key === 'SPACE' || key === ' ') {
+            actionTriggered = KBD_ACTIONS.SPACE_PRESSED;
             this.value = this.value.slice(0, this.cursorPos) + " " + this.value.slice(this.cursorPos);
             this.cursorPos++;
         } else if (key === 'SHIFT' || key === 'Shift') {
             this.isUpperCase = !this.isUpperCase;
         } else if (key === 'ArrowLeft' || key === '<') {
+            actionTriggered = KBD_ACTIONS.ARROW_LEFT_PRESSED;
             this.cursorPos = Math.max(0, this.cursorPos - 1);
         } else if (key === 'ArrowRight' || key === '>') {
+            actionTriggered = KBD_ACTIONS.ARROW_RIGHT_PRESSED;
             this.cursorPos = Math.min(this.value.length, this.cursorPos + 1);
         } else if (key.length === 1) {
             let char = key;
@@ -1190,6 +1194,13 @@ class HCWKeyboardField extends HCWBaseField {
             this.value = this.value.slice(0, this.cursorPos) + char + this.value.slice(this.cursorPos);
             this.cursorPos++;
         }
+
+        this.emitAction(actionTriggered, {
+            key: key,
+            value: this.value,
+            cursorPos: this.cursorPos,
+            length: this.value.length
+        });
 
         if (this.onValueChangeCallback) {
             this.onValueChangeCallback(this.parentWindow, this, this.value);
@@ -1254,20 +1265,23 @@ class HCWKeyboardField extends HCWBaseField {
             textStartX = da.x + 10;
         }
 
-        let bestPos = 0;
-        let minDiff = Infinity;
+        let newCursorPos = this.value.length;
 
-        for (let i = 0; i <= this.value.length; i++) {
-            const prefix = this.value.slice(0, i);
-            const prefixWidth = HCW.ctx.measureText(prefix).width;
-            const charX = textStartX + prefixWidth;
-            const diff = Math.abs(mouseX - charX);
-            if (diff < minDiff) {
-                minDiff = diff;
-                bestPos = i;
+        for (let i = 0; i < this.value.length; i++) {
+            const prefix = this.value.slice(0, i + 1);
+            const charRightEdge = textStartX + HCW.ctx.measureText(prefix).width;
+
+            if (mouseX <= charRightEdge) {
+                newCursorPos = i + 1;
+                break;
             }
         }
-        this.cursorPos = bestPos;
+
+        if (mouseX < textStartX) {
+            newCursorPos = 0;
+        }
+
+        this.cursorPos = newCursorPos;
     }
 
     _findHitButton(x, y) {
@@ -1424,6 +1438,8 @@ class HCWKeyboardField extends HCWBaseField {
 class HCWColorMapField extends HCWBaseField {
     constructor(label = 'Color 1', id = Date.now()) {
         super(label, id);
+
+        this.className = 'HCWColorMapField';
 
         this.h = 0;
         this.s = 1;
@@ -1788,6 +1804,8 @@ class HCWTableField extends HCWBaseField {
     constructor(fieldName = 'Settings', id = Date.now()) {
         super(fieldName, id);
 
+        this.className = 'HCWTableField';
+
         this.headers = [];
         this.rows = [];
         this.renderMode = 'table'; // 'table' or 'list'
@@ -2145,6 +2163,8 @@ class HCWSearchField extends HCWBaseField {
     constructor(fieldName = 'Search', id = Date.now()) {
         super(fieldName, id);
 
+        this.className = 'HCWSearchField';
+
         this.searchValue = "";
         this.results = [];
         this.onResultClickCallback = null;
@@ -2271,9 +2291,13 @@ class HCWSearchField extends HCWBaseField {
         ctx.textAlign = 'start';
     }
 }
+
 class HCWColorWheelEncoderField extends HCWEncoderField {
     constructor(encoderText = 'Color Wheel', id = Date.now()) {
         super(encoderText, id);
+
+        this.className = 'HCWColorWheelEncoderField';
+
         this.centerColor = null;
         this.centerImage = null;
         this._loadedImage = null;

@@ -376,11 +376,8 @@ class HCWWindow {
 
 const HCWFactory = {
     classList: {
-        HCWWindow,
-        HCWBaseField,
-        HCWFaderField,
-        HCWPresetField, // New
-        HCWPreset       // New
+        HCWWindow, HCWBaseField, HCWFaderField, HCWPresetField,
+        HCWPreset, HCWEncoderField, HCWKeyboardField, HCWNumberField
     },
 
     serialize(data) {
@@ -388,47 +385,70 @@ const HCWFactory = {
     },
 
     reconstruct(json) {
-        const data = typeof json === 'string' ? JSON.parse(json) : json;
+        // 1. Convert string to object if needed
+        let data = json;
+        if (typeof json === 'string') {
+            try { data = JSON.parse(json); } catch (e) { return json; }
+        }
 
-        // Handle Arrays of Windows
+        // 2. Handle Arrays (like a list of windows)
         if (Array.isArray(data)) {
             return data.map(item => this.reconstruct(item));
         }
 
-        if (!data || !data.className) return data;
+        // 3. If it's not a class-based object, return raw data
+        if (!data || typeof data !== 'object' || !data.className) {
+            return data;
+        }
 
+        // 4. Create the real Instance
         const TargetClass = this.classList[data.className];
-        if (!TargetClass) return data;
-
+        if (!TargetClass) {
+            console.warn(`Class ${data.className} missing from Factory.`);
+            return data;
+        }
         const instance = new TargetClass();
 
-        // Deep Reconstruction
+        // 5. Map properties carefully
         for (let key in data) {
-            // 1. Handle Nested Arrays (like the .presets array)
-            if (Array.isArray(data[key])) {
-                data[key] = data[key].map(item => this.reconstruct(item));
+            const value = data[key];
+
+            if (value && typeof value === 'object') {
+                if (value.className || Array.isArray(value)) {
+                    // Recurse into nested classes or arrays of classes
+                    instance[key] = this.reconstruct(value);
+                } else {
+                    // Simple object (like renderProps), copy it
+                    instance[key] = value;
+                }
+            } else {
+                // Primitive value (string, number)
+                instance[key] = value;
             }
-            // 2. Handle Single Nested Objects (like .contextfield)
-            else if (data[key] && typeof data[key] === 'object' && data[key].className) {
-                data[key] = this.reconstruct(data[key]);
-            }
         }
 
-        Object.assign(instance, data);
-
-        // --- Post-Process: Link Parents ---
-        if (instance._init) instance._init();
-
-        // Link Window -> Field
-        if (instance instanceof HCWWindow && instance.contextfield) {
-            instance.contextfield.setParentWindow(instance);
-        }
-
-        // Link Field -> Presets
-        if (instance instanceof HCWPresetField && instance.presets) {
-            instance.presets.forEach(p => p.setParentField(instance));
-        }
+        // 6. Post-Process Linking
+        this._postLink(instance);
 
         return instance;
+    },
+
+    _postLink(instance) {
+        // Handle Window -> Field linking
+        if (instance instanceof HCWWindow) {
+            // Find the field regardless of case (contextfield vs contextField)
+            const field = instance.contextfield || instance.contextField;
+            if (field && typeof field === 'object') {
+                instance.setContextField(field);
+                if (field.setParentWindow) field.setParentWindow(instance);
+            }
+        }
+
+        // Handle Field -> Preset linking
+        if (instance instanceof HCWPresetField && instance.presets) {
+            instance.presets.forEach(p => {
+                if (p.setParentField) p.setParentField(instance);
+            });
+        }
     }
 };

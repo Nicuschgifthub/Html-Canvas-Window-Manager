@@ -3,7 +3,7 @@ class GLOBAL_TYPES {
     static get ACTIONS() {
         return {
             get ENCODER_VALUE_UPDATE() {
-                return 'ACTION_BUTTON_PRESS';
+                return 'ACTION_ENCODER_VALUE_UPDATE';
             },
 
             get FADER_VALUE_UPDATE() {
@@ -28,6 +28,32 @@ class GLOBAL_TYPES {
                     },
                     get CELL_PRESS() {
                         return 'ACTION_TABLE_CELL_PRESS';
+                    }
+                }
+            },
+
+            get KEYBOARD_UPDATES() {
+                return {
+                    get KEY_PRESSED() {
+                        return 'ACTION_KEYBOARD_KEY_PRESSED';
+                    },
+                    get RETURN_PRESSED() {
+                        return 'ACTION_KEYBOARD_RETURN_PRESSED';
+                    },
+                    get SPACE_PRESSED() {
+                        return 'ACTION_KEYBOARD_SPACE_PRESSED';
+                    },
+                    get ARROW_LEFT_PRESSED() {
+                        return 'ACTION_KEYBOARD_ARROW_LEFT_PRESSED';
+                    },
+                    get ARROW_RIGHT_PRESSED() {
+                        return 'ACTION_KEYBOARD_ARROW_RIGHT_PRESSED';
+                    },
+                    get BACKSPACE_PRESSED() {
+                        return 'ACTION_KEYBOARD_BACKSPACE_PRESSED';
+                    },
+                    get DELETE_ALL_PRESSED() {
+                        return 'ACTION_KEYBOARD_DELETE_ALL_PRESSED';
                     }
                 }
             },
