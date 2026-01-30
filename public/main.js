@@ -1,14 +1,14 @@
 const start = () => {
 
     const faderContext = new HCWFaderField("Dimmer 01", Date.now())
-        .setValue(0.5)
+        .setValue(0.5);
 
     const window = new HCWWindow({ x: 100, y: 100, sx: 100, sy: 300 })
         .setMinSizes(100, 100)
         .setId(Date.now())
         .setContextField(faderContext);
 
-    console.log(window)
+    console.log(window);
 
     const hcwMain = new HCWSetup('hcw-canvas', '/')
         .setGrid({
@@ -17,32 +17,26 @@ const start = () => {
             crosslineLength: 0.1,
             lineColor: '#00ff95'
         })
-        .addWindow(window)
+        .addWindow(window);
 
-    /* 
+    setTimeout(() => {
+        const windowData = HCWFactory.serialize(window);
+
+        window.close();
         setTimeout(() => {
-            const json = window.toJSON();
-    
-            console.log(json)
-    
-            window.close();
-    
-            const window2 = new HCWWindow(json);
-    
-            hcwMain.addWindow(window2);
-        }, 2000);
-     */
+            const newWindow = HCWFactory.reconstruct(windowData);
 
-    /* 
-        new FGMwithHCW('hcw-canvas')
-            .hcwGrid({
-                everyPixelX: 100,
-                everyPixelY: 100,
-                crosslineLength: 0.1,
-                lineColor: '#00ff95'
-            })
-            .loadInital();
-     */
+            hcwMain.addWindow(newWindow);
+        }, 2000);
+
+    }, 5000);
+
+
+
+
+
+
+
 
 
 

@@ -159,9 +159,16 @@ class HCWWindow {
             data: {}
         };
 
+        this.className = 'HCWWindow';
+
         Object.assign(this, defaults, obj);
 
         this._init();
+    }
+
+    toJSON() {
+        const { temp, ...persistentData } = this;
+        return JSON.parse(JSON.stringify(persistentData));
     }
 
     setPageId(pageId) {
@@ -171,27 +178,6 @@ class HCWWindow {
 
     getPageId() {
         return this.pageId;
-    }
-
-    toJSON() {
-        const { contextfield, temp, ...persistentData } = this;
-
-        return JSON.parse(JSON.stringify(persistentData));
-    }
-
-    fromJSON(json) {
-        try {
-            const data = typeof json === 'string' ? JSON.parse(json) : json;
-
-            Object.assign(this, data);
-
-            this._init();
-
-            if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
-        } catch (e) {
-            console.error("Failed to restore HCWWindow:", e);
-        }
-        return this;
     }
 
     getContextId() {
@@ -387,3 +373,68 @@ class HCWWindow {
         }
     }
 }
+
+const HCWFactory = {
+    classList: {
+        HCWWindow,
+        HCWBaseField,
+        HCWFaderField
+    },
+
+    /**
+     * Converts a class instance (or array of instances) into a JSON string
+     * Handles the custom toJSON logic of nested fields automatically.
+     */
+    serialize(data) {
+        try {
+            return JSON.stringify(data);
+        } catch (e) {
+            console.error("Factory failed to serialize:", e);
+            return null;
+        }
+    },
+
+    /**
+     * Rebuilds class instances from JSON string or Object
+     * Handles single objects or Arrays of objects.
+     */
+    reconstruct(json) {
+        const data = typeof json === 'string' ? JSON.parse(json) : json;
+
+        // Handle Arrays (e.g., if you saved all windows at once)
+        if (Array.isArray(data)) {
+            return data.map(item => this.reconstruct(item));
+        }
+
+        if (!data || !data.className) return data;
+
+        const TargetClass = this.classList[data.className];
+        if (!TargetClass) {
+            console.warn(`Class ${data.className} not found in Factory.`);
+            return data;
+        }
+
+        // 1. Instantiate the specific class
+        const instance = new TargetClass();
+
+        // 2. Recursively reconstruct nested objects that have a className
+        for (let key in data) {
+            if (data[key] && typeof data[key] === 'object' && data[key].className) {
+                data[key] = this.reconstruct(data[key]);
+            }
+        }
+
+        // 3. Merge properties
+        Object.assign(instance, data);
+
+        // 4. Post-reconstruction cleanup
+        if (instance._init) instance._init();
+
+        // Link context field back to window parent
+        if (instance instanceof HCWWindow && instance.contextfield) {
+            instance.contextfield.setParentWindow(instance);
+        }
+
+        return instance;
+    }
+};
