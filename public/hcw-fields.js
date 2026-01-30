@@ -1399,6 +1399,9 @@ class HCWKeyboardField extends HCWBaseField {
 class HCWColorMapField extends HCWBaseField {
     constructor(label = 'Color 1', id = Date.now()) {
         super(label, id);
+        this._CLASS_REBUILD_NONE_OVERWRITES = {
+            mapFirstBuild: true,
+        }
 
         this.className = 'HCWColorMapField';
 
@@ -1463,24 +1466,17 @@ class HCWColorMapField extends HCWBaseField {
         const min = Math.min(r, g, b);
         const d = max - min;
 
-        let h;
-        const s = max === 0 ? 0 : d / max;
-        const v = max;
+        this.v = max;
+        this.s = max === 0 ? 0 : d / max;
 
         if (d === 0) {
-            h = 0;
+            this.h = 0;
         } else {
-            switch (max) {
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: h = (b - r) / d + 2; break;
-                case b: h = (r - g) / d + 4; break;
-            }
-            h /= 6;
+            if (max === r) this.h = (g - b) / d + (g < b ? 6 : 0);
+            else if (max === g) this.h = (b - r) / d + 2;
+            else this.h = (r - g) / d + 4;
+            this.h /= 6;
         }
-
-        this.h = h;
-        this.s = s;
-        this.v = v;
     }
 
     _trigger() {
@@ -1513,10 +1509,16 @@ class HCWColorMapField extends HCWBaseField {
     }
 
     _ensureColorMap(size) {
-        if (this._colorMapCanvas && this._colorMapSize === size) return;
+        size = Math.floor(size);
+        if (size <= 1) return;
+
+        if (this._colorMapCanvas && this._colorMapSize === size && this._CLASS_REBUILD_NONE_OVERWRITES.mapFirstBuild == false) return;
+
+        this._CLASS_REBUILD_NONE_OVERWRITES.mapFirstBuild = false;
 
         const c = document.createElement('canvas');
-        c.width = c.height = size;
+        c.width = size;
+        c.height = size;
         const ctx = c.getContext('2d');
 
         for (let y = 0; y < size; y++) {
@@ -1531,27 +1533,6 @@ class HCWColorMapField extends HCWBaseField {
 
         this._colorMapCanvas = c;
         this._colorMapSize = size;
-    }
-
-    checkMouseLocation(mouseX, mouseY) {
-        this.renderProps.active = null;
-
-        if (this._hit(this.renderProps.map, mouseX, mouseY)) {
-            this.renderProps.active = { type: 'map' };
-            this.mouseDownOnceCalculated = false;
-        }
-
-        if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
-            this.renderProps.active = { type: 'value' };
-            this.mouseDownOnceCalculated = false;
-        }
-
-        for (const k in this.renderProps.sliders) {
-            if (this._hit(this.renderProps.sliders[k], mouseX, mouseY)) {
-                this.renderProps.active = { type: 'slider', key: k };
-                this.mouseDownOnceCalculated = false;
-            }
-        }
     }
 
     _interaction(i) {
@@ -1572,21 +1553,15 @@ class HCWColorMapField extends HCWBaseField {
                 this.s = 1 - ((mouseY - m.y) / m.h);
                 this.h = Math.max(0, Math.min(1, this.h));
                 this.s = Math.max(0, Math.min(1, this.s));
-
-                // Robust fix for "Value Trap": Ensure brightness is at 100% on map touch.
-                // We check for falsy value to catch both 0 and undefined/NaN.
                 if (!this.v) this.v = 1.0;
             }
-
             else if (a.type === 'value') {
                 const f = this.renderProps.valueFader;
                 let t = 1 - ((mouseY - f.y) / f.h);
                 this.v = Math.max(0, Math.min(1, t));
             }
-
             else if (a.type === 'slider') {
                 const r = this.renderProps.sliders[a.key];
-
                 if (a.key === 'r' || a.key === 'g' || a.key === 'b') {
                     let t = (mouseX - r.x) / r.w;
                     t = Math.max(0, Math.min(1, t));
@@ -1602,40 +1577,26 @@ class HCWColorMapField extends HCWBaseField {
             this._trigger();
         }
 
-        /*  Maybe one day i will fix this
-        
-        this.checkMouseLocation(mouseX, mouseY);
- 
-         if (i.type === 'scroll' && this.renderProps.active?.type === 'slider') {
-             console.log("yes")
- 
-             const step = 0.02;
-             const direction = i.deltaY > 0 ? -1 : 1;
- 
-             if (a.key === 'r' || a.key === 'g' || a.key === 'b') {
-                 const rgb = this.getColors();
-                 rgb[a.key] = rgb[a.key] + (step * direction);
- 
-                 if (rgb[a.key] < 0) {
-                     rgb[a.key] = 0;
-                 }
- 
-                 if (rgb[a.key] > 255) {
-                     rgb[a.key] = 255;
-                 }
- 
-                 this._rgbToHsv(rgb.r, rgb.g, rgb.b);
-             } else {
- 
-             }
- 
-             this.renderProps.active = null;
- 
-             this._trigger();
-         } */
-
         if (i.type === 'mouseup') {
             this.renderProps.active = null;
+        }
+    }
+
+    checkMouseLocation(mouseX, mouseY) {
+        this.renderProps.active = null;
+        if (this._hit(this.renderProps.map, mouseX, mouseY)) {
+            this.renderProps.active = { type: 'map' };
+            this.mouseDownOnceCalculated = false;
+        }
+        if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
+            this.renderProps.active = { type: 'value' };
+            this.mouseDownOnceCalculated = false;
+        }
+        for (const k in this.renderProps.sliders) {
+            if (this._hit(this.renderProps.sliders[k], mouseX, mouseY)) {
+                this.renderProps.active = { type: 'slider', key: k };
+                this.mouseDownOnceCalculated = false;
+            }
         }
     }
 
@@ -1649,8 +1610,6 @@ class HCWColorMapField extends HCWBaseField {
         this.renderProps.endX = w.x2;
         this.renderProps.endY = w.y2;
 
-        // w.y += 10
-
         const ctx = HCW.ctx;
         const pad = 8;
         const labelW = 14;
@@ -1658,24 +1617,29 @@ class HCWColorMapField extends HCWBaseField {
 
         const innerW = w.sx - pad * 2;
         const innerH = w.sy - pad * 2;
-
         const topH = Math.floor(innerH * 0.7);
-        const bottomH = innerH - topH - pad;
 
-        const mapSize = Math.min(
+        const mapSize = Math.max(1, Math.floor(Math.min(
             topH,
             innerW - (vSliderW + pad) * 4
-        );
+        )));
 
         this._ensureColorMap(mapSize);
 
         const mapX = w.x + pad;
         const mapY = w.y + pad;
 
-        ctx.drawImage(this._colorMapCanvas, mapX, mapY);
+        if (this._colorMapCanvas instanceof HTMLCanvasElement && this._colorMapSize > 0) {
+            ctx.drawImage(this._colorMapCanvas, mapX, mapY);
+        } else {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(mapX, mapY, mapSize, mapSize);
+        }
+
         this.renderProps.map = { x: mapX, y: mapY, w: mapSize, h: mapSize };
 
         ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(
             mapX + this.h * mapSize,
@@ -1689,11 +1653,9 @@ class HCWColorMapField extends HCWBaseField {
         const vColors = ['#fff', '#ddd', '#ffb000', '#8000ff'];
 
         vKeys.forEach((k, i) => {
-            const mapDistance = this.renderProps.map.x + this.renderProps.map.w;
+            const mapDistance = mapX + mapSize;
             const spaceForVFaders = this.renderProps.endX - mapDistance;
-            const sliderNewSize = (spaceForVFaders - (vKeys.length * pad + pad)) / (vKeys.length);
-
-            vSliderW = sliderNewSize;
+            vSliderW = (spaceForVFaders - (vKeys.length * pad + pad)) / (vKeys.length);
 
             const x = baseX + i * (vSliderW + pad);
             ctx.fillStyle = '#222';
@@ -1711,53 +1673,31 @@ class HCWColorMapField extends HCWBaseField {
         });
 
         let sy = mapY + mapSize + pad;
-        // const sliderHSize = (sy - this.renderProps.endY / 3) - 3 * pad + pad;
-
+        const bottomH = innerH - topH - pad;
         const sh = Math.max(8, bottomH / 4);
         const sw = innerW - labelW;
 
         const rgb = this.getColors();
-        this.renderProps.sliders.r =
-            this._drawHSlider(ctx, 'R', mapX + labelW, sy, sw, sh, rgb.r, '#ff4444'); sy += sh + pad;
-        this.renderProps.sliders.g =
-            this._drawHSlider(ctx, 'G', mapX + labelW, sy, sw, sh, rgb.g, '#44ff44'); sy += sh + pad;
-        this.renderProps.sliders.b =
-            this._drawHSlider(ctx, 'B', mapX + labelW, sy, sw, sh, rgb.b, '#4444ff');
+        this.renderProps.sliders.r = this._drawHSlider(ctx, 'R', mapX + labelW, sy, sw, sh, rgb.r, '#ff4444'); sy += sh + pad;
+        this.renderProps.sliders.g = this._drawHSlider(ctx, 'G', mapX + labelW, sy, sw, sh, rgb.g, '#44ff44'); sy += sh + pad;
+        this.renderProps.sliders.b = this._drawHSlider(ctx, 'B', mapX + labelW, sy, sw, sh, rgb.b, '#4444ff');
 
         ctx.fillStyle = '#fff';
         ctx.font = '10px Arial';
-        ctx.fillText(this.text, this.renderProps.startX + pad, this.renderProps.startY + pad);
+        ctx.textAlign = "left";
+        ctx.fillText(this.text, w.x + pad, w.y + 10);
     }
 
     _drawHSlider(ctx, label, x, y, w, h, value, color) {
         ctx.fillStyle = '#222';
         ctx.fillRect(x, y, w, h);
-
         ctx.fillStyle = color;
         ctx.fillRect(x, y, (value / 255) * w, h);
-
         ctx.fillStyle = '#fff';
         ctx.font = '12px Arial';
-        ctx.fillText(label, x - 10, y + h - 1);
-
+        ctx.textAlign = "center";
+        ctx.fillText(label, x - 8, y + h - 1);
         return { x, y, w, h };
-    }
-
-    _rgbToHsv(r, g, b) {
-        r /= 255; g /= 255; b /= 255;
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        const d = max - min;
-
-        this.v = max;
-        this.s = max === 0 ? 0 : d / max;
-
-        if (d === 0) this.h = 0;
-        else if (max === r) this.h = ((g - b) / d) / 6;
-        else if (max === g) this.h = (2 + (b - r) / d) / 6;
-        else this.h = (4 + (r - g) / d) / 6;
-
-        if (this.h < 0) this.h += 1;
     }
 }
 

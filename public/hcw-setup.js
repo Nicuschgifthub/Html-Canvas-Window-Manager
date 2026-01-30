@@ -377,7 +377,8 @@ class HCWWindow {
 const HCWFactory = {
     classList: {
         HCWWindow, HCWBaseField, HCWFaderField, HCWPresetField,
-        HCWPreset, HCWEncoderField, HCWKeyboardField, HCWNumberField
+        HCWPreset, HCWEncoderField, HCWKeyboardField, HCWNumberField,
+        HCWColorMapField, HCWTableField, HCWColorWheelEncoderField
     },
 
     serialize(data) {
@@ -413,17 +414,16 @@ const HCWFactory = {
         for (let key in data) {
             const value = data[key];
 
-            if (value && typeof value === 'object') {
-                if (value.className || Array.isArray(value)) {
-                    // Recurse into nested classes or arrays of classes
-                    instance[key] = this.reconstruct(value);
+            if (key !== "_CLASS_REBUILD_NONE_OVERWRITES") {
+                if (value && typeof value === 'object') {
+                    if (value.className || Array.isArray(value)) {
+                        instance[key] = this.reconstruct(value);
+                    } else {
+                        instance[key] = value;
+                    }
                 } else {
-                    // Simple object (like renderProps), copy it
                     instance[key] = value;
                 }
-            } else {
-                // Primitive value (string, number)
-                instance[key] = value;
             }
         }
 
@@ -434,9 +434,7 @@ const HCWFactory = {
     },
 
     _postLink(instance) {
-        // Handle Window -> Field linking
         if (instance instanceof HCWWindow) {
-            // Find the field regardless of case (contextfield vs contextField)
             const field = instance.contextfield || instance.contextField;
             if (field && typeof field === 'object') {
                 instance.setContextField(field);
@@ -444,7 +442,6 @@ const HCWFactory = {
             }
         }
 
-        // Handle Field -> Preset linking
         if (instance instanceof HCWPresetField && instance.presets) {
             instance.presets.forEach(p => {
                 if (p.setParentField) p.setParentField(instance);
