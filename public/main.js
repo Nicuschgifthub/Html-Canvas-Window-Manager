@@ -4,10 +4,26 @@ const start = () => {
         .setValue(0.5)
 
     const presetContext = new HCWPresetField("My Sets", Date.now())
-        .addPreset(
+        .addPresets(
 
             new HCWPreset()
                 .setLabel("Preset")
+                .setColor("#ff00ff")
+                .setData({ _best: null }),
+            new HCWPreset()
+                .setLabel("Preset2")
+                .setColor("#ff00ff")
+                .setData({ _best: null }),
+            new HCWPreset()
+                .setLabel("Preset3")
+                .setColor("#ff00ff")
+                .setData({ _best: null }),
+            new HCWPreset()
+                .setLabel("Preset4")
+                .setColor("#ff00ff")
+                .setData({ _best: null }),
+            new HCWPreset()
+                .setLabel("Preset5")
                 .setColor("#ff00ff")
                 .setData({ _best: null })
         )
@@ -16,7 +32,7 @@ const start = () => {
     const window = new HCWWindow({ x: 100, y: 100, sx: 100, sy: 300 })
         .setMinSizes(100, 100)
         .setId(Date.now())
-        .setContextField(faderContext);
+        .setContextField(presetContext);
 
     console.log(window);
 

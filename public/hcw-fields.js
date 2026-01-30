@@ -449,7 +449,7 @@ class HCWPreset {
         this.color = null;
         this.defaultColor = null;
         this.data = null;
-        this.progress = 0;
+        this.progress = null;
         this.parentField = null;
         this.flashing = false;
         this.selectionState = 0;
@@ -580,19 +580,24 @@ class HCWPresetField extends HCWBaseField {
         return this;
     }
 
-    /** @param {HCWPreset} nameOrInstance */
-    addPreset(nameOrInstance, color = null, defaultColor = null, data = {}, id = null, progress = null) {
-        let preset;
-        if (nameOrInstance instanceof HCWPreset) {
-            preset = nameOrInstance;
-        } else {
-            preset = new HCWPreset(nameOrInstance, color, defaultColor, data, id, progress);
-        }
+    /** @param {...(HCWPreset|string)} nameOrInstances */
+    addPresets(...nameOrInstances) {
+        nameOrInstances.forEach(item => {
+            if (item instanceof HCWPreset) {
+                this._setupAndAddPreset(item);
+            }
+        });
 
-        preset.setParentField(this);
-        this.presets.push(preset);
         this.updateFrame();
         return this;
+    }
+
+    /**
+     * @param {HCWPreset} preset 
+     */
+    _setupAndAddPreset(preset) {
+        preset.setParentField(this);
+        this.presets.push(preset);
     }
 
     updatePreset(id, updates = {}) {
