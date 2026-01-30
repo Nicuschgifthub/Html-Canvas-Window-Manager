@@ -1812,23 +1812,21 @@ class HCWTableField extends HCWBaseField {
                         rowIndex: hitCell.rowIndex,
                         colIndex: hitCell.colIndex,
                         value: hitCell.value
-                    })
+                    });
                     return;
                 }
 
                 if (hitDelete) {
                     this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_DELETE, {
                         rowIndex: hitDelete.rowIndex,
-                    })
+                    });
                     return;
                 }
 
                 const hitAdd = this.renderProps.addButton;
-
                 if (hitAdd && clickX >= hitAdd.x && clickX <= hitAdd.x + hitAdd.w &&
                     clickY >= hitAdd.y && clickY <= hitAdd.y + hitAdd.h) {
-
-                    this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_ADD)
+                    this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_ADD);
                 }
             }
 
@@ -1845,8 +1843,10 @@ class HCWTableField extends HCWBaseField {
     _clampScroll() {
         const rowH = this._getEffectiveRowHeight();
         const rowsHeight = this.rows.length * rowH;
-        const addBtnH = this.onAddRowCallback ? (this.addBtnHeight + 10) : 0;
-        const contentHeight = rowsHeight + addBtnH;
+        
+        // Include the Add Button and some bottom padding (20px) in the total height calculation
+        const addBtnTotalH = (this.addRowLabel != null) ? (this.addBtnHeight + 20) : 10;
+        const contentHeight = rowsHeight + addBtnTotalH;
 
         const hH = this.renderMode === 'table' ? this.headerHeight : 0;
         const viewHeight = this.renderProps.sy - hH;
@@ -1854,7 +1854,8 @@ class HCWTableField extends HCWBaseField {
         if (contentHeight <= viewHeight) {
             this.scrollY = 0;
         } else {
-            const minScroll = -(contentHeight - viewHeight + 10);
+            // minScroll is the furthest "up" we can pull the content
+            const minScroll = -(contentHeight - viewHeight);
             this.scrollY = Math.min(0, Math.max(minScroll, this.scrollY));
         }
     }
@@ -1900,7 +1901,7 @@ class HCWTableField extends HCWBaseField {
 
     _renderTable(w, ctx) {
         const pad = 10;
-        const deleteColW = 40; // This was the line to turn visible on / off
+        const deleteColW = 40; 
         const availableW = w.sx - pad * 2 - deleteColW;
         const colW = availableW / (this.headers.length || 1);
 
@@ -1968,6 +1969,8 @@ class HCWTableField extends HCWBaseField {
         }
 
         ctx.restore();
+        
+        // Border/Lines redraw for static parts
         ctx.save();
         ctx.beginPath();
         ctx.rect(w.x, contentAreaY, w.sx, contentAreaH);
@@ -1981,6 +1984,7 @@ class HCWTableField extends HCWBaseField {
             ctx.lineTo(x, w.y2);
             ctx.stroke();
         }
+        ctx.restore();
     }
 
     _renderList(w, ctx) {
@@ -2000,13 +2004,8 @@ class HCWTableField extends HCWBaseField {
             const rowY = startDrawY + rowIndex * rowH;
             if (rowY + rowH < w.y || rowY > w.y + w.sy) return;
 
-            // Background for each fixture "block"
             ctx.fillStyle = rowIndex % 2 === 0 ? '#252525' : '#1e1e1e';
             ctx.fillRect(w.x, rowY, w.sx, rowH);
-
-            // Left side "Selection" bar if active (if it were implemented, here we just use color)
-            ctx.fillStyle = '#333';
-            ctx.fillRect(w.x, rowY, 0, rowH);
 
             ctx.textAlign = 'left';
             row.forEach((cell, colIndex) => {
@@ -2021,12 +2020,10 @@ class HCWTableField extends HCWBaseField {
                     ctx.fillStyle = '#888';
                     ctx.font = '12px Monospace';
                     ctx.fillText(`${header}:`, w.x + pad, lineY);
-
                     ctx.fillStyle = '#bbb';
                     ctx.fillText(cell, w.x + pad + 100, lineY);
                 }
 
-                // Register as cell for interaction
                 this.renderProps.cells.push({
                     x: w.x, y: lineY - 15, w: w.sx, h: 20, rowIndex, colIndex, value: cell
                 });
@@ -2039,8 +2036,10 @@ class HCWTableField extends HCWBaseField {
             ctx.stroke();
         });
 
-        // if (this.onAddRowCallback) 
-        this._drawAddButton(w, ctx, w.y, startDrawY);
+        if (this.addRowLabel != null) {
+            this._drawAddButton(w, ctx, w.y, startDrawY);
+        }
+        ctx.restore();
     }
 
     _getDeleteButtonProps(w, rowY, pad, deleteColW) {
@@ -2054,15 +2053,21 @@ class HCWTableField extends HCWBaseField {
 
     _drawAddButton(w, ctx, contentAreaY, startDrawY) {
         const rowH = this._getEffectiveRowHeight();
-        const addBtnY = startDrawY + this.rows.length * rowH + 10;
+        const addBtnY = startDrawY + (this.rows.length * rowH) + 10;
+        const x = w.x + 10;
+        const w_btn = w.sx - 20;
+
+        // Register coordinates regardless of visibility so click detection works
+        this.renderProps.addButton = { x, y: addBtnY, w: w_btn, h: this.addBtnHeight };
+
+        // Draw only if it intersects the visible area
         if (addBtnY < w.y + w.sy && addBtnY + this.addBtnHeight > contentAreaY) {
-            const x = w.x + 10, w_btn = w.sx - 20;
             ctx.fillStyle = '#006600';
             ctx.fillRect(x, addBtnY, w_btn, this.addBtnHeight);
             ctx.fillStyle = '#fff';
             ctx.textAlign = 'center';
+            ctx.font = 'bold 13px Arial';
             ctx.fillText(this.addRowLabel, x + w_btn / 2, addBtnY + this.addBtnHeight / 2 + 5);
-            this.renderProps.addButton = { x, y: addBtnY, w: w_btn, h: this.addBtnHeight };
         }
     }
 }
