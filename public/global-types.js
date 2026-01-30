@@ -134,5 +134,4 @@ class GLOBAL_TYPES {
             }
         }
     }
-
 }
