@@ -33,17 +33,17 @@ const start = () => {
 
     const keyboardContext = new HCWKeyboardField("Keyboard 1", Date.now())
 
-    const numberContext = new HCWNumberField("Keyboard 1", Date.now())
+    const numberContext = new HCWNumberField("Keypad 1", Date.now())
 
-    const tableContext = new HCWTableField("Keyboard 1", Date.now())
+    const tableContext = new HCWTableField("Table 1", Date.now())
 
-    const colorWheelContext = new HCWColorWheelEncoderField("Keyboard 1", Date.now())
+    const colorWheelContext = new HCWColorWheelEncoderField("Color Wheel 1", Date.now())
 
 
     const window = new HCWWindow({ x: 100, y: 100, sx: 800, sy: 400 })
         .setMinSizes(100, 100)
         .setId(Date.now())
-        .setContextField(keyboardContext);
+        .setContextField(numberContext);
 
 
 

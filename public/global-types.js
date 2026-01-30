@@ -64,7 +64,22 @@ class GLOBAL_TYPES {
             get NUMPAD_UPDATES() {
                 return {
                     get KEY_PRESSED() {
-                        return 'ACTION_KEYBOARD_KEY_PRESSED';
+                        return 'ACTION_NUMPAD_KEY_PRESSED';
+                    },
+                    get ENTER_PRESSED() {
+                        return 'ACTION_NUMPAD_ENTER_PRESSED';
+                    },
+                    get CLEAR_PRESSED() {
+                        return 'ACTION_NUMPAD_CLEAR_PRESSED';
+                    },
+                    get BACKSPACE_PRESSED() {
+                        return 'ACTION_NUMPAD_BACKSPACE_PRESSED';
+                    },
+                    get ARROW_LEFT_PRESSED() {
+                        return 'ACTION_NUMPAD_ARROW_LEFT_PRESSED';
+                    },
+                    get ARROW_RIGHT_PRESSED() {
+                        return 'ACTION_NUMPAD_ARROW_RIGHT_PRESSED';
                     }
                 }
             },

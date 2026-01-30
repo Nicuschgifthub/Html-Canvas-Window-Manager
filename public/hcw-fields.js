@@ -811,17 +811,14 @@ class HCWPresetField extends HCWBaseField {
     }
 }
 
-// Not updated using the actions class definitions
 class HCWNumberField extends HCWBaseField {
     constructor(fieldName = 'Numpad', id = Date.now()) {
         super(fieldName, id);
         this.type = 'numpad';
-
         this.className = 'HCWNumberField';
 
         this.value = "";
         this.cursorPos = 0;
-        this.onEnterCallback = null;
 
         this.headerHeight = 30;
         this.displayHeight = 40;
@@ -860,7 +857,6 @@ class HCWNumberField extends HCWBaseField {
         };
 
         this._pressedKey = null;
-        this._dragLastY = null;
     }
 
     getType() {
@@ -874,31 +870,27 @@ class HCWNumberField extends HCWBaseField {
         return this;
     }
 
-    onEnter(callback) {
-        this.onEnterCallback = callback;
-        return this;
-    }
-
     _handleInput(key) {
-        if (key === 'ENTER') {
-            if (this.onEnterCallback) {
-                this.onEnterCallback(this.value);
-            }
+        const NUM_ACTIONS = GLOBAL_TYPES.ACTIONS.NUMPAD_UPDATES;
+        let actionTriggered = NUM_ACTIONS.KEY_PRESSED;
+
+        if (key === 'ENTER' || key === 'Enter') {
+            actionTriggered = NUM_ACTIONS.ENTER_PRESSED;
         } else if (key === 'C') {
+            actionTriggered = NUM_ACTIONS.CLEAR_PRESSED;
             this.value = "";
             this.cursorPos = 0;
         } else if (key === '<=' || key === 'Backspace') {
+            actionTriggered = NUM_ACTIONS.BACKSPACE_PRESSED;
             if (this.cursorPos > 0) {
                 this.value = this.value.slice(0, this.cursorPos - 1) + this.value.slice(this.cursorPos);
                 this.cursorPos--;
             }
-        } else if (key === 'Delete' || key === 'entf') {
-            if (this.cursorPos < this.value.length) {
-                this.value = this.value.slice(0, this.cursorPos) + this.value.slice(this.cursorPos + 1);
-            }
         } else if (key === 'ArrowLeft' || key === '<') {
+            actionTriggered = NUM_ACTIONS.ARROW_LEFT_PRESSED;
             this.cursorPos = Math.max(0, this.cursorPos - 1);
         } else if (key === 'ArrowRight' || key === '>') {
+            actionTriggered = NUM_ACTIONS.ARROW_RIGHT_PRESSED;
             this.cursorPos = Math.min(this.value.length, this.cursorPos + 1);
         } else {
             const char = (key === ',') ? '.' : key;
@@ -907,6 +899,14 @@ class HCWNumberField extends HCWBaseField {
                 this.cursorPos++;
             }
         }
+
+        this.emitAction(actionTriggered, {
+            key: key,
+            value: this.value,
+            cursorPos: this.cursorPos
+        });
+
+        this.updateFrame();
     }
 
     _interaction(interaction) {
@@ -928,28 +928,15 @@ class HCWNumberField extends HCWBaseField {
                 this.updateFrame();
             }
 
-        } else if (interaction.type === 'mousemove') {
-            const { mouseX, mouseY } = interaction;
-            if (this._potentialClick && Math.abs(mouseY - this._clickStartY) > 5) {
-                this._potentialClick = false;
-                this._pressedKey = null;
-                this.updateFrame();
-            }
-
         } else if (interaction.type === 'mouseup') {
-
             if (this._potentialClick && this._pressedKey) {
                 this._handleInput(this._pressedKey);
             }
-
             this._potentialClick = false;
             this._pressedKey = null;
             this.updateFrame();
         } else if (interaction.type === 'keydown') {
-            if (interaction.key === 'Shift') this.physicalShiftDown = true;
             this._handleInput(interaction.key);
-        } else if (interaction.type === 'keyup') {
-            if (interaction.key === 'Shift') this.physicalShiftDown = false;
         }
     }
 
@@ -958,24 +945,22 @@ class HCWNumberField extends HCWBaseField {
         if (!da) return;
 
         HCW.ctx.font = "20px Monospace";
-        const textX = da.x + da.w - 10;
-        const fullTextWidth = HCW.ctx.measureText(this.value).width;
-        const textStartX = textX - fullTextWidth;
+        const metrics = HCW.ctx.measureText(this.value);
+        const textX = da.x + da.w - 15;
+        const textStartX = textX - metrics.width;
 
-        let bestPos = 0;
-        let minDiff = Infinity;
-
-        for (let i = 0; i <= this.value.length; i++) {
-            const prefix = this.value.slice(0, i);
-            const prefixWidth = HCW.ctx.measureText(prefix).width;
-            const charX = textStartX + prefixWidth;
-            const diff = Math.abs(mouseX - charX);
-            if (diff < minDiff) {
-                minDiff = diff;
-                bestPos = i;
+        let newCursorPos = this.value.length;
+        for (let i = 0; i < this.value.length; i++) {
+            const prefix = this.value.slice(0, i + 1);
+            const charRightEdge = textStartX + HCW.ctx.measureText(prefix).width;
+            if (mouseX <= charRightEdge) {
+                newCursorPos = i + 1;
+                break;
             }
         }
-        this.cursorPos = bestPos;
+
+        if (mouseX < textStartX) newCursorPos = 0;
+        this.cursorPos = newCursorPos;
     }
 
     _findHitButton(x, y) {
@@ -1000,7 +985,6 @@ class HCWNumberField extends HCWBaseField {
         HCW.ctx.font = "bold 14px Arial";
         HCW.ctx.textAlign = "center";
         HCW.ctx.fillText(this.text, x + (sx / 2), y + 20);
-        HCW.ctx.textAlign = "start";
 
         const displayY = y + this.headerHeight;
         HCW.ctx.fillStyle = this.renderProps.colors.displayBg;
@@ -1018,7 +1002,6 @@ class HCWNumberField extends HCWBaseField {
         const textY = displayY + 28;
         HCW.ctx.fillText(this.value, textX, textY);
 
-        // Draw Cursor
         const fullTextWidth = HCW.ctx.measureText(this.value).width;
         const prefixWidth = HCW.ctx.measureText(this.value.slice(0, this.cursorPos)).width;
         const cursorX = (textX - fullTextWidth) + prefixWidth;
@@ -1031,7 +1014,6 @@ class HCWNumberField extends HCWBaseField {
         HCW.ctx.stroke();
 
         HCW.ctx.textAlign = "start";
-
         const gridY = displayY + this.displayHeight + 10;
         const gridH = sy - (gridY - y) - 5;
         const gridW = sx - 10;
@@ -1039,24 +1021,19 @@ class HCWNumberField extends HCWBaseField {
 
         const rows = this.keys.length;
         const rowH = (gridH - ((rows - 1) * this.gap)) / rows;
-
         this.renderProps.buttons = [];
 
         this.keys.forEach((rowKeys, rowIndex) => {
             const rowY = gridY + (rowIndex * (rowH + this.gap));
-
             const cols = rowKeys.length;
             const colW = (gridW - ((cols - 1) * this.gap)) / cols;
 
             rowKeys.forEach((key, colIndex) => {
                 const btnX = gridX + (colIndex * (colW + this.gap));
-
-                let bg = this.renderProps.colors.keyDefault;
-                if (key === 'ENTER') bg = this.renderProps.colors.enterKey;
+                let bg = (key === 'ENTER') ? this.renderProps.colors.enterKey : this.renderProps.colors.keyDefault;
 
                 if (this._pressedKey === key) {
-                    if (key === 'ENTER') bg = this.renderProps.colors.enterKeyActive;
-                    else bg = this.renderProps.colors.keyActive;
+                    bg = (key === 'ENTER') ? this.renderProps.colors.enterKeyActive : this.renderProps.colors.keyActive;
                 }
 
                 HCW.ctx.fillStyle = bg;
@@ -1066,15 +1043,8 @@ class HCWNumberField extends HCWBaseField {
                 HCW.ctx.font = (key === 'ENTER') ? "bold 12px Arial" : "16px Arial";
                 HCW.ctx.textAlign = "center";
                 HCW.ctx.fillText(key, btnX + (colW / 2), rowY + (rowH / 2) + 6);
-                HCW.ctx.textAlign = "start";
 
-                this.renderProps.buttons.push({
-                    key,
-                    x: btnX,
-                    y: rowY,
-                    w: colW,
-                    h: rowH
-                });
+                this.renderProps.buttons.push({ key, x: btnX, y: rowY, w: colW, h: rowH });
             });
         });
     }
