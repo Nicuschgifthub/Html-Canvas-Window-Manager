@@ -38,13 +38,22 @@ const start = () => {
     const colorContext = new HCWColorMapField("Color 1", Date.now())
 
     const tableContext = new HCWTableField("Table 1", Date.now())
+    .setHeaders(["Type", "Size", "uid"])
+    .setRows([
+        ["hi","33","3k","ll"],
+        ["hi","33","3k","ll"],
+        ["hi","33","3k","ll"],
+        ["hi","33","3k","ll"]
+     ])
+    .setButtonAddRowLabel("Set next element")
+    .setButtonRemoveRow()
 
     const colorWheelContext = new HCWColorWheelEncoderField("Color Wheel 1", Date.now())
 
     const window = new HCWWindow({ x: 100, y: 100, sx: 800, sy: 400 })
         .setMinSizes(100, 100)
         .setId(Date.now())
-        .setContextField(colorContext);
+        .setContextField(tableContext);
 
 
 

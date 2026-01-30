@@ -1710,7 +1710,9 @@ class HCWTableField extends HCWBaseField {
         this.headers = [];
         this.rows = [];
         this.renderMode = 'table'; // 'table' or 'list'
-        this.addRowLabel = '+ Add New Element';
+
+        this.addRowLabel = null;
+        this.showRemoveButton = false;
 
         this.rowHeight = 35;
         this.headerHeight = 40;
@@ -1751,8 +1753,13 @@ class HCWTableField extends HCWBaseField {
         return this;
     }
 
-    setAddRowLabel(label) {
+    setButtonAddRowLabel(label) {
         this.addRowLabel = label;
+        return this;
+    }
+
+    setButtonRemoveRow(addButton = true) {
+        this.showRemoveButton = addButton;
         return this;
     }
 
@@ -1795,36 +1802,36 @@ class HCWTableField extends HCWBaseField {
                     clickY >= c.y && clickY <= c.y + c.h
                 );
 
-                if (hitCell) {
+                const hitDelete = this.renderProps.deleteButtons.find(b =>
+                    clickX >= b.x && clickX <= b.x + b.w &&
+                    clickY >= b.y && clickY <= b.y + b.h
+                );
+
+                if (hitCell && !hitDelete) {
                     this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS, {
                         rowIndex: hitCell.rowIndex,
                         colIndex: hitCell.colIndex,
                         value: hitCell.value
                     })
+                    return;
                 }
-                else {
-                    const hitDelete = this.renderProps.deleteButtons.find(b =>
-                        clickX >= b.x && clickX <= b.x + b.w &&
-                        clickY >= b.y && clickY <= b.y + b.h
-                    );
 
-                    if (hitDelete && this.onDeleteRowCallback) {
-                        this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_DELETE, {
-                            rowIndex: hitDelete.rowIndex,
-                        })
-                    }
-                    else {
-                        const hitAdd = this.renderProps.addButton;
+                if (hitDelete) {
+                    this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_DELETE, {
+                        rowIndex: hitDelete.rowIndex,
+                    })
+                    return;
+                }
 
-                        if (hitAdd && this.onAddRowCallback &&
-                            clickX >= hitAdd.x && clickX <= hitAdd.x + hitAdd.w &&
-                            clickY >= hitAdd.y && clickY <= hitAdd.y + hitAdd.h) {
+                const hitAdd = this.renderProps.addButton;
 
-                            this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_DELETE, {})
-                        }
-                    }
+                if (hitAdd && clickX >= hitAdd.x && clickX <= hitAdd.x + hitAdd.w &&
+                    clickY >= hitAdd.y && clickY <= hitAdd.y + hitAdd.h) {
+
+                    this.emitAction(GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_ADD)
                 }
             }
+
             this._dragLastY = null;
             this._potentialClick = false;
 
@@ -1854,7 +1861,6 @@ class HCWTableField extends HCWBaseField {
 
     _getEffectiveRowHeight() {
         if (this.renderMode === 'list') {
-            // Header: Value per line
             return (this.headers.length) * 20 + 20;
         }
         return this.rowHeight;
@@ -1894,7 +1900,7 @@ class HCWTableField extends HCWBaseField {
 
     _renderTable(w, ctx) {
         const pad = 10;
-        const deleteColW = 40; // This was the line to turn vible on / off
+        const deleteColW = 40; // This was the line to turn visible on / off
         const availableW = w.sx - pad * 2 - deleteColW;
         const colW = availableW / (this.headers.length || 1);
 
@@ -1941,7 +1947,7 @@ class HCWTableField extends HCWBaseField {
                 });
             });
 
-            if (this.onDeleteRowCallback) {
+            if (this.showRemoveButton) {
                 const b = this._getDeleteButtonProps(w, rowY, pad, deleteColW);
                 ctx.fillStyle = '#770000';
                 ctx.fillRect(b.x, b.y, b.w, b.h);
@@ -1957,8 +1963,9 @@ class HCWTableField extends HCWBaseField {
             ctx.stroke();
         });
 
-        // if (this.onAddRowCallback)
-        this._drawAddButton(w, ctx, contentAreaY, startDrawY);
+        if (this.addRowLabel != null) {
+            this._drawAddButton(w, ctx, contentAreaY, startDrawY);
+        }
 
         ctx.restore();
         ctx.save();
