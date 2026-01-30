@@ -40,6 +40,12 @@ class GLOBAL_TYPES {
                     get RETURN_PRESSED() {
                         return 'ACTION_KEYBOARD_RETURN_PRESSED';
                     },
+                    get DELETE_ALL_PRESSED() {
+                        return 'ACTION_KEYBOARD_DELETE_ALL_PRESSED';
+                    },
+                    get ENTER_PRESSED() {
+                        return 'ACTION_KEYBOARD_ENTER_PRESSED';
+                    },
                     get SPACE_PRESSED() {
                         return 'ACTION_KEYBOARD_SPACE_PRESSED';
                     },
@@ -51,9 +57,14 @@ class GLOBAL_TYPES {
                     },
                     get BACKSPACE_PRESSED() {
                         return 'ACTION_KEYBOARD_BACKSPACE_PRESSED';
-                    },
-                    get DELETE_ALL_PRESSED() {
-                        return 'ACTION_KEYBOARD_DELETE_ALL_PRESSED';
+                    }
+                }
+            },
+
+            get NUMPAD_UPDATES() {
+                return {
+                    get KEY_PRESSED() {
+                        return 'ACTION_KEYBOARD_KEY_PRESSED';
                     }
                 }
             },

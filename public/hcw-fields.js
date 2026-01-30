@@ -1090,8 +1090,6 @@ class HCWKeyboardField extends HCWBaseField {
 
         this.value = "";
         this.cursorPos = 0;
-        this.onEnterCallback = null;
-        this.onValueChangeCallback = null;
         this.isUpperCase = true;
 
         this.headerHeight = 30;
@@ -1153,10 +1151,7 @@ class HCWKeyboardField extends HCWBaseField {
         let actionTriggered = KBD_ACTIONS.KEY_PRESSED;
 
         if (key === 'ENTER' || key === 'Enter') {
-            actionTriggered = KBD_ACTIONS.RETURN_PRESSED;
-            if (this.onEnterCallback) {
-                this.onEnterCallback(this.parentWindow, this, this.value);
-            }
+            actionTriggered = KBD_ACTIONS.ENTER_PRESSED;
         } else if (key === '<=' || key === 'Backspace') {
             actionTriggered = KBD_ACTIONS.BACKSPACE_PRESSED;
             if (this.cursorPos > 0) {
@@ -1201,10 +1196,6 @@ class HCWKeyboardField extends HCWBaseField {
             cursorPos: this.cursorPos,
             length: this.value.length
         });
-
-        if (this.onValueChangeCallback) {
-            this.onValueChangeCallback(this.parentWindow, this, this.value);
-        }
     }
 
     _interaction(interaction) {
