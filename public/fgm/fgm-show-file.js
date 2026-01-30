@@ -1,4 +1,4 @@
-class FGMLoadShowFile {
+class FGMShowFile {
     constructor(json = false) {
 
         this.showFile = {
@@ -25,6 +25,8 @@ class FGMLoadShowFile {
         if (json !== false) {
             this.showFile = json;
         }
+
+        this.loadShow();
     }
 
     debugLogs() {
@@ -60,5 +62,9 @@ class FGMLoadShowFile {
 
     getPages() {
         return this.showFile.pages;
+    }
+
+    loadShow() {
+
     }
 }

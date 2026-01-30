@@ -133,38 +133,33 @@ class HCWSetup {
 }
 
 class HCWWindow {
-    constructor(x = 0, y = 0, sizeX = 100, sizeY = 100) {
-        this.x = x;
-        this.y = y;
-        this.sx = sizeX;
-        this.sy = sizeY;
-        this.type = null;
+    constructor(obj = {}) {
+        const defaults = {
+            x: 100,
+            y: 100,
+            sx: 100,
+            sy: 100,
+            type: 'default',
+            id: Date.now(),
+            minsizex: 0,
+            minsizey: 0,
+            basecolor: '#454545',
+            touchzonecolor: '#969696',
+            touchzonehighlightcolor: '#d6d6d6',
+            touchzone: 12,
+            touchzones: null,
+            boundingbox: null,
+            contextwindow: null,
+            contextfield: null,
+            scrollindex: 1,
+            scrollindexratio: 1.2,
+            hidden: false,
+            pageId: null,
+            temp: {},
+            data: {}
+        };
 
-        this.id = null;
-
-        this.minsizex = 0;
-        this.minsizey = 0;
-        this.basecolor = '#454545';
-
-        this.touchzonecolor = '#969696';
-        this.touchzonehighlightcolor = '#d6d6d6';
-        this.touchzone = 12;
-        this.touchzones = null;
-
-        this.boundingbox = null;
-        this.contextwindow = null;
-
-        this.contextfields = [];
-        this.scrollindex = 1;
-        this.scrollindexratio = 1.2;
-
-        this.hidden = false;
-        this.pageId = null;
-
-        this.temp = {};
-
-        this.data = {};
-        this.onPressCallback = null;
+        Object.assign(this, defaults, obj);
 
         this._init();
     }
@@ -179,21 +174,18 @@ class HCWWindow {
     }
 
     toJSON() {
-        const copy = { ...this };
-        // delete copy.onPresetPressCallback;
-        delete copy.contextfields;
-        // delete copy.renderProps; // Optional
-        return copy;
+        const { contextfield, temp, ...persistentData } = this;
+
+        return JSON.parse(JSON.stringify(persistentData));
     }
 
-    /**
-     * @param {string|object} json 
-     */
     fromJSON(json) {
         try {
             const data = typeof json === 'string' ? JSON.parse(json) : json;
 
             Object.assign(this, data);
+
+            this._init();
 
             if (typeof HCWRender !== 'undefined') HCWRender.updateFrame();
         } catch (e) {
@@ -203,15 +195,11 @@ class HCWWindow {
     }
 
     getContextId() {
-        return this.contextfields[0]?.id;
+        return this.contextfield?.id;
     }
 
-    getContextFields() {
-        return this.contextfields;
-    }
-
-    getSingleContextField() {
-        return this.contextfields[0];
+    getContextField() {
+        return this.contextfield;
     }
 
     onPress(callback) {
@@ -227,9 +215,9 @@ class HCWWindow {
         }
     }
 
-    addContextField(contextField) {
+    setContextField(contextField) {
         if (contextField !== null) {
-            this.contextfields.push(contextField);
+            this.contextfield = contextField;
         }
         return this;
     }
