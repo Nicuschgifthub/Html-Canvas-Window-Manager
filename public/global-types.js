@@ -6,6 +6,10 @@ class GLOBAL_TYPES {
                 return 'ACTION_ENCODER_VALUE_UPDATE';
             },
 
+            get COLOR_ENCODER_VALUE_UPDATE() {
+                return 'ACTION_COLOR_ENCODER_VALUE_UPDATE';
+            },
+
             get FADER_VALUE_UPDATE() {
                 return 'ACTION_FADER_VALUE_UPDATE';
             },

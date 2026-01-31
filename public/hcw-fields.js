@@ -2281,30 +2281,122 @@ class HCWSearchField extends HCWBaseField {
     }
 }
 
-class HCWColorWheelEncoderField extends HCWEncoderField {
+class HCWColorWheelEncoderField extends HCWBaseField {
     constructor(encoderText = 'Color Wheel', id = Date.now()) {
         super(encoderText, id);
-
         this.className = 'HCWColorWheelEncoderField';
+
+        this.value = 0.0;
+        this.value2 = 0.0;
+        this.displayType = 'byte';
 
         this.centerColor = null;
         this.centerImage = null;
         this._loadedImage = null;
-        this.wheelData = null; // { "#ffffff": [[0,9],...], "/path/img.png": [[10,19]], ... }
-        this.iconCache = {}; // { path: ImageObject }
+        this.wheelData = null;
+        this.iconCache = {};
+
+        this.renderProps = {
+            colors: {
+                background: '#1b1717ff',
+                knobOuter: '#574b4bff',
+                knobInner: '#3d3434',
+                indicator: '#ffffff',
+                text: '#ffffff'
+            },
+            centerX: null, centerY: null,
+            outerRadius: null, innerRadius: null,
+            startX: null, startY: null,
+            endX: null, endY: null,
+            activeRing: null
+        };
+
+        this._lastInteractionAngle = null;
     }
 
     getType() {
         return GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_WHEEL_ENCODER;
     }
 
+    setValue(val1, val2 = null) {
+        let v1 = val1;
+        let v2 = (val2 !== null) ? val2 : this.value2;
+
+        while (v2 >= 1.0) { v2 -= 1.0; v1 += (1 / 255); }
+        while (v2 < 0.0) { v2 += 1.0; v1 -= (1 / 255); }
+
+        this.value = Math.max(0, Math.min(1, v1));
+        this.value2 = Math.max(0, Math.min(1, v2));
+
+        this.emitAction(GLOBAL_TYPES.ACTIONS.ENCODER_VALUE_UPDATE, {
+            outer: { value: this.value, byte: Math.round(this.value * 255) },
+            inner: { value: this.value2, byte: Math.round(this.value2 * 255) }
+        });
+
+        this.updateFrame();
+        return this;
+    }
+
+    _interaction(interaction) {
+        if (interaction.type === 'mousedown') {
+            const cx = this.renderProps.centerX;
+            const cy = this.renderProps.centerY;
+
+            // Check distance from center of the knob
+            const dist = Math.sqrt(Math.pow(interaction.mouseX - cx, 2) + Math.pow(interaction.mouseY - cy, 2));
+
+            if (dist < this.renderProps.innerRadius * 1.2) {
+                this.renderProps.activeRing = 'inner';
+            } else if (dist < this.renderProps.outerRadius * 1.2) {
+                this.renderProps.activeRing = 'outer';
+            }
+
+        } else if (interaction.type === 'mousemove') {
+            if (this.renderProps.activeRing) {
+                this._updateFromDelta(interaction.mouseX, interaction.mouseY);
+            }
+
+        } else if (interaction.type === 'mouseup') {
+            this.renderProps.activeRing = null;
+            this._lastInteractionAngle = null;
+
+        } else if (interaction.type === 'scroll') {
+            const step = 0.02;
+            const direction = interaction.deltaY > 0 ? -1 : 1;
+            this.setValue(this.value + (step * direction));
+        }
+    }
+
+    _updateFromDelta(mx, my) {
+        const cx = this.renderProps.centerX;
+        const cy = this.renderProps.centerY;
+        const currentAngle = Math.atan2(my - cy, mx - cx);
+
+        if (this._lastInteractionAngle === null) {
+            this._lastInteractionAngle = currentAngle;
+            return;
+        }
+
+        let delta = currentAngle - this._lastInteractionAngle;
+        if (delta > Math.PI) delta -= 2 * Math.PI;
+        if (delta < -Math.PI) delta += 2 * Math.PI;
+
+        const rotationSensitivity = delta / (Math.PI * 2);
+
+        if (this.renderProps.activeRing === 'inner') {
+            this.setValue(this.value, this.value2 + rotationSensitivity);
+        } else {
+            this.setValue(this.value + rotationSensitivity, this.value2);
+        }
+
+        this._lastInteractionAngle = currentAngle;
+    }
+
     setWheelData(data) {
         this.wheelData = data;
-
-        // Preload icons if keys are paths
         if (data) {
             for (const key of Object.keys(data)) {
-                if (!key.startsWith('#') && !key.startsWith('rgb') && !this.iconCache[key] && key.includes('.')) {
+                if (!key.startsWith('#') && !key.startsWith('rgb') && !this.iconCache[key]) {
                     const img = new Image();
                     img.src = key;
                     img.onload = () => this.updateFrame();
@@ -2315,107 +2407,112 @@ class HCWColorWheelEncoderField extends HCWEncoderField {
         return this;
     }
 
-    setCenterColor(color) {
-        this.centerColor = color;
-        this.updateFrame();
-        return this;
-    }
-
     setCenterImage(src) {
         this.centerImage = src;
         if (src) {
             this._loadedImage = new Image();
             this._loadedImage.src = src;
             this._loadedImage.onload = () => this.updateFrame();
-        } else {
-            this._loadedImage = null;
         }
-        this.updateFrame();
         return this;
     }
 
     render(contextwindow) {
-        // First run normal encoder render
-        super.render(contextwindow);
+        // ESSENTIAL: Update framework bounding box
+        this.renderProps.startX = contextwindow.x;
+        this.renderProps.startY = contextwindow.y;
+        this.renderProps.endX = contextwindow.x2;
+        this.renderProps.endY = contextwindow.y2;
+
+        const sx = contextwindow.sx;
+        const sy = contextwindow.sy;
+        const cx = contextwindow.x + (sx / 2);
+        const knobCy = sy > 100 ? contextwindow.y + (sy * 0.45) : contextwindow.y + (sy * 0.5);
+
+        const minDim = Math.min(sx, sy);
+        this.renderProps.centerX = cx;
+        this.renderProps.centerY = knobCy;
+        this.renderProps.outerRadius = (minDim * 0.35);
+        this.renderProps.innerRadius = (minDim * 0.20);
 
         const ctx = HCW.ctx;
-        const cx = this.renderProps.centerX;
-        const cy = this.renderProps.centerY;
-        const innerRadius = this.renderProps.innerRadius;
+        const colors = this.renderProps.colors;
 
-        // Dynamic lookup based on wheelData
+        // 1. Background
+        ctx.fillStyle = colors.background;
+        ctx.fillRect(contextwindow.x, contextwindow.y, sx, sy);
+
+        // 2. Outer Knob
+        ctx.beginPath();
+        ctx.arc(cx, knobCy, this.renderProps.outerRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = colors.knobOuter;
+        ctx.fill();
+
+        // 3. Indicator Line
+        const startRad = (135 * Math.PI) / 180;
+        const rangeRad = (270 * Math.PI) / 180;
+        const currentRad = startRad + (this.value * rangeRad);
+
+        ctx.beginPath();
+        ctx.moveTo(cx, knobCy);
+        ctx.lineTo(
+            cx + Math.cos(currentRad) * (this.renderProps.outerRadius * 0.8),
+            knobCy + Math.sin(currentRad) * (this.renderProps.outerRadius * 0.8)
+        );
+        ctx.strokeStyle = colors.indicator;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // 4. Color Wheel Center
         const activeKeys = [];
-
         if (this.wheelData) {
-            const dmxVal = Math.round(this.value * 255);
+            const dmx = Math.round(this.value * 255);
             for (const [key, ranges] of Object.entries(this.wheelData)) {
-                // Determine if any range in this color matches
-                // Support both old format [min, max] and new format [[min, max], ...]
-                const rangeArray = Array.isArray(ranges[0]) ? ranges : [ranges];
-
-                for (const range of rangeArray) {
-                    if (dmxVal >= range[0] && dmxVal <= range[1]) {
-                        activeKeys.push(key);
-                        break;
-                    }
-                }
+                const rangeArr = Array.isArray(ranges[0]) ? ranges : [ranges];
+                if (rangeArr.some(r => dmx >= r[0] && dmx <= r[1])) activeKeys.push(key);
             }
         }
 
-        // Helper to draw color or image segment
-        const drawSegment = (key, isLeft) => {
-            const img = this.iconCache[key];
-            if (img && img.complete) {
-                // Segment clipping for half-half
-                ctx.save();
-                ctx.beginPath();
-                if (activeKeys.length === 1) {
-                    ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
-                } else if (isLeft) {
-                    ctx.arc(cx, cy, innerRadius - 2, Math.PI / 2, (3 * Math.PI) / 2);
-                    ctx.lineTo(cx, cy);
-                } else {
-                    ctx.arc(cx, cy, innerRadius - 2, (3 * Math.PI) / 2, Math.PI / 2);
-                    ctx.lineTo(cx, cy);
-                }
-                ctx.clip();
-                ctx.drawImage(img, cx - innerRadius, cy - innerRadius, innerRadius * 2, innerRadius * 2);
-                ctx.restore();
-            } else {
-                ctx.beginPath();
-                if (activeKeys.length === 1) {
-                    ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
-                } else if (isLeft) {
-                    ctx.arc(cx, cy, innerRadius - 2, Math.PI / 2, (3 * Math.PI) / 2);
-                    ctx.lineTo(cx, cy);
-                } else {
-                    ctx.arc(cx, cy, innerRadius - 2, (3 * Math.PI) / 2, Math.PI / 2);
-                    ctx.lineTo(cx, cy);
-                }
-                ctx.fillStyle = (key.startsWith('#') || key.startsWith('rgb')) ? key : '#444';
-                ctx.fill();
-            }
-        };
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, knobCy, this.renderProps.innerRadius - 2, 0, Math.PI * 2);
+        ctx.clip();
 
-        // Draw center part
         if (activeKeys.length > 0) {
-            ctx.save();
-            if (activeKeys.length === 1) {
-                drawSegment(activeKeys[0], true);
-            } else if (activeKeys.length >= 2) {
-                drawSegment(activeKeys[0], true);
-                drawSegment(activeKeys[1], false);
-            }
-            ctx.restore();
+            const sliceAngle = (Math.PI * 2) / activeKeys.length;
+            activeKeys.forEach((key, i) => {
+                ctx.beginPath();
+                ctx.moveTo(cx, knobCy);
+                ctx.arc(cx, knobCy, this.renderProps.innerRadius, i * sliceAngle - Math.PI / 2, (i + 1) * sliceAngle - Math.PI / 2);
+                const img = this.iconCache[key];
+                if (img && img.complete) {
+                    ctx.save(); ctx.clip();
+                    ctx.drawImage(img, cx - this.renderProps.innerRadius, knobCy - this.renderProps.innerRadius, this.renderProps.innerRadius * 2, this.renderProps.innerRadius * 2);
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = (key.startsWith('#') || key.startsWith('rgb')) ? key : '#444';
+                    ctx.fill();
+                }
+            });
+        } else if (this._loadedImage && this._loadedImage.complete) {
+            ctx.drawImage(this._loadedImage, cx - this.renderProps.innerRadius, knobCy - this.renderProps.innerRadius, this.renderProps.innerRadius * 2, this.renderProps.innerRadius * 2);
         } else if (this.centerColor) {
-            // Fallback to default center color if no wheel match
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(cx, cy, innerRadius - 2, 0, Math.PI * 2);
-            ctx.clip();
             ctx.fillStyle = this.centerColor;
             ctx.fill();
-            ctx.restore();
+        } else {
+            ctx.fillStyle = '#000000';
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // 5. Labels
+        if (sy > 100) {
+            ctx.fillStyle = colors.text;
+            ctx.font = "12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(this.text, cx, knobCy + this.renderProps.outerRadius + 20);
+            ctx.font = "10px Monospace";
+            ctx.fillText(Math.round(this.value * 255), cx, knobCy + this.renderProps.outerRadius + 35);
         }
     }
 }
