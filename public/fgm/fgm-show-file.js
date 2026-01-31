@@ -6,6 +6,9 @@ class FGMShowFile {
             hcwV: "0.0.1",
             name: "My First Show",
             description: "",
+            hcwSettings: {
+
+            },
             media: {
 
             },
@@ -15,7 +18,7 @@ class FGMShowFile {
             pages: {
                 "0": {
                     name: "Page 1",
-                    windows: {
+                    windowObjs: {
 
                     }
                 }
