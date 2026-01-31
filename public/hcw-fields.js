@@ -2281,10 +2281,10 @@ class HCWSearchField extends HCWBaseField {
     }
 }
 
-class HCWColorWheelEncoderField extends HCWBaseField {
+class HCWCustomEncoderField extends HCWBaseField {
     constructor(encoderText = 'Color Wheel', id = Date.now()) {
         super(encoderText, id);
-        this.className = 'HCWColorWheelEncoderField';
+        this.className = 'HCWCustomEncoderField';
 
         this.value = 0.0;
         this.value2 = 0.0;
@@ -2293,7 +2293,7 @@ class HCWColorWheelEncoderField extends HCWBaseField {
         this.centerColor = null;
         this.centerImage = null;
         this._loadedImage = null;
-        this.wheelData = null;
+        this.wheelData = []; // Now an Array
         this.iconCache = {};
 
         this.renderProps = {
@@ -2321,18 +2321,14 @@ class HCWColorWheelEncoderField extends HCWBaseField {
     setValue(val1, val2 = null) {
         let v1 = val1;
         let v2 = (val2 !== null) ? val2 : this.value2;
-
         while (v2 >= 1.0) { v2 -= 1.0; v1 += (1 / 255); }
         while (v2 < 0.0) { v2 += 1.0; v1 -= (1 / 255); }
-
         this.value = Math.max(0, Math.min(1, v1));
         this.value2 = Math.max(0, Math.min(1, v2));
-
         this.emitAction(GLOBAL_TYPES.ACTIONS.ENCODER_VALUE_UPDATE, {
             outer: { value: this.value, byte: Math.round(this.value * 255) },
             inner: { value: this.value2, byte: Math.round(this.value2 * 255) }
         });
-
         this.updateFrame();
         return this;
     }
@@ -2341,25 +2337,19 @@ class HCWColorWheelEncoderField extends HCWBaseField {
         if (interaction.type === 'mousedown') {
             const cx = this.renderProps.centerX;
             const cy = this.renderProps.centerY;
-
-            // Check distance from center of the knob
             const dist = Math.sqrt(Math.pow(interaction.mouseX - cx, 2) + Math.pow(interaction.mouseY - cy, 2));
-
             if (dist < this.renderProps.innerRadius * 1.2) {
                 this.renderProps.activeRing = 'inner';
             } else if (dist < this.renderProps.outerRadius * 1.2) {
                 this.renderProps.activeRing = 'outer';
             }
-
         } else if (interaction.type === 'mousemove') {
             if (this.renderProps.activeRing) {
                 this._updateFromDelta(interaction.mouseX, interaction.mouseY);
             }
-
         } else if (interaction.type === 'mouseup') {
             this.renderProps.activeRing = null;
             this._lastInteractionAngle = null;
-
         } else if (interaction.type === 'scroll') {
             const step = 0.02;
             const direction = interaction.deltaY > 0 ? -1 : 1;
@@ -2371,39 +2361,37 @@ class HCWColorWheelEncoderField extends HCWBaseField {
         const cx = this.renderProps.centerX;
         const cy = this.renderProps.centerY;
         const currentAngle = Math.atan2(my - cy, mx - cx);
-
         if (this._lastInteractionAngle === null) {
             this._lastInteractionAngle = currentAngle;
             return;
         }
-
         let delta = currentAngle - this._lastInteractionAngle;
         if (delta > Math.PI) delta -= 2 * Math.PI;
         if (delta < -Math.PI) delta += 2 * Math.PI;
-
         const rotationSensitivity = delta / (Math.PI * 2);
-
         if (this.renderProps.activeRing === 'inner') {
             this.setValue(this.value, this.value2 + rotationSensitivity);
         } else {
             this.setValue(this.value + rotationSensitivity, this.value2);
         }
-
         this._lastInteractionAngle = currentAngle;
     }
 
-    setWheelData(data) {
-        this.wheelData = data;
-        if (data) {
-            for (const key of Object.keys(data)) {
-                if (!key.startsWith('#') && !key.startsWith('rgb') && !this.iconCache[key]) {
-                    const img = new Image();
-                    img.src = key;
-                    img.onload = () => this.updateFrame();
-                    this.iconCache[key] = img;
+    setWheelData(dataArray) {
+        this.wheelData = Array.isArray(dataArray) ? dataArray : [];
+        this.wheelData.forEach(item => {
+            const keys = Array.isArray(item.data) ? item.data : [item.data];
+            keys.forEach(key => {
+                if (key.includes('base64') || key.includes('/') || key.includes('.')) {
+                    if (!this.iconCache[key]) {
+                        const img = new Image();
+                        img.src = key;
+                        img.onload = () => this.updateFrame();
+                        this.iconCache[key] = img;
+                    }
                 }
-            }
-        }
+            });
+        });
         return this;
     }
 
@@ -2418,7 +2406,6 @@ class HCWColorWheelEncoderField extends HCWBaseField {
     }
 
     render(contextwindow) {
-        // ESSENTIAL: Update framework bounding box
         this.renderProps.startX = contextwindow.x;
         this.renderProps.startY = contextwindow.y;
         this.renderProps.endX = contextwindow.x2;
@@ -2428,7 +2415,6 @@ class HCWColorWheelEncoderField extends HCWBaseField {
         const sy = contextwindow.sy;
         const cx = contextwindow.x + (sx / 2);
         const knobCy = sy > 100 ? contextwindow.y + (sy * 0.45) : contextwindow.y + (sy * 0.5);
-
         const minDim = Math.min(sx, sy);
         this.renderProps.centerX = cx;
         this.renderProps.centerY = knobCy;
@@ -2438,21 +2424,17 @@ class HCWColorWheelEncoderField extends HCWBaseField {
         const ctx = HCW.ctx;
         const colors = this.renderProps.colors;
 
-        // 1. Background
         ctx.fillStyle = colors.background;
         ctx.fillRect(contextwindow.x, contextwindow.y, sx, sy);
 
-        // 2. Outer Knob
         ctx.beginPath();
         ctx.arc(cx, knobCy, this.renderProps.outerRadius, 0, 2 * Math.PI);
         ctx.fillStyle = colors.knobOuter;
         ctx.fill();
 
-        // 3. Indicator Line
         const startRad = (135 * Math.PI) / 180;
         const rangeRad = (270 * Math.PI) / 180;
         const currentRad = startRad + (this.value * rangeRad);
-
         ctx.beginPath();
         ctx.moveTo(cx, knobCy);
         ctx.lineTo(
@@ -2463,15 +2445,22 @@ class HCWColorWheelEncoderField extends HCWBaseField {
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // 4. Color Wheel Center
-        const activeKeys = [];
-        if (this.wheelData) {
-            const dmx = Math.round(this.value * 255);
-            for (const [key, ranges] of Object.entries(this.wheelData)) {
-                const rangeArr = Array.isArray(ranges[0]) ? ranges : [ranges];
-                if (rangeArr.some(r => dmx >= r[0] && dmx <= r[1])) activeKeys.push(key);
+        // --- NEW JSON MATCHING LOGIC ---
+        let activeKeys = [];
+        const dmx = Math.round(this.value * 255);
+
+        this.wheelData.forEach(item => {
+            const ranges = Array.isArray(item.range[0]) ? item.range : [item.range];
+            const match = ranges.some(r => dmx >= r[0] && dmx <= r[1]);
+
+            if (match) {
+                if (Array.isArray(item.data)) {
+                    activeKeys.push(...item.data);
+                } else {
+                    activeKeys.push(item.data);
+                }
             }
-        }
+        });
 
         ctx.save();
         ctx.beginPath();
@@ -2505,7 +2494,6 @@ class HCWColorWheelEncoderField extends HCWBaseField {
         }
         ctx.restore();
 
-        // 5. Labels
         if (sy > 100) {
             ctx.fillStyle = colors.text;
             ctx.font = "12px Arial";
