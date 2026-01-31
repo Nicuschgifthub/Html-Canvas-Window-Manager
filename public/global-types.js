@@ -1,5 +1,4 @@
 class GLOBAL_TYPES {
-
     static get ACTIONS() {
         return {
             get ENCODER_VALUE_UPDATE() {
@@ -109,6 +108,24 @@ class GLOBAL_TYPES {
                     }
                 }
             }
+        }
+    }
+
+    static get CMD_TYPES() {
+        return {
+            SOME_FADER(selfId) {
+                return {
+                    selfType: "Fader",
+                    selfId: selfId,
+
+                };
+            },
+            get MASTER_FADER() {
+                return 'FGM_TYPE_MASTER_FADER';
+            },
+            get DIMMER_FADER() {
+                return 'FGM_TYPE_MASTER_FADER';
+            },
         }
     }
 

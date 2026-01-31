@@ -2,6 +2,7 @@ const start = () => {
 
     const faderContext = new HCWFaderField("Dimmer 01", Date.now())
         .setValue(0.5)
+        .setFGMType(GLOBAL_TYPES.FGM_TYPES.MASTER_FADER)
 
     const presetContext = new HCWPresetField("My Sets", Date.now())
         .addPresets(
@@ -72,7 +73,7 @@ const start = () => {
     const window = new HCWWindow({ x: 100, y: 100, sx: 800, sy: 400 })
         .setMinSizes(100, 100)
         .setId(Date.now())
-        .setContextField(colorWheelContext);
+        .setContextField(faderContext);
 
 
 
