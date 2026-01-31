@@ -378,7 +378,7 @@ const HCWFactory = {
     classList: {
         HCWWindow, HCWBaseField, HCWFaderField, HCWPresetField,
         HCWPreset, HCWEncoderField, HCWKeyboardField, HCWNumberField,
-        HCWColorMapField, HCWTableField, HCWColorWheelEncoderField,
+        HCWColorMapField, HCWTableField, HCWCustomEncoderField,
         HCWSearchField, HCWSearchResult
     },
 

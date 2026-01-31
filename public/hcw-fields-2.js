@@ -46,7 +46,7 @@ class HCWSequenceEditor extends HCWBaseField {
         this._initMockData();
     }
 
-    getFGMType(){
+    getFGMType() {
         return GLOBAL_TYPES.CONTEXT_FIELDS.SEQUENCE_EDITOR;
     }
 

@@ -51,7 +51,7 @@ const start = () => {
     const searchFieldContext = new HCWSearchField("Search Some", Date.now())
         .setResults(new HCWSearchResult().setName("Full name").setShortName("Short Name").setType("Fixture"))
 
-    const colorWheelContext = new HCWColorWheelEncoderField("Color Wheel 1", Date.now());
+    const colorWheelContext = new HCWCustomEncoderField("Color Wheel 1", Date.now());
 
     colorWheelContext.setWheelData([
         { range: [[1, 10], [100, 110]], data: "#ff0000" },

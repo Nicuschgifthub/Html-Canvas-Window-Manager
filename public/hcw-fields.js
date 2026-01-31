@@ -2293,7 +2293,7 @@ class HCWCustomEncoderField extends HCWBaseField {
         this.centerColor = null;
         this.centerImage = null;
         this._loadedImage = null;
-        this.wheelData = []; // Now an Array
+        this.wheelData = [];
         this.iconCache = {};
 
         this.renderProps = {
@@ -2315,20 +2315,59 @@ class HCWCustomEncoderField extends HCWBaseField {
     }
 
     getType() {
-        return GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_WHEEL_ENCODER;
+        return GLOBAL_TYPES.CONTEXT_FIELDS.CUSTOM_WHEEL_ENCODER;
+    }
+
+    _triggerCallback() {
+        let activeKeys = [];
+        const dmx = Math.round(this.value * 255);
+        if (this.wheelData) {
+            this.wheelData.forEach(item => {
+                const ranges = Array.isArray(item.range[0]) ? item.range : [item.range];
+                const match = ranges.some(r => dmx >= r[0] && dmx <= r[1]);
+
+                if (match) {
+                    if (Array.isArray(item.data)) {
+                        activeKeys.push(...item.data);
+                    } else {
+                        activeKeys.push(item.data);
+                    }
+                }
+            });
+        }
+
+        this.emitAction(GLOBAL_TYPES.ACTIONS.CUSTOM_ENCODER_VALUE_UPDATE, {
+            outer: {
+                value: this.value,
+                byte: dmx,
+                percent: Math.round(this.value * 100)
+            },
+            inner: {
+                value: this.value2,
+                byte: Math.round(this.value2 * 255),
+                percent: Math.round(this.value2 * 100)
+            },
+            wheel: {
+                activeKeys: activeKeys,
+                isSplit: activeKeys.length > 1,
+                count: activeKeys.length
+            },
+            combinedByte: dmx + Math.round(this.value2 * 255)
+        });
     }
 
     setValue(val1, val2 = null) {
         let v1 = val1;
         let v2 = (val2 !== null) ? val2 : this.value2;
+
         while (v2 >= 1.0) { v2 -= 1.0; v1 += (1 / 255); }
         while (v2 < 0.0) { v2 += 1.0; v1 -= (1 / 255); }
+
         this.value = Math.max(0, Math.min(1, v1));
         this.value2 = Math.max(0, Math.min(1, v2));
-        this.emitAction(GLOBAL_TYPES.ACTIONS.ENCODER_VALUE_UPDATE, {
-            outer: { value: this.value, byte: Math.round(this.value * 255) },
-            inner: { value: this.value2, byte: Math.round(this.value2 * 255) }
-        });
+
+        this._triggerCallback();
+
         this.updateFrame();
         return this;
     }
@@ -2445,14 +2484,12 @@ class HCWCustomEncoderField extends HCWBaseField {
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // --- NEW JSON MATCHING LOGIC ---
         let activeKeys = [];
         const dmx = Math.round(this.value * 255);
 
         this.wheelData.forEach(item => {
             const ranges = Array.isArray(item.range[0]) ? item.range : [item.range];
             const match = ranges.some(r => dmx >= r[0] && dmx <= r[1]);
-
             if (match) {
                 if (Array.isArray(item.data)) {
                     activeKeys.push(...item.data);

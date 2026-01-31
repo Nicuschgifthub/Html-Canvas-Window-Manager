@@ -6,7 +6,7 @@ class GLOBAL_TYPES {
                 return 'ACTION_ENCODER_VALUE_UPDATE';
             },
 
-            get COLOR_ENCODER_VALUE_UPDATE() {
+            get CUSTOM_ENCODER_VALUE_UPDATE() {
                 return 'ACTION_COLOR_ENCODER_VALUE_UPDATE';
             },
 
@@ -141,11 +141,11 @@ class GLOBAL_TYPES {
             get SEARCH_BOX() {
                 return 'CONTEXT_FIELD_SEARCH_BOX';
             },
-            get COLOR_WHEEL_ENCODER() {
-                return 'CONTEXT_FIELD_COLOR_WHEEL_ENCODER';
-            },
             get SEQUENCE_EDITOR() {
                 return 'CONTEXT_FIELD_SEQUENCE_EDITOR';
+            },
+            get CUSTOM_WHEEL_ENCODER() {
+                return 'CONTEXT_FIELD_CUSTOM_WHEEL_ENCODER';
             }
         }
     }
