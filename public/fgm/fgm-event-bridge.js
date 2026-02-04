@@ -14,10 +14,8 @@ class FGMEvents {
 
     static onAction(type, data = {}) {
 
-        //  if (data.fgmType == null) return;
 
         console.log(type, data);
-        console.log(data.fgmType)
 
 
         console.log("COMMAND")

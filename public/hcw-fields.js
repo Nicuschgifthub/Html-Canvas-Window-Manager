@@ -1,7 +1,6 @@
 class HCWBaseField {
     constructor(label) {
         this.label = label;
-        this.fgmType = null;
         this.parentWindow = null;
         this.renderProps = {};
         this.actionFunction = null;
@@ -10,7 +9,7 @@ class HCWBaseField {
         this.address = {
             keyword: "placeholder",
             secondKeyword: null,
-            id: "1.101"
+            locationId: "1.101"
         };
     }
 
@@ -18,8 +17,8 @@ class HCWBaseField {
         return this.address.keyword;
     }
 
-    getId() {
-        return this.address.id;
+    getLocationId() {
+        return this.address.locationId;
     }
 
     getSecondKeyword() {
@@ -30,18 +29,14 @@ class HCWBaseField {
         return this.label;
     }
 
-    setLabel(label) {
-        this.label = label;
-        this.updateFrame();
+    setLocationId(locationString) {
+        this.address.locationId = locationString;
         return this;
     }
 
-    getFGMType() {
-        return this.fgmType;
-    }
-
-    setFGMType(type = null) {
-        this.fgmType = type;
+    setLabel(label) {
+        this.label = label;
+        this.updateFrame();
         return this;
     }
 
@@ -142,7 +137,6 @@ class HCWBaseField {
             default:
                 break;
         }
-
     }
 }
 
@@ -262,8 +256,8 @@ class HCWFaderField extends HCWBaseField {
 }
 
 class HCWEncoderField extends HCWBaseField {
-    constructor(encoderText = 'Encoder', id = Date.now()) {
-        super(encoderText, id);
+    constructor(encoderText = 'Encoder') {
+        super(encoderText);
         this.className = 'HCWEncoderField';
         this._insertClassKeyword();
 

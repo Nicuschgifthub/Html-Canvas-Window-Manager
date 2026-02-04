@@ -48,10 +48,6 @@ class HCWSequenceEditor extends HCWBaseField {
         this._initMockData();
     }
 
-    getFGMType() {
-        return GLOBAL_TYPES.CONTEXT_FIELDS.SEQUENCE_EDITOR;
-    }
-
     _initMockData() {
         this.rows = [
             { lock: 'PL', no: '0', part: '', name: 'CueZero', trig: { type: '', time: '' }, duration: '0', fade: { in: '0', out: '0' }, delay: { in: '0', out: '0' }, transition: 'Linear', cmd: '', mib: '' },
