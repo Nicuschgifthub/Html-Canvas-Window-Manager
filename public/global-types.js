@@ -160,4 +160,40 @@ class GLOBAL_TYPES {
             }
         }
     }
+
+    static get CONSOLE() {
+        return {
+            get KEYWORDS() {
+                return {
+                    get NONE() {
+                        return 'NONE';
+                    },
+                    get FADER() {
+                        return 'Fader';
+                    },
+                    get ENCODER() {
+                        return 'Encoder';
+                    },
+                    get PRESET_GROUP() {
+                        return 'PresetGroup';
+                    },
+                    get PRESET() {
+                        return 'Preset';
+                    },
+                    get COLOR_WHEEL() {
+                        return 'ColorWheel';
+                    },
+                    get COLOR_MAP() {
+                        return 'ColorMap';
+                    },
+                    get TABLE() {
+                        return 'Table';
+                    },
+                    get C_ENCODER() {
+                        return 'CustomEncoder';
+                    }
+                }
+            }
+        }
+    }
 }

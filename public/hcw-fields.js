@@ -8,9 +8,22 @@ class HCWBaseField {
         this.className = 'HCWBaseField';
 
         this.address = {
-            keyword: "placeholder", // e.g., "Fader", "Button", "Macro"
-            id: "1.101"       // The [Page].[Index]
+            keyword: "placeholder",
+            secondKeyword: null,
+            id: "1.101"
         };
+    }
+
+    getKeyword() {
+        return this.address.keyword;
+    }
+
+    getId() {
+        return this.address.id;
+    }
+
+    getSecondKeyword() {
+        return this.address.secondKeyword;
     }
 
     getLabel() {
@@ -93,12 +106,51 @@ class HCWBaseField {
         }
         return this;
     }
+
+    _insertClassKeyword() {
+        if (!this.className) return;
+
+        switch (this.className) {
+            case "HCWFaderField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.FADER;
+                break;
+            case "HCWEncoderField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.ENCODER;
+                break;
+            case "HCWPresetField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.PRESET_GROUP;
+                this.address.secondKeyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.PRESET;
+                break;
+            case "HCWNumberField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.NONE;
+                break;
+            case "HCWKeyboardField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.NONE;
+                break;
+            case "HCWColorMapField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.COLOR_MAP;
+                break;
+            case "HCWTableField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.TABLE;
+                break;
+            case "HCWSearchField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.NONE;
+                break;
+            case "HCWCustomEncoderField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.C_ENCODER;
+                break;
+            default:
+                break;
+        }
+
+    }
 }
 
 class HCWFaderField extends HCWBaseField {
     constructor(label = 'Fader 01') {
         super(label);
         this.className = 'HCWFaderField';
+        this._insertClassKeyword();
 
         this.value = 0.0; // 0.0 to 1.0
         this.displayType = 'byte'; // 'value', 'byte', 'percent'
@@ -213,6 +265,7 @@ class HCWEncoderField extends HCWBaseField {
     constructor(encoderText = 'Encoder', id = Date.now()) {
         super(encoderText, id);
         this.className = 'HCWEncoderField';
+        this._insertClassKeyword();
 
         this.value = 0.0;
         this.value2 = 0.0;
@@ -518,6 +571,7 @@ class HCWPresetField extends HCWBaseField {
     constructor(label = 'Presets') {
         super(label);
         this.className = 'HCWPresetField';
+        this._insertClassKeyword();
 
         this.presets = [];
 
@@ -814,6 +868,7 @@ class HCWNumberField extends HCWBaseField {
     constructor(label = 'Numpad') {
         super(label);
         this.className = 'HCWNumberField';
+        this._insertClassKeyword();
 
         this.type = 'numpad';
 
@@ -1054,6 +1109,7 @@ class HCWKeyboardField extends HCWBaseField {
     constructor(label = 'Keyboard') {
         super(label);
         this.className = 'HCWKeyboardField';
+        this._insertClassKeyword();
 
         this.type = 'keyboard';
 
@@ -1399,6 +1455,7 @@ class HCWColorMapField extends HCWBaseField {
     constructor(label = 'Color 1') {
         super(label);
         this.className = 'HCWColorMapField';
+        this._insertClassKeyword();
 
         this._CLASS_REBUILD_NONE_OVERWRITES = {
             mapFirstBuild: true,
@@ -1704,6 +1761,7 @@ class HCWTableField extends HCWBaseField {
     constructor(label = 'Settings') {
         super(label);
         this.className = 'HCWTableField';
+        this._insertClassKeyword();
 
         this.headers = [];
         this.rows = [];
@@ -2124,6 +2182,7 @@ class HCWSearchField extends HCWBaseField {
     constructor(label = 'Search') {
         super(label);
         this.className = 'HCWSearchField';
+        this._insertClassKeyword();
 
         this.searchValue = "";
         this.results = [];
@@ -2282,6 +2341,7 @@ class HCWCustomEncoderField extends HCWBaseField {
     constructor(label = 'Color Wheel') {
         super(label);
         this.className = 'HCWCustomEncoderField';
+        this._insertClassKeyword();
 
         this.value = 0.0;
         this.value2 = 0.0;

@@ -55,6 +55,7 @@ const start = () => {
             ["tulper", "100MB", "5732"],
             ["sudo", "560MB", "785771"],
             ["jang", "330MB", "8761"],
+            ["jurs", "10MB", "484856"],
         ])
         .setButtonAddRowLabel("Set next element")
         .setButtonRemoveRow()
