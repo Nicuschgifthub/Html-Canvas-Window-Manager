@@ -2,8 +2,10 @@ class FGMShowFile {
     constructor(json = false) {
 
         this.showFile = {
-            fgmV: "0.0.1",
-            hcwV: "0.0.1",
+            version: {
+                fgm: "0.0.1",
+                hcw: "0.0.1",
+            },
             name: "My First Show",
             description: "",
             hcwSettings: {

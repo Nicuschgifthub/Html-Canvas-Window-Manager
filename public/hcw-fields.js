@@ -1,24 +1,24 @@
 class HCWBaseField {
-    constructor(text, id = Date.now()) {
-        this.text = text;
-        this.id = id;
+    constructor(label) {
+        this.label = label;
         this.fgmType = null;
         this.parentWindow = null;
         this.renderProps = {};
         this.actionFunction = null;
         this.className = 'HCWBaseField';
-    }
 
-    getId() {
-        return this.id;
+        this.address = {
+            keyword: "placeholder", // e.g., "Fader", "Button", "Macro"
+            id: "1.101"       // The [Page].[Index]
+        };
     }
 
     getLabel() {
-        return this.text;
+        return this.label;
     }
 
     setLabel(label) {
-        this.text = label;
+        this.label = label;
         this.updateFrame();
         return this;
     }
@@ -48,7 +48,7 @@ class HCWBaseField {
     }
 
     getExcludedJSONKeys() {
-        return ['parentWindow', 'onValueChangeCallback', 'onPresetPressCallback', 'onEnterCallback', 'onColorChangeCallback'];
+        return ['parentWindow'];
     }
 
     getActionFunction() {
@@ -68,8 +68,7 @@ class HCWBaseField {
 
         if (typeof this.actionFunction === 'function') {
             data.parentWindow = this.parentWindow;
-            data.fgmType = this.fgmType;
-            data.id = this.id;
+            data.actionType = this.getType();
             data.fieldClass = this;
 
             this.actionFunction(type, data);
@@ -97,9 +96,8 @@ class HCWBaseField {
 }
 
 class HCWFaderField extends HCWBaseField {
-    constructor(faderText = 'Fader 01', id = Date.now()) {
-        super(faderText, id);
-
+    constructor(label = 'Fader 01') {
+        super(label);
         this.className = 'HCWFaderField';
 
         this.value = 0.0; // 0.0 to 1.0
@@ -205,7 +203,8 @@ class HCWFaderField extends HCWBaseField {
 
         HCW.ctx.fillStyle = colors.text;
         HCW.ctx.font = "12px Arial";
-        HCW.ctx.fillText(this.text, x + 5, y + 15);
+        HCW.ctx.textAlign = "left";
+        HCW.ctx.fillText(this.getLabel(), x + 5, y + 15);
         HCW.ctx.fillText(this._getFormattedValue(), x + 5, y + 30);
     }
 }
@@ -213,7 +212,6 @@ class HCWFaderField extends HCWBaseField {
 class HCWEncoderField extends HCWBaseField {
     constructor(encoderText = 'Encoder', id = Date.now()) {
         super(encoderText, id);
-
         this.className = 'HCWEncoderField';
 
         this.value = 0.0;
@@ -430,12 +428,12 @@ class HCWEncoderField extends HCWBaseField {
             HCW.ctx.fillStyle = colors.text;
             HCW.ctx.font = "12px Arial";
             HCW.ctx.textAlign = "center";
-            HCW.ctx.fillText(this.text, cx, knobCy + outerRadius + 20);
+            HCW.ctx.fillText(this.getLabel(), cx, knobCy + outerRadius + 16);
 
             HCW.ctx.font = "10px Monospace";
             const v1Str = this._getFormattedValue(this.value);
             const v2Str = this._getFormattedValue(this.value2);
-            HCW.ctx.fillText(`${v1Str} | ${v2Str}`, cx, knobCy + outerRadius + 35);
+            HCW.ctx.fillText(`${v1Str} | ${v2Str}`, cx, knobCy + outerRadius + 30);
 
             HCW.ctx.textAlign = "start";
         }
@@ -445,7 +443,8 @@ class HCWEncoderField extends HCWBaseField {
 class HCWPreset {
     constructor(name = "Preset") {
         this.className = 'HCWPreset';
-        this.id = (Date.now() + Math.random());
+
+        this.presetId = (Date.now() + Math.random());
         this.name = name;
         this.color = null;
         this.defaultColor = null;
@@ -456,7 +455,7 @@ class HCWPreset {
         this.selectionState = 0;
     }
 
-    getId() { return this.id; }
+    getId() { return this.presetId; }
     getName() { return this.name; }
     getLabel() { return this.name; }
     getColor() { return this.color; }
@@ -469,7 +468,7 @@ class HCWPreset {
     getSelectionState() { return this.selectionState; }
     isSelected() { return this.selectionState > 0; }
 
-    setId(id) { this.id = id; return this; }
+    setId(presetId) { this.presetId = presetId; return this; }
     setName(name) { this.name = name; return this; }
     setLabel(name) { this.name = name; return this; }
     setColor(color) { this.color = color; return this; }
@@ -516,9 +515,8 @@ class HCWPreset {
 }
 
 class HCWPresetField extends HCWBaseField {
-    constructor(fieldName = 'Presets', id = Date.now()) {
-        super(fieldName, id);
-
+    constructor(label = 'Presets') {
+        super(label);
         this.className = 'HCWPresetField';
 
         this.presets = [];
@@ -598,6 +596,7 @@ class HCWPresetField extends HCWBaseField {
      */
     _setupAndAddPreset(preset) {
         preset.setParentField(this);
+
         this.presets.push(preset);
     }
 
@@ -718,7 +717,7 @@ class HCWPresetField extends HCWBaseField {
         HCW.ctx.fillStyle = this.renderProps.colors.headerText;
         HCW.ctx.font = "bold 14px Arial";
         HCW.ctx.textAlign = "center";
-        HCW.ctx.fillText(this.text, x + (sx / 2), y + 20);
+        HCW.ctx.fillText(this.getLabel(), x + (sx / 2), y + 20);
         HCW.ctx.textAlign = "start";
 
         HCW.ctx.save();
@@ -812,10 +811,11 @@ class HCWPresetField extends HCWBaseField {
 }
 
 class HCWNumberField extends HCWBaseField {
-    constructor(fieldName = 'Numpad', id = Date.now()) {
-        super(fieldName, id);
-        this.type = 'numpad';
+    constructor(label = 'Numpad') {
+        super(label);
         this.className = 'HCWNumberField';
+
+        this.type = 'numpad';
 
         this.value = "";
         this.cursorPos = 0;
@@ -984,7 +984,7 @@ class HCWNumberField extends HCWBaseField {
         HCW.ctx.fillStyle = this.renderProps.colors.headerText;
         HCW.ctx.font = "bold 14px Arial";
         HCW.ctx.textAlign = "center";
-        HCW.ctx.fillText(this.text, x + (sx / 2), y + 20);
+        HCW.ctx.fillText(this.getLabel(), x + (sx / 2), y + 20);
 
         const displayY = y + this.headerHeight;
         HCW.ctx.fillStyle = this.renderProps.colors.displayBg;
@@ -1051,9 +1051,8 @@ class HCWNumberField extends HCWBaseField {
 }
 
 class HCWKeyboardField extends HCWBaseField {
-    constructor(fieldName = 'Keyboard', id = Date.now()) {
-        super(fieldName, id);
-
+    constructor(label = 'Keyboard') {
+        super(label);
         this.className = 'HCWKeyboardField';
 
         this.type = 'keyboard';
@@ -1266,7 +1265,7 @@ class HCWKeyboardField extends HCWBaseField {
         HCW.ctx.fillStyle = this.renderProps.colors.headerText;
         HCW.ctx.font = "bold 14px Arial";
         HCW.ctx.textAlign = "center";
-        HCW.ctx.fillText(this.text, x + (sx / 2), y + 20);
+        HCW.ctx.fillText(this.getLabel(), x + (sx / 2), y + 20);
         HCW.ctx.textAlign = "start";
 
         const displayY = y + this.headerHeight;
@@ -1397,13 +1396,13 @@ class HCWKeyboardField extends HCWBaseField {
 }
 
 class HCWColorMapField extends HCWBaseField {
-    constructor(label = 'Color 1', id = Date.now()) {
-        super(label, id);
+    constructor(label = 'Color 1') {
+        super(label);
+        this.className = 'HCWColorMapField';
+
         this._CLASS_REBUILD_NONE_OVERWRITES = {
             mapFirstBuild: true,
         }
-
-        this.className = 'HCWColorMapField';
 
         this.h = 0;
         this.s = 1;
@@ -1685,7 +1684,7 @@ class HCWColorMapField extends HCWBaseField {
         ctx.fillStyle = '#fff';
         ctx.font = '10px Arial';
         ctx.textAlign = "left";
-        ctx.fillText(this.text, w.x + pad, w.y + 10);
+        ctx.fillText(this.getLabel(), w.x + pad, w.y + 10);
     }
 
     _drawHSlider(ctx, label, x, y, w, h, value, color) {
@@ -1702,9 +1701,8 @@ class HCWColorMapField extends HCWBaseField {
 }
 
 class HCWTableField extends HCWBaseField {
-    constructor(fieldName = 'Settings', id = Date.now()) {
-        super(fieldName, id);
-
+    constructor(label = 'Settings') {
+        super(label);
         this.className = 'HCWTableField';
 
         this.headers = [];
@@ -2123,9 +2121,8 @@ class HCWSearchResult {
 }
 
 class HCWSearchField extends HCWBaseField {
-    constructor(fieldName = 'Search', id = Date.now()) {
-        super(fieldName, id);
-
+    constructor(label = 'Search') {
+        super(label);
         this.className = 'HCWSearchField';
 
         this.searchValue = "";
@@ -2282,8 +2279,8 @@ class HCWSearchField extends HCWBaseField {
 }
 
 class HCWCustomEncoderField extends HCWBaseField {
-    constructor(encoderText = 'Color Wheel', id = Date.now()) {
-        super(encoderText, id);
+    constructor(label = 'Color Wheel') {
+        super(label);
         this.className = 'HCWCustomEncoderField';
 
         this.value = 0.0;
@@ -2535,9 +2532,9 @@ class HCWCustomEncoderField extends HCWBaseField {
             ctx.fillStyle = colors.text;
             ctx.font = "12px Arial";
             ctx.textAlign = "center";
-            ctx.fillText(this.text, cx, knobCy + this.renderProps.outerRadius + 20);
+            ctx.fillText(this.getLabel(), cx, knobCy + this.renderProps.outerRadius + 16);
             ctx.font = "10px Monospace";
-            ctx.fillText(Math.round(this.value * 255), cx, knobCy + this.renderProps.outerRadius + 35);
+            ctx.fillText(Math.round(this.value * 255), cx, knobCy + this.renderProps.outerRadius + 30);
         }
     }
 }

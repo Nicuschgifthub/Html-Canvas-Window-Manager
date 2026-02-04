@@ -2,29 +2,38 @@ const start = () => {
 
     const faderContext = new HCWFaderField("Dimmer 01", Date.now())
         .setValue(0.5)
-        .setFGMType(GLOBAL_TYPES.FGM_TYPES.MASTER_FADER)
 
     const presetContext = new HCWPresetField("My Sets", Date.now())
         .addPresets(
             new HCWPreset()
                 .setLabel("Preset")
-                .setColor("#ff00ff")
+                .setColor("#014d79")
                 .setData({ _best: null }),
             new HCWPreset()
                 .setLabel("Preset 2")
-                .setColor("#00ff77")
+                .setColor("#014d79")
                 .setData({ _best: null }),
             new HCWPreset()
                 .setLabel("Preset 3")
-                .setColor("#00ff5e")
+                .setColor("#014d79")
                 .setData({ _best: null }),
             new HCWPreset()
                 .setLabel("Preset 4")
-                .setColor("#00ff88")
+                .setColor("#014d79")
                 .setData({ _best: null }),
             new HCWPreset()
                 .setLabel("Preset 5")
-                .setColor("#1500ff")
+                .setColor("#014d79")
+                .setDefaultColor("#ff0000")
+                .setData({ _best: null }),
+            new HCWPreset()
+                .setLabel("Preset 6")
+                .setColor("#014d79")
+                .setDefaultColor("#ff0000")
+                .setData({ _best: null }),
+            new HCWPreset()
+                .setLabel("Preset 7")
+                .setColor("#014d79")
                 .setDefaultColor("#ff0000")
                 .setData({ _best: null })
         )
@@ -41,10 +50,11 @@ const start = () => {
     const tableContext = new HCWTableField("Table 1", Date.now())
         .setHeaders(["Type", "Size", "uid"])
         .setRows([
-            ["hi", "33", "3k", "ll"],
-            ["hi", "33", "3k", "ll"],
-            ["hi", "33", "3k", "ll"],
-            ["hi", "33", "3k", "ll"]
+            ["Nicusch", "300MB", "888317"],
+            ["Rang", "400MB", "313145"],
+            ["tulper", "100MB", "5732"],
+            ["sudo", "560MB", "785771"],
+            ["jang", "330MB", "8761"],
         ])
         .setButtonAddRowLabel("Set next element")
         .setButtonRemoveRow()
@@ -70,12 +80,45 @@ const start = () => {
 
     colorWheelContext.setValue(0.05);
 
-    const window = new HCWWindow({ x: 100, y: 100, sx: 800, sy: 400 })
+    const window = new HCWWindow({ x: 0, y: 400, sx: 100, sy: 400 })
         .setMinSizes(100, 100)
         .setId(Date.now())
         .setContextField(faderContext);
 
+    const window2 = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 400 })
+        .setMinSizes(100, 100)
+        .setId(Date.now())
+        .setContextField(presetContext);
 
+    const window3 = new HCWWindow({ x: 100, y: 0, sx: 200, sy: 200 })
+        .setMinSizes(100, 100)
+        .setId(Date.now())
+        .setContextField(encoderContext);
+
+    /* 
+const window4 = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 400 })
+    .setMinSizes(100, 100)
+    .setId(Date.now())
+    .setContextField(keyboardContext);
+const window5 = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 400 })
+    .setMinSizes(100, 100)
+    .setId(Date.now())
+    .setContextField(numberContext); */
+
+    const window6 = new HCWWindow({ x: 100, y: 500, sx: 400, sy: 300 })
+        .setMinSizes(100, 100)
+        .setId(Date.now())
+        .setContextField(colorContext);
+
+    const window7 = new HCWWindow({ x: 100, y: 200, sx: 500, sy: 300 })
+        .setMinSizes(100, 100)
+        .setId(Date.now())
+        .setContextField(tableContext);
+
+    const window8 = new HCWWindow({ x: 300, y: 0, sx: 200, sy: 200 })
+        .setMinSizes(100, 100)
+        .setId(Date.now())
+        .setContextField(colorWheelContext);
 
 
 
@@ -88,9 +131,9 @@ const start = () => {
             crosslineLength: 0.1,
             lineColor: '#00ff95'
         })
-        .addWindow(window);
+        .addWindows([window, window2, window3, window6, window7, window8]);
 
-    setTimeout(() => {
+    /* setTimeout(() => {
         const windowData = HCWFactory.serialize(window);
 
         window.close();
@@ -100,7 +143,7 @@ const start = () => {
             hcwMain.addWindow(newWindow);
         }, 2000);
 
-    }, 5000);
+    }, 5000); */
 
 
 

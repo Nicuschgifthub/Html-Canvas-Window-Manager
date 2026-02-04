@@ -5,6 +5,7 @@ class FGMEvents {
     }
 
     static onRenderUpdate() {
+        
     }
 
     static onWindowChange(type, data = {}) {

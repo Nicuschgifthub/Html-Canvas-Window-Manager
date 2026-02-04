@@ -1,3 +1,5 @@
+// will leave this for now as it is
+
 class HCWSequenceEditor extends HCWBaseField {
     constructor(text = 'Sequence Editor', id = Date.now()) {
         super(text, id);
