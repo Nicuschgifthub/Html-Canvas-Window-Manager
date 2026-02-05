@@ -8,7 +8,7 @@ class HCWBaseField {
 
         this.address = {
             keyword: "placeholder",
-            secondKeyword: null,
+            childKeyword: null,
             locationId: "1.101"
         };
     }
@@ -114,7 +114,7 @@ class HCWBaseField {
                 break;
             case "HCWPresetField":
                 this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.PRESET_GROUP;
-                this.address.secondKeyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.PRESET;
+                this.address.childKeyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.PRESET;
                 break;
             case "HCWNumberField":
                 this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.NONE;

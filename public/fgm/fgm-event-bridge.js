@@ -18,11 +18,14 @@ class FGMEvents {
         console.log(type, data);
 
 
-        console.log("COMMAND")
+        console.log("--------------COMMAND--------------")
+
 
         console.log(data.fieldClass.getKeyword())
+        console.log(data.fieldClass.getLocationId())
 
 
+        console.log("--------------COMMAND--------------")
 
     }
 }
