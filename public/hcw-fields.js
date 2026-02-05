@@ -491,7 +491,7 @@ class HCWPreset {
     constructor(name = "Preset") {
         this.className = 'HCWPreset';
 
-        this.presetId = (Date.now() + Math.random());
+        this.presetId = -1; // Set by parent field or manually
         this.name = name;
         this.color = null;
         this.defaultColor = null;
@@ -644,6 +644,23 @@ class HCWPresetField extends HCWBaseField {
      */
     _setupAndAddPreset(preset) {
         preset.setParentField(this);
+
+        if (preset.getId() === -1 || typeof preset.getId() !== 'number') {
+            let nextId = 0;
+            const existingIds = this.presets.map(p => p.getId()).sort((a, b) => a - b);
+
+            for (let i = 0; i < existingIds.length; i++) {
+                if (existingIds[i] !== i) {
+                    nextId = i;
+                    break;
+                }
+                nextId = i + 1;
+            }
+
+            if (existingIds.length === 0) nextId = 0;
+
+            preset.setId(nextId);
+        }
 
         this.presets.push(preset);
     }
