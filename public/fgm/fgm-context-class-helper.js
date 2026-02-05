@@ -1,5 +1,4 @@
 class FGMContextHelper {
-
     static getWindowByLocationId(locationId) {
         return HCWDB.getWindows().find(win => win.getLocationId() === locationId);
     }

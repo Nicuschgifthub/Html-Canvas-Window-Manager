@@ -1,6 +1,6 @@
 const start = () => {
 
-    const faderContext = new HCWFaderField("Dimmer 01", Date.now()).setValue(0.5).setLocationId("1.220")
+    const faderContext = new HCWFaderField("Dimmer 01", Date.now()).setFloat(0.5).setLocationId("1.220")
 
     const presetContext = new HCWPresetField("My Sets", Date.now() + 1)
         .addPresets(
@@ -13,7 +13,7 @@ const start = () => {
             new HCWPreset().setLabel("Preset 7").setColor("#014d79").setDefaultColor("#ff0000").setData({ _best: null })
         );
 
-    const encoderContext = new HCWEncoderField("Encoder 1", Date.now() + 2).setValue(0, 0);
+    const encoderContext = new HCWEncoderField("Encoder 1", Date.now() + 2).setFloats(0, 0);
     const colorContext = new HCWColorMapField("Color 1", Date.now() + 3);
 
     const tableContext = new HCWTableField("Table 1", Date.now() + 4)
@@ -34,7 +34,7 @@ const start = () => {
         { range: [[1, 10], [100, 110]], data: "#ff0000" },
         { range: [11, 30], data: ["#ff0000", "#00ff00"] }
     ]);
-    colorWheelContext.setValue(0.05);
+    colorWheelContext.setFloats(0.05);
 
 
     const window = new HCWWindow({ x: 0, y: 400, sx: 100, sy: 400 }).setMinSizes(100, 100).setId(Date.now() + 10).setContextField(faderContext);
