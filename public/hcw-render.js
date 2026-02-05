@@ -46,17 +46,22 @@ class HCWRender {
         }
     }
 
-    static _drawTextFields(textField, boundary) {
-
-    }
-
-    static _drawContextField(field) {
-
+    static calculateRenderProps(field, w) {
+        field.renderProps.startX = w.x;
+        field.renderProps.startY = w.y;
+        field.renderProps.endX = w.x2;
+        field.renderProps.endY = w.y2;
+        field.renderProps.sx = w.sx;
+        field.renderProps.sy = w.sy;
     }
 
     static drawContextField(window) {
         if (!window.getContextField()) return;
-        window.getContextField().render(window.contextwindow);
+
+        const contextField = window.getContextField();
+
+        this.calculateRenderProps(contextField, window.contextwindow);
+        contextField.render(window.contextwindow);
     }
 
     static drawWindow(window) {

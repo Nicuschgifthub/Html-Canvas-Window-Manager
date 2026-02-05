@@ -170,13 +170,6 @@ class HCWTableField extends HCWBaseField {
     }
 
     render(w) {
-        this.renderProps.startX = w.x;
-        this.renderProps.startY = w.y;
-        this.renderProps.endX = w.x2;
-        this.renderProps.endY = w.y2;
-        this.renderProps.sx = w.sx;
-        this.renderProps.sy = w.sy;
-
         this.renderProps.cells = [];
         this.renderProps.deleteButtons = [];
         this.renderProps.addButton = null;

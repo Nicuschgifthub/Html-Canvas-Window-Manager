@@ -52,7 +52,6 @@ class FGMCommandEngine {
     }
 
     static isMainKeyword(str) {
-        // Checks against your GLOBAL_TYPES.CONSOLE.KEYWORDS values
         return Object.values(GLOBAL_TYPES.CONSOLE.KEYWORDS).includes(str);
     }
 

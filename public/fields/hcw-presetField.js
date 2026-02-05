@@ -271,13 +271,6 @@ class HCWPresetField extends HCWBaseField {
     }
 
     render(contextwindow) {
-        this.renderProps.startX = contextwindow.x;
-        this.renderProps.startY = contextwindow.y;
-        this.renderProps.endX = contextwindow.x2;
-        this.renderProps.endY = contextwindow.y2;
-        this.renderProps.sx = contextwindow.sx;
-        this.renderProps.sy = contextwindow.sy;
-
         const { x, y, sx, sy } = contextwindow;
 
         const availWidth = sx;

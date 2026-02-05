@@ -176,12 +176,6 @@ class HCWSequenceEditorField extends HCWBaseField {
         const { x, y, sx, sy } = contextwindow;
         const ctx = HCW.ctx;
 
-        // Update renderProps for hit detection
-        this.renderProps.startX = x;
-        this.renderProps.startY = y;
-        this.renderProps.endX = x + sx;
-        this.renderProps.endY = y + sy;
-
         ctx.fillStyle = this.colors.background;
         ctx.fillRect(x, y, sx, sy);
 

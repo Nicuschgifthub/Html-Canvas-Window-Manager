@@ -160,11 +160,6 @@ class HCWNumberField extends HCWBaseField {
     }
 
     render(contextwindow) {
-        this.renderProps.startX = contextwindow.x;
-        this.renderProps.startY = contextwindow.y;
-        this.renderProps.endX = contextwindow.x2;
-        this.renderProps.endY = contextwindow.y2;
-
         const { x, y, sx, sy } = contextwindow;
 
         HCW.ctx.fillStyle = this.renderProps.colors.background;

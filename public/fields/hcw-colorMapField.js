@@ -208,11 +208,6 @@ class HCWColorMapField extends HCWBaseField {
     }
 
     render(w) {
-        this.renderProps.startX = w.x;
-        this.renderProps.startY = w.y;
-        this.renderProps.endX = w.x2;
-        this.renderProps.endY = w.y2;
-
         const ctx = HCW.ctx;
         const pad = 8;
         const labelW = 14;

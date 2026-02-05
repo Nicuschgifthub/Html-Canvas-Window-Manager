@@ -156,10 +156,6 @@ class HCWSearchField extends HCWBaseField {
     }
 
     render(w) {
-        this.renderProps.startX = w.x;
-        this.renderProps.startY = w.y;
-        this.renderProps.endX = w.x2;
-        this.renderProps.endY = w.y2;
         this.renderProps.resultButtons = [];
 
         const ctx = HCW.ctx;

@@ -60,7 +60,7 @@ class FGMEvents {
                 break;
 
             case GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_ADD:
-                commandString = `${keyword} ${location} Add Row`;
+                commandString = `${keyword} ${location} Add`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.SEARCH_UPDATES.RESULT_PRESS:

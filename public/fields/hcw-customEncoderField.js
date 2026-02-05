@@ -127,9 +127,9 @@ class HCWCustomEncoderField extends HCWBaseField {
         if (delta < -Math.PI) delta += 2 * Math.PI;
         const rotationSensitivity = delta / (Math.PI * 2);
         if (this.renderProps.activeRing === 'inner') {
-            this.setValue(this.value, this.value2 + rotationSensitivity);
+            this.setFloats(this.value, this.value2 + rotationSensitivity);
         } else {
-            this.setValue(this.value + rotationSensitivity, this.value2);
+            this.setFloats(this.value + rotationSensitivity, this.value2);
         }
         this._lastInteractionAngle = currentAngle;
     }
@@ -163,11 +163,6 @@ class HCWCustomEncoderField extends HCWBaseField {
     }
 
     render(contextwindow) {
-        this.renderProps.startX = contextwindow.x;
-        this.renderProps.startY = contextwindow.y;
-        this.renderProps.endX = contextwindow.x2;
-        this.renderProps.endY = contextwindow.y2;
-
         const sx = contextwindow.sx;
         const sy = contextwindow.sy;
         const cx = contextwindow.x + (sx / 2);
