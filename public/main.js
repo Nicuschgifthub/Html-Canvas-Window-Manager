@@ -1,6 +1,6 @@
 const start = () => {
 
-    const faderContext = new HCWFaderField("Dimmer 01", Date.now()).setValue(0.5);
+    const faderContext = new HCWFaderField("Dimmer 01", Date.now()).setValue(0.5).setLocationId("1.220")
 
     const presetContext = new HCWPresetField("My Sets", Date.now() + 1)
         .addPresets(
@@ -45,6 +45,8 @@ const start = () => {
     const window8 = new HCWWindow({ x: 300, y: 0, sx: 200, sy: 200 }).setMinSizes(100, 100).setId(Date.now() + 15).setContextField(colorWheelContext);
 
     const windows = [window, window2, window3, window6, window7, window8];
+
+
 
 
 

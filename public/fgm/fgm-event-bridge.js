@@ -24,24 +24,23 @@ class FGMEvents {
 
         let commandString = "";
 
-
         switch (type) {
             case GLOBAL_TYPES.ACTIONS.FADER_VALUE_UPDATE:
-                commandString = `${keyword} ${location} At ${data.byte}`;
+                commandString = `${keyword} ${location} At byte ${data.byte}`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.ENCODER_VALUE_UPDATE:
-                commandString = `${keyword} ${location} At ${data.outer.byte} ${data.inner.byte}`;
+                commandString = `${keyword} ${location} At inner ${data.outer.byte} outer ${data.inner.byte}`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.PRESET_PRESS:
                 const childKw = field.address.childKeyword || 'Preset';
-                commandString = `${keyword} ${location} ${childKw} ${data.preset.getId()} Go`;
+                commandString = `${keyword} ${location} ${childKw} ${data.preset.getId()} Go+`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.COLOR_FIELD_UPDATE:
                 const c = data.colors;
-                commandString = `${keyword} ${location} At ${c.r} ${c.g} ${c.b} ${c.white || 0} ${c.amber || 0} ${c.uv || 0}`;
+                commandString = `${keyword} ${location} At r ${c.r} g ${c.g} b ${c.b} c ${c.white || 0} a ${c.amber || 0} u ${c.uv || 0}`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ENTER_PRESSED:
@@ -53,7 +52,7 @@ class FGMEvents {
                 break;
 
             case GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS:
-                commandString = `${keyword} ${location} Cell ${data.rowIndex} ${data.colIndex} Value '${data.value}'`;
+                commandString = `${keyword} ${location} Press Row ${data.rowIndex} Index ${data.colIndex} Value '${data.value}'`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_DELETE:
@@ -73,7 +72,7 @@ class FGMEvents {
                 break;
 
             case GLOBAL_TYPES.ACTIONS.CUSTOM_ENCODER_VALUE_UPDATE:
-                commandString = `${keyword} ${location} At ${data.outer.byte} ${data.inner.byte}`;
+                commandString = `${keyword} ${location} At outer ${data.outer.byte} inner ${data.inner.byte}`;
                 break;
 
             case 'ACTION_SEQUENCE_EDITOR_UPDATE':
@@ -90,8 +89,12 @@ class FGMEvents {
                 break;
         }
 
+        commandString += ` <Internal>`; // so the element doesnt fire itself since when typing a command manuel it will update
+
         if (commandString) {
             console.log(`%c CMD >> ${commandString}`, 'background: #222; color: #bada55; font-size: 12px; padding: 2px 5px; border-radius: 2px;');
         }
+
+        FGMCommandEngine.command(commandString);
     }
 }

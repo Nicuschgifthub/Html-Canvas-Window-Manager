@@ -1,6 +1,7 @@
 class FGMLoadFiles {
     static files() {
         return [
+            '/fgm/fgm-command-engine.js',
             '/fgm/fgm-context-class-helper.js',
             '/fgm/fgm-show-file.js',
             '/fgm/fgm-event-bridge.js',
