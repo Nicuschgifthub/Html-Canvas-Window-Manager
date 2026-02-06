@@ -15,13 +15,13 @@ I am working on a new way on how the entire backbone code will work
 
 ## Current images
 
-![example-1](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/latest.png)
+![example-1](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/latest.png)
 
 ## Old images of working ./old-v1
 
-![example-2](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/config-old.png)
+![example-2](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/config-old.png)
 
-![example-3](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/programmer-old.png)
+![example-3](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/programmer-old.png)
 
 ## NOTICE
 
