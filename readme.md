@@ -1,31 +1,32 @@
-# Old HTML Canvas Window Manager
+# 🔒 This Repo will be continued as WebBasedFixtureControl
 
-Was a lightweight HTML website featuring a canvas-based window manager. Its now on the way of transformation to my new web app.
+This was lightweight HTML website featuring a canvas-based window manager.
+Its now on the way of transformation to my new web app.
 
-The repo name in the future will be Web Based Fixture Console (FGM using HCW's)
 
-## HCW Features only
+## How will it work as WebBasedFixtureControl?
 
-- Create multiple windows on the canvas
-- Drag windows around freely
-- Resize windows dynamically
+Check out the ./old-v1 which was an example on how it could be
 
-## Usage
 
-Install express and run it via node.js open the site in the browser
+## Current state
 
-## Planned Updates
+I am working on a new way on how the entire backbone code will work
 
-- Currently rewriting everything to be a browser based Fixture console via ArtNet
+## Current images
 
-## Current Status of the Fixture control
+![example-1](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/latest.png)
 
-![discord-simpletable](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/current.png)
+## Old images of working ./old-v1
 
-## Window Features that currently exist HCW only no FGM
+![example-2](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/config-old.png)
 
-![discord-simpletable](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/hcw-latest.png)
+![example-3](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/master/_images/programmer-old.png)
 
 ## NOTICE
 
 All my commits are called "update" since this will be moved to a new repo after the first version of my Fixture console via ArtNet (Browser Based) is ready.
+
+## Notice 2
+
+Things might change like the name and the way things work...
