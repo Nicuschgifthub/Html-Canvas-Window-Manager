@@ -23,7 +23,7 @@ I am working on a new way on how the entire backbone code will work
 
 ![example-3](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/programmer-old.png)
 
-## NOTICE
+## Notice
 
 All my commits are called "update" since this will be moved to a new repo after the first version of my Fixture console via ArtNet (Browser Based) is ready.
 
