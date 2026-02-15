@@ -106,12 +106,12 @@ class HCWSetup {
 
     files() {
         return [
-            'hcw-helper.js',
-            'hcw-grid-snap.js',
-            'hcw-mouse-style.js',
-            'hcw-render.js',
-            'hcw-canvas-resize.js',
-            'hcw-touch.js'
+            'hcw/hcw-helper.js',
+            'hcw/hcw-grid-snap.js',
+            'hcw/hcw-mouse-style.js',
+            'hcw/hcw-render.js',
+            'hcw/hcw-canvas-resize.js',
+            'hcw/hcw-touch.js'
         ]
     }
 
