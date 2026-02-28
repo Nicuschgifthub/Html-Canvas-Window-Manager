@@ -31,7 +31,7 @@ class FGMCommandEngine {
             const nextToken = tokens[index + 1];
 
             // Identify Actions (Verbs)
-            if (['at', 'go+', 'enter', 'delete', 'add', 'press', 'focus', 'load', 'update'].includes(lowerToken)) {
+            if (['at', 'go+', 'enter', 'delete', 'edit', 'add', 'press', 'focus', 'load', 'update'].includes(lowerToken)) {
                 params.action = token;
             }
 

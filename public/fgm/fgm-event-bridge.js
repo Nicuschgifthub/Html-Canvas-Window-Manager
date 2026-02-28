@@ -35,7 +35,7 @@ class FGMEvents {
 
             case GLOBAL_TYPES.ACTIONS.PRESET_PRESS:
                 const childKw = field.address.childKeyword || 'Preset';
-                commandString = `${keyword} ${location} ${childKw} ${data.preset.getId()} Go+`;
+                commandString = `${keyword} ${location} ${childKw} ${data.preset.getId()}`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.COLOR_FIELD_UPDATE:
