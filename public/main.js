@@ -49,12 +49,6 @@ const start = () => {
 
 
 
-    
-
-
-
-
-
 
     const hcwMain = new HCWSetup('hcw-canvas', '/')
         .setGrid({
