@@ -4,8 +4,8 @@ class HCWFaderField extends HCWBaseField {
         this.className = 'HCWFaderField';
         this._insertClassKeyword();
 
-        this.value = 0.0; // 0.0 to 1.0
-        this.displayType = 'byte'; // 'value', 'byte', 'percent'
+        this.value = 0.0;
+        this.displayType = 'byte';
 
         this.renderProps = {
             colors: {
@@ -21,8 +21,9 @@ class HCWFaderField extends HCWBaseField {
             sy: null
         };
 
-        this._potentialClick = false;
+        this._isDragging = false;
         this._clickStartY = 0;
+        this._initialValue = 0;
     }
 
     getType() {
@@ -34,13 +35,11 @@ class HCWFaderField extends HCWBaseField {
         this.value = Math.max(0, Math.min(1, val));
 
         if (oldVal !== this.value) {
-
             this.emitAction(GLOBAL_TYPES.ACTIONS.FADER_VALUE_UPDATE, {
                 value: this.value,
                 byte: Math.round(this.value * 255),
                 percent: Math.round(this.value * 100)
             });
-
             this.updateFrame();
         }
         return this;
@@ -71,14 +70,27 @@ class HCWFaderField extends HCWBaseField {
     }
 
     _interaction(interaction) {
-        if (interaction.type === 'mousedown' || interaction.type === 'mousemove') {
-            const relativeY = interaction.mouseY - this.renderProps.startY;
-            const height = this.renderProps.sy;
+        const height = this.renderProps.sy;
 
-            let normalizedVal = 1 - (relativeY / height);
+        if (interaction.type === 'mousedown') {
+            this._isDragging = true;
+            this._clickStartY = interaction.mouseY;
+            this._initialValue = this.value;
+        }
+        else if (interaction.type === 'mousemove' && this._isDragging) {
+            // Calculate how far the mouse moved from the start point
+            const deltaY = this._clickStartY - interaction.mouseY;
 
-            this.setFloat(normalizedVal);
-        } else if (interaction.type === 'scroll') {
+            // Convert pixel movement to 0.0 - 1.0 range
+            // (Moving up is positive, so we add the normalized delta)
+            const normalizedDelta = deltaY / height;
+
+            this.setFloat(this._initialValue + normalizedDelta);
+        }
+        else if (interaction.type === 'mouseup' || interaction.type === 'mouseleave') {
+            this._isDragging = false;
+        }
+        else if (interaction.type === 'scroll') {
             const step = 0.04;
             const direction = interaction.deltaY > 0 ? -1 : 1;
             this.setFloat(this.value + (step * direction));

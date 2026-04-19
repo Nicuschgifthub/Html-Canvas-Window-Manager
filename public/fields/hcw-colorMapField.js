@@ -19,6 +19,10 @@ class HCWColorMapField extends HCWBaseField {
 
         this.mouseDownOnceCalculated = true;
 
+        this._clickStartX = 0;
+        this._clickStartY = 0;
+        this._initialValues = { h: 0, s: 0, v: 0, r: 0, g: 0, b: 0, extra: 0 };
+
         this.renderProps = {
             map: null,
             valueFader: null,
@@ -48,16 +52,16 @@ class HCWColorMapField extends HCWBaseField {
     }
 
     setColor(colorDmx) {
-        if (!colors) return;
+        if (!colorDmx) return;
 
-        const r = colors.r !== undefined ? colors.r : this.getColors().r;
-        const g = colors.g !== undefined ? colors.g : this.getColors().g;
-        const b = colors.b !== undefined ? colors.b : this.getColors().b;
+        const r = colorDmx.r !== undefined ? colorDmx.r : this.getColors().r;
+        const g = colorDmx.g !== undefined ? colorDmx.g : this.getColors().g;
+        const b = colorDmx.b !== undefined ? colorDmx.b : this.getColors().b;
         this._rgbToHsv(r, g, b);
 
-        if (colors.white !== undefined) this.extra.white = colors.white;
-        if (colors.amber !== undefined) this.extra.amber = colors.amber;
-        if (colors.uv !== undefined) this.extra.uv = colors.uv;
+        if (colorDmx.white !== undefined) this.extra.white = colorDmx.white;
+        if (colorDmx.amber !== undefined) this.extra.amber = colorDmx.amber;
+        if (colorDmx.uv !== undefined) this.extra.uv = colorDmx.uv;
 
         this.updateFrame();
         return this;
@@ -140,41 +144,62 @@ class HCWColorMapField extends HCWBaseField {
 
     _interaction(i) {
         const { mouseX, mouseY } = i;
-        this.mouseDownOnceCalculated = true;
 
         if (i.type === 'mousedown') {
             this.checkMouseLocation(mouseX, mouseY);
+            if (this.renderProps.active) {
+                this._clickStartX = mouseX;
+                this._clickStartY = mouseY;
+
+                // Store snapshots of all possible values to handle relative movement
+                const rgb = this.getColors();
+                this._initialValues = {
+                    h: this.h,
+                    s: this.s,
+                    v: this.v,
+                    r: rgb.r,
+                    g: rgb.g,
+                    b: rgb.b,
+                    extra: this.renderProps.active.key ? this.extra[this.renderProps.active.key] : 0
+                };
+                this.mouseDownOnceCalculated = false;
+            }
         }
 
-        if (this.mouseDownOnceCalculated == false || (i.type === 'mousemove' && this.renderProps.active)) {
+        if (i.type === 'mousemove' && this.renderProps.active) {
             const a = this.renderProps.active;
-            this.mouseDownOnceCalculated = true;
+            const dx = mouseX - this._clickStartX;
+            const dy = this._clickStartY - mouseY; // Reverse Y so up is positive
 
             if (a.type === 'map') {
                 const m = this.renderProps.map;
-                this.h = (mouseX - m.x) / m.w;
-                this.s = 1 - ((mouseY - m.y) / m.h);
+                // Add normalized movement to initial values
+                this.h = this._initialValues.h + (dx / m.w);
+                this.s = this._initialValues.s + (dy / m.h);
+
                 this.h = Math.max(0, Math.min(1, this.h));
                 this.s = Math.max(0, Math.min(1, this.s));
                 if (!this.v) this.v = 1.0;
             }
             else if (a.type === 'value') {
                 const f = this.renderProps.valueFader;
-                let t = 1 - ((mouseY - f.y) / f.h);
-                this.v = Math.max(0, Math.min(1, t));
+                const normalizedDelta = dy / f.h;
+                this.v = Math.max(0, Math.min(1, this._initialValues.v + normalizedDelta));
             }
             else if (a.type === 'slider') {
                 const r = this.renderProps.sliders[a.key];
                 if (a.key === 'r' || a.key === 'g' || a.key === 'b') {
-                    let t = (mouseX - r.x) / r.w;
-                    t = Math.max(0, Math.min(1, t));
+                    // Horizontal Sliders
+                    const normalizedDelta = (mouseX - this._clickStartX) / r.w;
                     const rgb = this.getColors();
-                    rgb[a.key] = Math.round(t * 255);
+                    const newVal = Math.max(0, Math.min(255, this._initialValues[a.key] + (normalizedDelta * 255)));
+                    rgb[a.key] = Math.round(newVal);
                     this._rgbToHsv(rgb.r, rgb.g, rgb.b);
                 } else {
-                    let t = 1 - ((mouseY - r.y) / r.h);
-                    t = Math.max(0, Math.min(1, t));
-                    this.extra[a.key] = Math.round(t * 255);
+                    // Vertical Sliders (White, Amber, UV)
+                    const normalizedDelta = dy / r.h;
+                    const newVal = Math.max(0, Math.min(255, this._initialValues.extra + (normalizedDelta * 255)));
+                    this.extra[a.key] = Math.round(newVal);
                 }
             }
             this._trigger();
@@ -182,6 +207,7 @@ class HCWColorMapField extends HCWBaseField {
 
         if (i.type === 'mouseup') {
             this.renderProps.active = null;
+            this.mouseDownOnceCalculated = true;
         }
     }
 
@@ -189,16 +215,16 @@ class HCWColorMapField extends HCWBaseField {
         this.renderProps.active = null;
         if (this._hit(this.renderProps.map, mouseX, mouseY)) {
             this.renderProps.active = { type: 'map' };
-            this.mouseDownOnceCalculated = false;
         }
-        if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
+        else if (this._hit(this.renderProps.valueFader, mouseX, mouseY)) {
             this.renderProps.active = { type: 'value' };
-            this.mouseDownOnceCalculated = false;
         }
-        for (const k in this.renderProps.sliders) {
-            if (this._hit(this.renderProps.sliders[k], mouseX, mouseY)) {
-                this.renderProps.active = { type: 'slider', key: k };
-                this.mouseDownOnceCalculated = false;
+        else {
+            for (const k in this.renderProps.sliders) {
+                if (this._hit(this.renderProps.sliders[k], mouseX, mouseY)) {
+                    this.renderProps.active = { type: 'slider', key: k };
+                    break;
+                }
             }
         }
     }
