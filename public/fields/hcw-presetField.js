@@ -138,6 +138,10 @@ class HCWPresetField extends HCWBaseField {
         return this;
     }
 
+    getPresetByIndex(index) {
+        return this.presets[index];
+    }
+
     /** @param {...(HCWPreset|string)} nameOrInstances */
     addPresets(...nameOrInstances) {
         nameOrInstances.forEach(item => {

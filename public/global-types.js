@@ -161,6 +161,14 @@ class GLOBAL_TYPES {
         }
     }
 
+    static get CONTEXT_FIELDS_EXECUTOR() {
+        return {
+            get KEY_WORD_EXECUTOR_START_STRING() {
+                return 'KYE';
+            }
+        }
+    }
+
     static get CONSOLE() {
         return {
             get KEYWORDS() {

@@ -9,7 +9,7 @@ class FGMCommandEngine {
 
         const params = {
             keyword: null,
-            address: null,
+            locationId: null,
             subKeyword: null,
             subId: null,
             action: null,
@@ -18,12 +18,12 @@ class FGMCommandEngine {
             raw: tokens
         };
 
-        // 1. Identify Keyword and Address (Usually tokens 0 and 1)
+        // 1. Identify Keyword and locationId (Usually tokens 0 and 1)
         // We check if the first token matches your GLOBAL_TYPES.CONSOLE.KEYWORDS
         const possibleKw = tokens[0];
         if (this.isMainKeyword(possibleKw)) {
             params.keyword = possibleKw;
-            params.address = tokens[1]; // The '1.101' part
+            params.locationId = tokens[1]; // The '1.101' part
         }
 
         // 2. Loop through the rest to find Actions and Sub-data
@@ -57,8 +57,18 @@ class FGMCommandEngine {
     }
 
     static execute(params) {
-        if (!params.address) return;
+        if (!params || !params.keyword) return;
 
-        console.log(params)
+        params.keyword = GLOBAL_TYPES.CONTEXT_FIELDS_EXECUTOR.KEY_WORD_EXECUTOR_START_STRING + params.keyword;
+
+        const TargetClass = globalThis[params.keyword];
+
+        if (TargetClass && typeof TargetClass.command === 'function') {
+            TargetClass.command(params);
+        } else {
+            console.error(`Execution failed: Class "${params.keyword}" not found globally.`);
+        }
+
+        console.log(params);
     }
 }

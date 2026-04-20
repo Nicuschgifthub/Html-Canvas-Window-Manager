@@ -1,3 +1,6 @@
+
+let FGMShowHandler = null;
+
 const start = () => {
     /* 
         const faderContext = new HCWFaderField("Dimmer 01", Date.now()).setFloat(0.5).setLocationId("1.220")
@@ -43,29 +46,33 @@ const start = () => {
    ); */
     // const window2 = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 400 }).setMinSizes(100, 100).setId(Date.now() + 11).setContextField(presetContext);
 
+    /* 
+       
+        const hcwMain = new HCWSetup('hcw-canvas', '/')
+            .setGrid({
+                everyPixelX: 100,
+                everyPixelY: 100,
+                crossLineLength: 0.1,
+                lineColor: '#00ff95'
+            })
+            .addWindows(windows);
+     */
 
-    const pagesMenu = new HCWPresetField("My Sets", 10001)
-        .setLocationId("0.001")
+    const pagesMenu = new HCWPresetField("My Sets", 101)
+        .setLocationId("0.002")
         .addPresets(
-            new HCWPreset().setLabel("Settings").setColor("#005b2f").setData({ _pageChangeTo: 0 }),
+            new HCWPreset().setLabel("Settings").setColor("#005b2f").setData({ _pageChangeTo: 'every' }),
             new HCWPreset().setLabel("Page 1").setColor("#00059c").setData({ _pageChangeTo: 1 }),
         );
 
-    const pageMenuWindow = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 400 }).setMinSizes(100, 100).setId(Date.now() + 11).setContextField(pagesMenu);
+    const pageMenuWindow = new HCWWindow({ x: 300, y: 0, sx: 100, sy: 600 })
+        .setPageId(1).setMinSizes(100, 100).setId(Date.now() + 11).setContextField(pagesMenu);
 
     const windows = [pageMenuWindow];
 
-    const hcwMain = new HCWSetup('hcw-canvas', '/')
-        .setGrid({
-            everyPixelX: 100,
-            everyPixelY: 100,
-            crossLineLength: 0.1,
-            lineColor: '#00ff95'
-        })
-        .addWindows(windows);
+    FGMShowHandler = new FGMShowFile();
 
-
-    // const FGMShowHandler = new FGMShowFile();
+  // FGMShowHandler.getHCWClass().addWindows(windows);
 }
 
 setTimeout(() => {

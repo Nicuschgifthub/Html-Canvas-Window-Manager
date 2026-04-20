@@ -5,6 +5,8 @@ class FGMLoadFiles {
             '/fgm/fgm-context-class-helper.js',
             '/fgm/fgm-show-file.js',
             '/fgm/fgm-event-bridge.js',
+            // List of Keyword executor
+            'fgm/key-word-executor/PresetGroup.js',
         ]
     }
 

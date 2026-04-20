@@ -45,6 +45,15 @@ class HCWDB {
     static getWindows() {
         return HCW.windows;
     }
+    static getContextFieldByLocationId(locationId) {
+        let contextField = null;
+        this.getWindows().forEach(window => {
+            if (window.getContextField().getLocationId() == locationId) {
+                contextField = window.getContextField();
+            }
+        })
+        return contextField;
+    }
 }
 
 class HCWSetup {
