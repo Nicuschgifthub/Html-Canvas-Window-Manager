@@ -2,12 +2,7 @@
 
 This was lightweight HTML website featuring a canvas-based window manager.
 Its now on the way of transformation to my new web app.
-
-
-## How will it work as WebBasedFixtureControl?
-
-Check out the ./old-v1 which was an example on how it could be
-
+Please ignore the current state and the commits, I am still working on the base of this app.
 
 ## Current state
 

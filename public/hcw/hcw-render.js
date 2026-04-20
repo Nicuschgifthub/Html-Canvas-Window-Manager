@@ -83,7 +83,6 @@ class HCWRender {
         }
 
         HCW.windows.forEach(window => {
-
             window._calculateTouchZones();
             window._calculateBoundingBox();
             window._calculateContextWindow();

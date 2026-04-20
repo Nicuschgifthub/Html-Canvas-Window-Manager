@@ -1,4 +1,3 @@
-
 class HCWWindow {
     constructor(obj = {}) {
         const defaults = {

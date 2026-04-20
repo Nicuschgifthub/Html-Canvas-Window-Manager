@@ -89,7 +89,7 @@ class FGMEvents {
                 break;
         }
 
-        commandString += ` <Internal>`; // so the element doesnt fire itself since when typing a command manuel it will update
+        commandString += ` <UserAction>`; // so the element doesnt fire itself since when typing a command manuel it will update
 
         if (commandString) {
             console.log(`%c CMD >> ${commandString}`, 'background: #222; color: #bada55; font-size: 12px; padding: 2px 5px; border-radius: 2px;');

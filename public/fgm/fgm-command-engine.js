@@ -1,8 +1,9 @@
 class FGMCommandEngine {
     static command(rawString) {
-        const isInternal = rawString.includes('<Internal>');
+        const userActionKeyword = '<UserAction>';
+        const userAction = rawString.includes(userActionKeyword);
         // Remove flag and split into clean tokens
-        const cleanString = rawString.replace('<Internal>', '').trim();
+        const cleanString = rawString.replace(userActionKeyword, '').trim();
         // Regex handles spaces but keeps quoted strings together: 'My Value'
         const tokens = cleanString.match(/(?:[^\s"']+|['"][^'"]*['"])+/g) || [];
 
@@ -13,7 +14,7 @@ class FGMCommandEngine {
             subId: null,
             action: null,
             values: {},
-            isInternal: isInternal,
+            userAction,
             raw: tokens
         };
 
