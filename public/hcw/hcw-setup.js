@@ -25,6 +25,13 @@ let HCW = {
         _windowPressCandidate: null,
         _windowPressStartX: null,
         _windowPressStartY: null,
+
+        // BackgroundClick
+        backgroundPress: false,
+        backgroundStartX: null,
+        backgroundStartY: null,
+        backgroundDragSizeX: 0,
+        backgroundDragSizeY: 0,
     },
     background: {
         color: '#000000'

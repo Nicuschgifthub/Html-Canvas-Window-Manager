@@ -24,15 +24,11 @@ class FGMShowFile {
             },
             pages: {
                 cursor: 'every',
-                content: {
-                    "0": [
-                        "{\"className\":\"HCWWindow\",\"x\":300,\"y\":0,\"sx\":100,\"sy\":600,\"type\":\"default\",\"id\":1776711171516,\"minsizex\":100,\"minsizey\":100,\"basecolor\":\"#454545\",\"touchzonecolor\":\"#969696\",\"touchzonehighlightcolor\":\"#d6d6d6\",\"touchzone\":12,\"touchzones\":{\"top\":{\"starty\":0,\"startx\":300,\"endy\":12,\"endx\":400},\"bottom\":{\"starty\":588,\"startx\":300,\"endy\":600,\"endx\":400},\"left\":{\"starty\":0,\"startx\":300,\"endy\":600,\"endx\":312},\"right\":{\"starty\":0,\"startx\":388,\"endy\":600,\"endx\":400}},\"boundingbox\":{\"startx\":300,\"starty\":0,\"endx\":400,\"endy\":600},\"contextwindow\":{\"x\":312,\"y\":12,\"x2\":388,\"y2\":588,\"sx\":76,\"sy\":576},\"contextfield\":{\"label\":\"My Sets\",\"renderProps\":{\"colors\":{\"background\":\"#1b1717ff\",\"headerText\":\"#ffffff\",\"itemText\":\"#ffffffff\",\"itemDefaultColor\":\"#aaaaaa\",\"itemPressedColor\":\"#ffffff\"},\"startX\":312,\"startY\":12,\"endX\":388,\"endY\":588,\"sx\":76,\"sy\":576,\"cols\":1,\"visibleItems\":[{\"index\":0,\"x\":312,\"y\":42,\"w\":76,\"h\":60},{\"index\":1,\"x\":312,\"y\":107,\"w\":76,\"h\":60}]},\"actionFunction\":null,\"className\":\"HCWPresetField\",\"address\":{\"keyword\":\"PresetGroup\",\"childKeyword\":\"Preset\",\"locationId\":\"0.002\"},\"presets\":[{\"className\":\"HCWPreset\",\"presetId\":0,\"name\":\"Settings\",\"color\":\"#005b2f\",\"defaultColor\":null,\"data\":{\"_pageChangeTo\":\"every\"},\"progress\":null,\"flashing\":false,\"selectionState\":0},{\"className\":\"HCWPreset\",\"presetId\":1,\"name\":\"Page 1\",\"color\":\"#00059c\",\"defaultColor\":null,\"data\":{\"_pageChangeTo\":1},\"progress\":null,\"flashing\":false,\"selectionState\":0}],\"scrollY\":0,\"itemMinWidth\":80,\"itemHeight\":60,\"gap\":5,\"headerHeight\":30,\"_dragLastY\":null,\"_pressedIndex\":-1},\"scrollindex\":1,\"scrollindexratio\":1.2,\"hidden\":false,\"pageId\":0,\"data\":{}}",
+                content: {}
+            },
+            memory: {
+                programmer: {
 
-                    ],
-                    "1": [
-                        "{\"className\":\"HCWWindow\",\"x\":0,\"y\":0,\"sx\":100,\"sy\":600,\"type\":\"default\",\"id\":1776711171517,\"minsizex\":100,\"minsizey\":100,\"basecolor\":\"#454545\",\"touchzonecolor\":\"#969696\",\"touchzonehighlightcolor\":\"#d6d6d6\",\"touchzone\":12,\"touchzones\":{\"top\":{\"starty\":0,\"startx\":0,\"endy\":12,\"endx\":100},\"bottom\":{\"starty\":588,\"startx\":0,\"endy\":600,\"endx\":100},\"left\":{\"starty\":0,\"startx\":0,\"endy\":600,\"endx\":12},\"right\":{\"starty\":0,\"startx\":88,\"endy\":600,\"endx\":100}},\"boundingbox\":{\"startx\":0,\"starty\":0,\"endx\":100,\"endy\":600},\"contextwindow\":{\"x\":12,\"y\":12,\"x2\":88,\"y2\":588,\"sx\":76,\"sy\":576},\"contextfield\":{\"label\":\"My Sets\",\"renderProps\":{\"colors\":{\"background\":\"#1b1717ff\",\"headerText\":\"#ffffff\",\"itemText\":\"#ffffffff\",\"itemDefaultColor\":\"#aaaaaa\",\"itemPressedColor\":\"#ffffff\"},\"startX\":12,\"startY\":12,\"endX\":88,\"endY\":588,\"sx\":76,\"sy\":576,\"cols\":1,\"visibleItems\":[{\"index\":0,\"x\":12,\"y\":42,\"w\":76,\"h\":60},{\"index\":1,\"x\":12,\"y\":107,\"w\":76,\"h\":60}]},\"actionFunction\":null,\"className\":\"HCWPresetField\",\"address\":{\"keyword\":\"PresetGroup\",\"childKeyword\":\"Preset\",\"locationId\":\"0.002\"},\"presets\":[{\"className\":\"HCWPreset\",\"presetId\":0,\"name\":\"Settings\",\"color\":\"#005b2f\",\"defaultColor\":null,\"data\":{\"_pageChangeTo\":\"every\"},\"progress\":null,\"flashing\":false,\"selectionState\":0},{\"className\":\"HCWPreset\",\"presetId\":1,\"name\":\"Page 1\",\"color\":\"#00059c\",\"defaultColor\":null,\"data\":{\"_pageChangeTo\":1},\"progress\":null,\"flashing\":false,\"selectionState\":0}],\"scrollY\":0,\"itemMinWidth\":80,\"itemHeight\":60,\"gap\":5,\"headerHeight\":30,\"_dragLastY\":null,\"_pressedIndex\":-1},\"scrollindex\":1,\"scrollindexratio\":1.2,\"hidden\":false,\"pageId\":1,\"data\":{}}"
-
-                    ]
                 }
             }
         }
@@ -87,7 +83,7 @@ class FGMShowFile {
         HCWDB.getWindows().forEach(window => {
             const pageId = window.getPageId();
 
-            if (pageId == 0 || pageId == pageNumber) {
+            if (pageId == -1 || pageId == pageNumber) {
                 window.setHidden(false);
             } else {
                 if (window.getHiddenStatus() == false) window.setHidden(true);

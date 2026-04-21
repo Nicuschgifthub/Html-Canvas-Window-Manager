@@ -4,6 +4,10 @@ class FGMEvents {
         console.log("BG click");
     }
 
+    static backgroundBoxDrag() {
+
+    }
+
     static onRenderUpdate() {
 
     }

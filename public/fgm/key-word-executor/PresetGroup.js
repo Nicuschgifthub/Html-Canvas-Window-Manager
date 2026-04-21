@@ -12,17 +12,16 @@ class KYEPresetGroup {
     }
 
     static findPresetFunctionAndExecute(params) {
-        const presetData = HCWDB.getContextFieldByLocationId(params.locationId)
-            .getPresetByIndex(params.subId)
-            .getData();
+        const presetGroup = HCWDB.getContextFieldByLocationId(params.locationId)
+        const preset = presetGroup.getPresetByIndex(params.subId)
+        const presetData = preset.getData();
 
         Object.keys(presetData).forEach(functionName => {
-            const functionData = presetData[functionName];
-
+            const thisFunctionData = presetData[functionName];
             const targetFunctions = this.presetFunctions();
 
             if (targetFunctions[functionName]) {
-                targetFunctions[functionName](functionData);
+                targetFunctions[functionName]({ presetGroup, preset, presetData, thisFunctionData });
             } else {
                 console.error(`Function ${functionName} not found in presetFunctions`);
             }
@@ -32,7 +31,10 @@ class KYEPresetGroup {
     static presetFunctions() {
         return {
             _pageChangeTo(data) {
-                // change page
+                const { presetGroup, preset, presetData, thisFunctionData } = data;
+                presetGroup.updateAllPresets({ color: null });
+                preset.setColor(GS.FIELDS.PRESETS.HIGHLIGHT_COLOR);
+                FGMShowHandler.setPageCursor(thisFunctionData);
             }
         };
     }

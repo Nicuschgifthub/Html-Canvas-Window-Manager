@@ -1,3 +1,6 @@
+let FGMShowHandler = null;
+
+
 class GLOBAL_TYPES {
     static get INFO() {
         return {

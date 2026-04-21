@@ -9,7 +9,10 @@ class GLOBAL_STYLES {
             CUSTOM_ENCODER: {},
             KEYBOARD: {},
             NUMBER_KEYPAD: {},
-            PRESETS: {},
+            PRESETS: {
+                DEFAULT_COLOR: '#00059c',
+                HIGHLIGHT_COLOR: '#005b2f'
+            },
             SEARCH: {},
             TABLE: {},
             SEQUENCE_EDITOR: {},

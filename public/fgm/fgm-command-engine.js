@@ -47,7 +47,6 @@ class FGMCommandEngine {
                 params.values[lowerToken] = nextToken;
             }
         });
-
         console.log("Parsed Params:", params);
         this.execute(params);
     }

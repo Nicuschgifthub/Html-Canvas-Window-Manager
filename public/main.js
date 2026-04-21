@@ -1,5 +1,4 @@
 
-let FGMShowHandler = null;
 
 const start = () => {
     /* 
@@ -58,21 +57,14 @@ const start = () => {
             .addWindows(windows);
      */
 
-    const pagesMenu = new HCWPresetField("My Sets", 101)
-        .setLocationId("0.002")
-        .addPresets(
-            new HCWPreset().setLabel("Settings").setColor("#005b2f").setData({ _pageChangeTo: 'every' }),
-            new HCWPreset().setLabel("Page 1").setColor("#00059c").setData({ _pageChangeTo: 1 }),
-        );
-
-    const pageMenuWindow = new HCWWindow({ x: 300, y: 0, sx: 100, sy: 600 })
-        .setPageId(1).setMinSizes(100, 100).setId(Date.now() + 11).setContextField(pagesMenu);
-
-    const windows = [pageMenuWindow];
+    
 
     FGMShowHandler = new FGMShowFile();
 
-  // FGMShowHandler.getHCWClass().addWindows(windows);
+
+    FGMWindowManager.buildDefaultSetup();
+
+
 }
 
 setTimeout(() => {

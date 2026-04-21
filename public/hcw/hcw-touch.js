@@ -192,6 +192,41 @@ class HCWWindowActions {
     );
 }
 
+class HCWBackgroundActions {
+    static backgroundPressed() {
+        return HCW.pointer.backgroundPress;
+
+    }
+    static backgroundClickStart(mouseX, mouseY) {
+        HCW.pointer.backgroundPress = true;
+        HCW.pointer.backgroundStartX = mouseX;
+        HCW.pointer.backgroundStartY = mouseY;
+    }
+
+    static backgroundClickEnd() {
+        HCW.pointer.backgroundPress = false;
+    }
+
+    static backgroundMouseMove(mouseX, mouseY) {
+        if (!HCW.pointer.backgroundPress) return;
+
+        HCW.pointer.backgroundDragSizeX = mouseX - HCW.pointer.backgroundStartX;
+        HCW.pointer.backgroundDragSizeY = mouseY - HCW.pointer.backgroundStartY;
+
+
+
+    }
+
+
+
+
+    /* 
+        
+                if (typeof FGMEvents !== 'undefined' && FGMEvents.backgroundClicked) {
+                    FGMEvents.backgroundClicked();
+                } */
+}
+
 class HCWTouch {
     static _eventMouseToCords(e) {
         const rect = HCW.canvas.getBoundingClientRect();
@@ -252,9 +287,8 @@ class HCWTouch {
             HCW.pointer.focusedField = contextHit.field;
             contextHit.field._interaction({ type: 'mousedown', mouseX, mouseY });
         } else if (!windowParts.window) {
-            if (typeof FGMEvents !== 'undefined' && FGMEvents.backgroundClicked) {
-                FGMEvents.backgroundClicked();
-            }
+            HCWBackgroundActions.backgroundClickStart(mouseX, mouseY);
+
         }
 
         HCWRender.updateFrame();
@@ -282,6 +316,10 @@ class HCWTouch {
 
         if (HCW.pointer.contextdrag && HCW.pointer.contextwindow) {
             HCW.pointer.contextwindow._interaction({ type: 'mousemove', mouseX, mouseY });
+        }
+
+        if (HCWBackgroundActions.backgroundPressed()) {
+            HCWBackgroundActions.backgroundMouseMove(mouseX, mouseY);
         }
 
         HCWRender.updateFrame();
@@ -354,6 +392,9 @@ class HCWTouch {
             HCW.pointer.contextdrag = false;
             HCW.pointer.contextwindow = null;
         }
+
+        // Reset Background Click no false
+        if (HCWBackgroundActions.backgroundPressed) HCWBackgroundActions.backgroundClickEnd();
 
         HCWRender.updateFrame();
     }
