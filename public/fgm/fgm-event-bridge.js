@@ -22,6 +22,12 @@ class FGMEvents {
             return;
         }
 
+        if (GlobalInterrupter.hasEventWaiting(type)) {
+            GlobalInterrupter.resolveEvent(type, data);
+            console.log(`%c Interrupted >> Action "${type}" handled by waiter.`, 'color: #ffcc00; font-style: italic;');
+            return;
+        }
+
         const field = data.fieldClass;
         const keyword = field.getKeyword();
         const location = field.getLocationId();

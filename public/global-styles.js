@@ -9,6 +9,9 @@ class GLOBAL_STYLES {
             CUSTOM_ENCODER: {},
             KEYBOARD: {},
             NUMBER_KEYPAD: {},
+            PRESET_GROUP: {
+                TEMP_COLOR: '#ffff00'
+            },
             PRESETS: {
                 DEFAULT_COLOR: '#00059c',
                 HIGHLIGHT_COLOR: '#005b2f'
@@ -16,7 +19,7 @@ class GLOBAL_STYLES {
             SEARCH: {},
             TABLE: {},
             SEQUENCE_EDITOR: {},
-        };
+        }
     }
 }
 

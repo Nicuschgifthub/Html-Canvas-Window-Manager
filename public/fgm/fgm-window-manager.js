@@ -6,8 +6,8 @@ class FGMWindowManager {
 
     static buildDefaultSetup(onlyReturnWindows = false) {
 
-        const pagesMenu = new HCWPresetField("Pages", GI.MAIN_FUNCTIONS.PAGE_MENU.ID)
-            .setLocationId(GI.MAIN_FUNCTIONS.PAGE_MENU.LOCATION_ID)
+        const pagesMenu = new HCWPresetField("Pages",)
+            .setLocationId(GC.CONTEXT_FIELDS.PAGE_MENU.LOCATION_ID)
             .addPresets(
                 new HCWPreset().setLabel("Menu").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _pageChangeTo: 0 }),
                 new HCWPreset().setLabel("Page 1").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _pageChangeTo: 1 }),
@@ -22,8 +22,8 @@ class FGMWindowManager {
                 new HCWPreset().setLabel("Page 10").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _pageChangeTo: 10 }),
             );
 
-        const settingsMenu = new HCWPresetField("Config", GI.MAIN_FUNCTIONS.SETTINGS_MENU)
-            .setLocationId(GI.MAIN_FUNCTIONS.SETTINGS_MENU.LOCATION_ID)
+        const settingsMenu = new HCWPresetField("Config", GC.CONTEXT_FIELDS.SETTINGS_MENU)
+            .setLocationId(GC.CONTEXT_FIELDS.SETTINGS_MENU.LOCATION_ID)
             .addPresets(
                 new HCWPreset().setLabel("Status").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
                 new HCWPreset().setLabel("ArtNet").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
@@ -31,10 +31,16 @@ class FGMWindowManager {
             );
 
         const pageMenuWindow = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 600 })
-            .setPageId(GI.MAIN_FUNCTIONS.PAGE_MENU.PAGE).setMinSizes(100, 100).setId(Date.now() + 1).setContextField(pagesMenu);
+            .setPageId(GC.CONTEXT_FIELDS.PAGE_MENU.PAGE)
+            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
+            .setId(GC.CONTEXT_FIELDS.PAGE_MENU.ID)
+            .setContextField(pagesMenu);
 
         const settingsMenuWindow = new HCWWindow({ x: 100, y: 0, sx: 400, sy: 300 })
-            .setPageId(GI.MAIN_FUNCTIONS.SETTINGS_MENU.PAGE).setMinSizes(100, 100).setId(Date.now() + 11).setContextField(settingsMenu);
+            .setPageId(GC.CONTEXT_FIELDS.SETTINGS_MENU.PAGE)
+            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
+            .setId(Date.now() + 11)
+            .setContextField(settingsMenu);
 
         const windows = [pageMenuWindow, settingsMenuWindow];
 
@@ -46,10 +52,33 @@ class FGMWindowManager {
 
     }
 
-    static openWindowAddMenu(data) {
-        const { x, y, sx, sy } = data;
+    static buildWindowAddMenu() {
+        const windowMenu = new HCWPresetField("Add Window")
+            .setLocationId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.LOCATION_ID)
+            .addPresets(
+                new HCWPreset().setLabel("Add Fader").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+            );
 
-        // add Open Menu...
+        const pageMenuWindow = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 600 })
+            .setTouchZoneColor(GLOBAL_STYLES.FIELDS.PRESET_GROUP.TEMP_COLOR)
+            .setPageId(GI.MAIN_FUNCTIONS.PAGE_MENU.PAGE)
+            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
+            .setId(GC.CONTEXT_FIELDS.PAGE_MENU.ID)
+            .setContextField(windowMenu);
+
+        return pageMenuWindow;
+    }
+
+    static async openWindowAddMenu(data) {
+        const { x, y, sx, sy } = data;
+        const currentPageCursor = FGMShowHandler.getPageCursor();
+
+        FGMShowHandler.setPageCursor(GLOBAL_CORE.DEFS.PAGES.EMPTY);
+
+        const clickedPresetResult = await GlobalInterrupter.waitFor(GLOBAL_TYPES.ACTIONS.PRESET_PRESS);
+
+        // work on display window add menu
+
     }
 
 }
