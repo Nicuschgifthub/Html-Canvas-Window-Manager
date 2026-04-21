@@ -56,12 +56,16 @@ class FGMWindowManager {
         const windowMenu = new HCWPresetField("Add Window")
             .setLocationId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.LOCATION_ID)
             .addPresets(
-                new HCWPreset().setLabel("Add Fader").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+                new HCWPreset().setLabel("Fader").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+                new HCWPreset().setLabel("Dimmer Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+                new HCWPreset().setLabel("FGroup Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+                new HCWPreset().setLabel("RGBW Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+                new HCWPreset().setLabel("Position Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
             );
 
-        const pageMenuWindow = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 600 })
+        const pageMenuWindow = new HCWWindow({ x: 100, y: 0, sx: 400, sy: 400 })
             .setTouchZoneColor(GLOBAL_STYLES.FIELDS.PRESET_GROUP.TEMP_COLOR)
-            .setPageId(GI.MAIN_FUNCTIONS.PAGE_MENU.PAGE)
+            .setPageId(GLOBAL_CORE.DEFS.PAGES.EMPTY)
             .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
             .setId(GC.CONTEXT_FIELDS.PAGE_MENU.ID)
             .setContextField(windowMenu);
@@ -75,9 +79,21 @@ class FGMWindowManager {
 
         FGMShowHandler.setPageCursor(GLOBAL_CORE.DEFS.PAGES.EMPTY);
 
+        const menuWindow = this.buildWindowAddMenu();
+
+        const windowAddMenuId = menuWindow.getId();
+
+        FGMShowHandler.getHCWClass().addWindows([menuWindow]);
+
         const clickedPresetResult = await GlobalInterrupter.waitFor(GLOBAL_TYPES.ACTIONS.PRESET_PRESS);
 
-        // work on display window add menu
+        // Removing not working and page reset issues, bug when in menu creating a new drag box for another menu like it
+
+        HCWDB.removeWindowByWindowId(windowAddMenuId);
+
+        console.log("nn", currentPageCursor)
+
+        //  FGMShowHandler.setPageCursor(currentPageCursor);
 
     }
 

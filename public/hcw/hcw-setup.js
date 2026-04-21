@@ -52,6 +52,7 @@ class HCWDB {
     static getWindows() {
         return HCW.windows;
     }
+
     static getContextFieldByLocationId(locationId) {
         let contextField = null;
         this.getWindows().forEach(window => {
@@ -60,6 +61,20 @@ class HCWDB {
             }
         })
         return contextField;
+    }
+
+    static removeWindowByWindowId(windowId) {
+        const windows = this.getWindows();
+        if (!windows) return;
+
+        const index = windows.findIndex(window => window.getId() === windowId);
+
+        if (index !== -1) {
+            HCW.windows.splice(index, 1);
+            return true;
+        }
+
+        return false;
     }
 }
 

@@ -23,7 +23,7 @@ class FGMShowFile {
 
             },
             pages: {
-                cursor: 'every',
+                cursor: 0,
                 content: {}
             },
             memory: {
@@ -82,6 +82,8 @@ class FGMShowFile {
 
         HCWDB.getWindows().forEach(window => {
             const pageId = window.getPageId();
+
+            console.log(pageId)
 
             if (pageId == -1 || pageId == pageNumber) {
                 window.setHidden(false);
