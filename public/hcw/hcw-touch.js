@@ -204,27 +204,39 @@ class HCWBackgroundActions {
     }
 
     static backgroundClickEnd() {
+        if (HCW.pointer.backgroundDragSizeX !== 0 && HCW.pointer.backgroundDragSizeY !== 0) {
+            if (typeof FGMEvents !== 'undefined' && FGMEvents.backgroundBoxDrag) {
+                let finalX = Math.min(HCW.pointer.backgroundStartX, HCW.pointer.backgroundStartX + HCW.pointer.backgroundDragSizeX);
+                let finalY = Math.min(HCW.pointer.backgroundStartY, HCW.pointer.backgroundStartY + HCW.pointer.backgroundDragSizeY);
+
+                let finalWidth = Math.abs(HCW.pointer.backgroundDragSizeX);
+                let finalHeight = Math.abs(HCW.pointer.backgroundDragSizeY);
+
+                FGMEvents.backgroundBoxDrag({
+                    x: finalX,
+                    y: finalY,
+                    sx: finalWidth,
+                    sy: finalHeight
+                });
+            }
+        }
+
+        HCW.pointer.backgroundStartX = 0;
+        HCW.pointer.backgroundStartY = 0;
+        HCW.pointer.backgroundDragSizeX = 0;
+        HCW.pointer.backgroundDragSizeY = 0;
         HCW.pointer.backgroundPress = false;
+        HCW.pointer.backgroundDragDraw = false;
     }
 
     static backgroundMouseMove(mouseX, mouseY) {
         if (!HCW.pointer.backgroundPress) return;
 
+        HCW.pointer.backgroundDragDraw = true;
+
         HCW.pointer.backgroundDragSizeX = mouseX - HCW.pointer.backgroundStartX;
         HCW.pointer.backgroundDragSizeY = mouseY - HCW.pointer.backgroundStartY;
-
-
-
     }
-
-
-
-
-    /* 
-        
-                if (typeof FGMEvents !== 'undefined' && FGMEvents.backgroundClicked) {
-                    FGMEvents.backgroundClicked();
-                } */
 }
 
 class HCWTouch {

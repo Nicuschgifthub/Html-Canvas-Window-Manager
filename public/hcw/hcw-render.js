@@ -10,6 +10,16 @@ class HCWCanvasDraw {
         HCW.ctx.fillStyle = color;
         HCW.ctx.fillRect(0, 0, HCW.canvas.width, HCW.canvas.height);
     }
+
+    static drawHollowRect(x, y, sx, sy, color = '#ffff00', thickness = 2, alpha = 0.5) {
+        if (!HCW.ctx) return;
+        HCW.ctx.save();
+        HCW.ctx.globalAlpha = alpha;
+        HCW.ctx.strokeStyle = color;
+        HCW.ctx.lineWidth = thickness;
+        HCW.ctx.strokeRect(x, y, sx, sy);
+        HCW.ctx.restore();
+    }
 }
 
 class HCWRender {
@@ -73,6 +83,16 @@ class HCWRender {
         this.drawContextField(window);
     }
 
+    static drawBackgroundBoxDrag() {
+        const x = HCW.pointer.backgroundStartX;
+        const y = HCW.pointer.backgroundStartY;
+
+        const sx = HCW.pointer.backgroundDragSizeX;
+        const sy = HCW.pointer.backgroundDragSizeY;
+
+        HCWCanvasDraw.drawHollowRect(x, y, sx, sy);
+    }
+
     static updateFrame() {
         if (!HCW.ctx || !HCW.canvas) return;
         HCWCanvasDraw.drawBackground(HCW.background.color);
@@ -80,6 +100,10 @@ class HCWRender {
         if (HCW.grid.pointDistanceX !== null) {
             this.drawGrid();
             HCWGridSnap.updateWindows();
+        }
+
+        if (HCW.pointer.backgroundDragDraw) {
+            this.drawBackgroundBoxDrag();
         }
 
         HCW.windows.forEach(window => {

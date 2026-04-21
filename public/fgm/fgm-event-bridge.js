@@ -4,8 +4,8 @@ class FGMEvents {
         console.log("BG click");
     }
 
-    static backgroundBoxDrag() {
-
+    static backgroundBoxDrag(data) {
+        FGMWindowManager.openWindowAddMenu(data);
     }
 
     static onRenderUpdate() {

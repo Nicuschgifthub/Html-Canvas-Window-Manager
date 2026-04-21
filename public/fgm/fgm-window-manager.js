@@ -46,4 +46,10 @@ class FGMWindowManager {
 
     }
 
+    static openWindowAddMenu(data) {
+        const { x, y, sx, sy } = data;
+
+        // add Open Menu...
+    }
+
 }
