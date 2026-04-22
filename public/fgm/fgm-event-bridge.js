@@ -62,7 +62,7 @@ class FGMEvents {
 
             case GLOBAL_TYPES.ACTIONS.COLOR_FIELD_UPDATE:
                 const c = data.colors;
-                commandString = `${keyword} ${location} At r ${c.r} g ${c.g} b ${c.b} c ${c.white || 0} a ${c.amber || 0} u ${c.uv || 0}`;
+                commandString = `${keyword} ${location} At r ${c.r} g ${c.g} b ${c.b} w ${c.white || 0} a ${c.amber || 0} u ${c.uv || 0}`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ENTER_PRESSED:

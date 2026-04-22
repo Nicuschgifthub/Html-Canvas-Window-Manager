@@ -53,18 +53,23 @@ class FGMWindowManager {
     }
 
     static buildWindowAddMenu() {
+        const windowTypes = [
+            { label: "Fader", key: "fader" },
+            { label: "Color Picker", key: "colorMap" },
+            { label: "Encoder", key: "encoder" },
+            { label: "Presets", key: "presetGroup" }
+        ];
+
         const windowMenu = new HCWPresetField("Add Window")
             .setLocationId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.LOCATION_ID)
             .addPresets(
-                new HCWPreset().setLabel("Fader").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _contextAdd: 'fader' }),
-                new HCWPreset().setLabel("Color Picker").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _contextAdd: 'colorMap' }),
-                new HCWPreset().setLabel("Encoder").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _contextAdd: 'encoder' }),
-
-             /*    new HCWPreset().setLabel("Dimmer Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
-                new HCWPreset().setLabel("FixtureGroup Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
-                new HCWPreset().setLabel("RGBW Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
-                new HCWPreset().setLabel("Position Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
-             */);
+                ...windowTypes.map(type =>
+                    new HCWPreset()
+                        .setLabel(type.label)
+                        .setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR)
+                        .setData({ _contextAdd: type.key })
+                )
+            );
 
         const pageMenuWindow = new HCWWindow({ x: 100, y: 0, sx: 400, sy: 400 })
             .setTouchZoneColor(GLOBAL_STYLES.FIELDS.PRESET_GROUP.TEMP_COLOR)
@@ -88,6 +93,16 @@ class FGMWindowManager {
             },
             colorMap() {
                 return new HCWColorMapField(`ColorMap ${locationId}`).setLocationId(locationId);
+            },
+            presetGroup() {
+                return new HCWPresetField(`Presets ${locationId}`).setLocationId(locationId).addPresets(
+                    ...Array.from({ length: 50 }, (_, i) =>
+                        new HCWPreset()
+                            .setLabel(`Preset ${i + 1}`)
+                            .setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR)
+                            .setData({ _presetNumber: i })
+                    )
+                )
             }
         }
 

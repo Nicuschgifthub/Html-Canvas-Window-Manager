@@ -10,6 +10,7 @@ class FGMLoadFiles {
             'fgm/key-word-executor/PresetGroup.js',
             'fgm/key-word-executor/Fader.js',
             'fgm/key-word-executor/Encoder.js',
+            'fgm/key-word-executor/ColorMap.js',
         ]
     }
 
