@@ -115,6 +115,16 @@ class HCWWindow {
         return this;
     }
 
+    setPosition(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    setSize(sx, sy) {
+        if (sx > this.minsizex) this.sx = sx;
+        if (sy > this.minsizey) this.sy = sy;
+    }
+
     _init() {
         this._calculateTouchZones();
         this._calculateBoundingBox();

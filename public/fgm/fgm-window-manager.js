@@ -1,7 +1,7 @@
 class FGMWindowManager {
 
     static _setupWindows(windows) {
-        FGMShowHandler.getHCWClass().addWindows(windows);
+        HCWDB.addWindows(windows);
     }
 
     static buildDefaultSetup(onlyReturnWindows = false) {
@@ -56,7 +56,7 @@ class FGMWindowManager {
         const windowMenu = new HCWPresetField("Add Window")
             .setLocationId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.LOCATION_ID)
             .addPresets(
-                new HCWPreset().setLabel("Fader").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+                new HCWPreset().setLabel("Fader").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _ADD_CONTEXT: 'Fader' }),
                 new HCWPreset().setLabel("Dimmer Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
                 new HCWPreset().setLabel("FGroup Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
                 new HCWPreset().setLabel("RGBW Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
@@ -67,34 +67,36 @@ class FGMWindowManager {
             .setTouchZoneColor(GLOBAL_STYLES.FIELDS.PRESET_GROUP.TEMP_COLOR)
             .setPageId(GLOBAL_CORE.DEFS.PAGES.EMPTY)
             .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
-            .setId(GC.CONTEXT_FIELDS.PAGE_MENU.ID)
+            .setId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.ID)
             .setContextField(windowMenu);
 
         return pageMenuWindow;
+    }
+
+    static getNewContext() {
+
     }
 
     static async openWindowAddMenu(data) {
         const { x, y, sx, sy } = data;
         const currentPageCursor = FGMShowHandler.getPageCursor();
 
-        FGMShowHandler.setPageCursor(GLOBAL_CORE.DEFS.PAGES.EMPTY);
+        FGMShowHandler.setPageEmpty();
 
         const menuWindow = this.buildWindowAddMenu();
 
-        const windowAddMenuId = menuWindow.getId();
+        menuWindow.setPosition(x, y);
+        menuWindow.setSize(sx, sy);
 
-        FGMShowHandler.getHCWClass().addWindows([menuWindow]);
+        HCWDB.addWindows([menuWindow]);
 
         const clickedPresetResult = await GlobalInterrupter.waitFor(GLOBAL_TYPES.ACTIONS.PRESET_PRESS);
 
-        // Removing not working and page reset issues, bug when in menu creating a new drag box for another menu like it
+        HCWDB.removeWindowByWindowId(menuWindow.getId());
 
-        HCWDB.removeWindowByWindowId(windowAddMenuId);
+        const locationId = HCWDB.generateNextLocationId();
+        const windowId = HCWDB.generateNextWindowId();
 
-        console.log("nn", currentPageCursor)
-
-        //  FGMShowHandler.setPageCursor(currentPageCursor);
-
+        FGMShowHandler.setPageCursor();
     }
-
 }

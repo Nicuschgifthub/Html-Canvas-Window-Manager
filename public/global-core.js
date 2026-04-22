@@ -3,6 +3,23 @@ class GLOBAL_CORE {
 
     static get DEFS() {
         return {
+            get ALL_IDS() {
+                return {
+                    get START_UNRESERVED_LOCATION_IDS() {
+                        return {
+                            get MAJOR() {
+                                return 1;
+                            },
+                            get MINOR() {
+                                return 1;
+                            }
+                        }
+                    },
+                    get START_UNRESERVED_WINDOW_IDS() {
+                        return 2001;
+                    }
+                }
+            },
             get PAGES() {
                 return {
                     get EMPTY() {

@@ -1,4 +1,5 @@
 let HCW = {
+    HCWClassInstance: null,
     canvas: null,
     ctx: null,
     windows: [],
@@ -22,6 +23,7 @@ let HCW = {
         lastMouseX: null,
         lastMouseY: null,
 
+        // Window Parts vars
         _windowPressCandidate: null,
         _windowPressStartX: null,
         _windowPressStartY: null,
@@ -53,6 +55,10 @@ class HCWDB {
         return HCW.windows;
     }
 
+    static addWindows(windowArray) {
+        HCW.HCWClassInstance.addWindows(windowArray);
+    }
+
     static getContextFieldByLocationId(locationId) {
         let contextField = null;
         this.getWindows().forEach(window => {
@@ -61,6 +67,48 @@ class HCWDB {
             }
         })
         return contextField;
+    }
+
+    static generateNextWindowId() {
+        const windows = this.getWindows();
+        const existingIds = new Set(windows.map(win => win.getId()));
+
+        let candidateId = GLOBAL_CORE.DEFS.ALL_IDS.START_UNRESERVED_WINDOW_IDS;
+
+        while (existingIds.has(candidateId)) {
+            candidateId++;
+        }
+
+        return candidateId;
+    }
+
+    static generateNextLocationId() {
+        const windows = this.getWindows();
+
+        const existingIds = windows.map(win => win.getContextField().getLocationId().toString());
+
+        let major = GLOBAL_CORE.DEFS.ALL_IDS.START_UNRESERVED_LOCATION_IDS.MAJOR;
+        let minor = GLOBAL_CORE.DEFS.ALL_IDS.START_UNRESERVED_LOCATION_IDS.MINOR;
+
+        while (true) {
+            const formattedMinor = minor.toString().padStart(3, '0');
+            const candidateId = `${major}.${formattedMinor}`;
+
+            if (!existingIds.includes(candidateId)) {
+                return candidateId;
+            }
+
+            minor++;
+            if (minor > 999) {
+                minor = 1;
+                major++;
+            }
+
+            if (major > 999) {
+                console.error("Location ID limit reached!");
+                return null;
+            }
+        }
     }
 
     static removeWindowByWindowId(windowId) {
@@ -103,6 +151,8 @@ class HCWSetup {
         }).catch(error => {
             console.error("Error loading scripts:", error);
         });
+
+        HCW.HCWClassInstance = this;
     }
 
     setBackgroundColor(hex) {

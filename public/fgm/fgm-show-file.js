@@ -77,7 +77,14 @@ class FGMShowFile {
         return this.showFile.pages.content;
     }
 
-    setPageCursor(pageNumber = 0) {
+    setPageEmpty() {
+        HCWDB.getWindows().forEach(window => {
+            const pageId = window.getPageId();
+            window.setHidden(true);
+        })
+    }
+
+    setPageCursor(pageNumber = this.showFile.pages.cursor) {
         this.showFile.pages.cursor = pageNumber;
 
         HCWDB.getWindows().forEach(window => {

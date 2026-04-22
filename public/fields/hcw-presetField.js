@@ -111,17 +111,12 @@ class HCWPresetField extends HCWBaseField {
 
     toJSON() {
         const copy = super.toJSON();
+        copy.presets = this.presets.map(p => p.toJSON());
         return copy;
     }
 
     getType() {
         return GLOBAL_TYPES.CONTEXT_FIELDS.PRESETS;
-    }
-
-    toJSON() {
-        const copy = super.toJSON();
-        copy.presets = this.presets.map(p => p.toJSON());
-        return copy;
     }
 
     fromJSON(json) {
@@ -142,7 +137,6 @@ class HCWPresetField extends HCWBaseField {
         return this.presets[index];
     }
 
-    /** @param {...(HCWPreset|string)} nameOrInstances */
     addPresets(...nameOrInstances) {
         nameOrInstances.forEach(item => {
             if (item instanceof HCWPreset) {
@@ -154,9 +148,6 @@ class HCWPresetField extends HCWBaseField {
         return this;
     }
 
-    /**
-     * @param {HCWPreset} preset 
-     */
     _setupAndAddPreset(preset) {
         preset.setParentField(this);
 
@@ -326,7 +317,6 @@ class HCWPresetField extends HCWBaseField {
                     if (typeof FGMKernel !== 'undefined' && FGMKernel.getAwaitingColor) {
                         bgColor = FGMKernel.getAwaitingColor();
                     } else {
-                        // Fallback
                         const pulse = (Math.sin(Date.now() / 150) + 1) / 2;
                         if (pulse > 0.5) bgColor = '#ffffffaa';
                     }
@@ -337,7 +327,7 @@ class HCWPresetField extends HCWBaseField {
 
                 if (preset.getSelectionState() > 0) {
                     const state = preset.getSelectionState();
-                    HCW.ctx.strokeStyle = state === 2 ? "#39af0aff" : "#f1c40f"; // Green for Full, Yellow for Partial
+                    HCW.ctx.strokeStyle = state === 2 ? "#39af0aff" : "#f1c40f";
                     HCW.ctx.lineWidth = 3;
                     HCW.ctx.strokeRect(px + 1.5, py + 1.5, itemWidth - 3, this.itemHeight - 3);
                 }
@@ -346,14 +336,48 @@ class HCWPresetField extends HCWBaseField {
                 HCW.ctx.font = "12px Arial";
                 HCW.ctx.textAlign = "center";
 
-                let textY = py + (this.itemHeight / 2) + 4;
-                if (preset.getProgress() !== undefined && preset.getProgress() !== null) {
-                    textY = py + (this.itemHeight / 2) - 5;
+                const name = preset.getName();
+                const padding = 6;
+                const maxWidth = itemWidth - padding;
+                const words = name.split(' ');
+                let lines = [];
+                let currentLine = words[0];
+
+                if (HCW.ctx.measureText(name).width > maxWidth) {
+                    for (let i = 1; i < words.length; i++) {
+                        const testLine = currentLine + " " + words[i];
+                        if (HCW.ctx.measureText(testLine).width > maxWidth) {
+                            lines.push(currentLine);
+                            currentLine = words[i];
+                        } else {
+                            currentLine = testLine;
+                        }
+                    }
+                    lines.push(currentLine);
+                } else {
+                    lines = [name];
                 }
 
-                HCW.ctx.fillText(preset.getName(), px + (itemWidth / 2), textY);
+                if (lines.length > 2) {
+                    lines = [lines[0], lines[1] + "..."];
+                }
 
-                if (preset.getProgress() !== undefined && preset.getProgress() !== null) {
+                const hasProgress = (preset.getProgress() !== undefined && preset.getProgress() !== null);
+                const lineHeight = 14;
+
+                let baseY = py + (this.itemHeight / 2) + 4;
+                if (hasProgress) baseY -= 6;
+
+                if (lines.length > 1) {
+                    const startTextY = baseY - (lineHeight / 2);
+                    lines.forEach((line, i) => {
+                        HCW.ctx.fillText(line, px + (itemWidth / 2), startTextY + (i * lineHeight));
+                    });
+                } else {
+                    HCW.ctx.fillText(lines[0], px + (itemWidth / 2), baseY);
+                }
+
+                if (hasProgress) {
                     const barHeight = 6;
                     const progress = Math.max(0, Math.min(1, preset.getProgress()));
 
@@ -365,7 +389,7 @@ class HCWPresetField extends HCWBaseField {
 
                     HCW.ctx.fillStyle = this.renderProps.colors.itemText;
                     HCW.ctx.font = "10px Arial";
-                    HCW.ctx.fillText(Math.round(progress * 100) + "%", px + (itemWidth / 2), textY + 15);
+                    HCW.ctx.fillText(Math.round(progress * 100) + "%", px + (itemWidth / 2), py + this.itemHeight - barHeight - 4);
                 }
 
                 HCW.ctx.textAlign = "start";
