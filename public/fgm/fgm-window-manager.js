@@ -6,7 +6,7 @@ class FGMWindowManager {
 
     static buildDefaultSetup(onlyReturnWindows = false) {
 
-        const pagesMenu = new HCWPresetField("Pages",)
+        const pagesMenu = new HCWPresetField("Pages")
             .setLocationId(GC.CONTEXT_FIELDS.PAGE_MENU.LOCATION_ID)
             .addPresets(
                 new HCWPreset().setLabel("Menu").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _pageChangeTo: 0 }),
@@ -22,7 +22,7 @@ class FGMWindowManager {
                 new HCWPreset().setLabel("Page 10").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _pageChangeTo: 10 }),
             );
 
-        const settingsMenu = new HCWPresetField("Config", GC.CONTEXT_FIELDS.SETTINGS_MENU)
+        const settingsMenu = new HCWPresetField("Config")
             .setLocationId(GC.CONTEXT_FIELDS.SETTINGS_MENU.LOCATION_ID)
             .addPresets(
                 new HCWPreset().setLabel("Status").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
@@ -56,12 +56,15 @@ class FGMWindowManager {
         const windowMenu = new HCWPresetField("Add Window")
             .setLocationId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.LOCATION_ID)
             .addPresets(
-                new HCWPreset().setLabel("Fader").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _ADD_CONTEXT: 'Fader' }),
-                new HCWPreset().setLabel("Dimmer Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
-                new HCWPreset().setLabel("FGroup Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+                new HCWPreset().setLabel("Fader").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _contextAdd: 'fader' }),
+                new HCWPreset().setLabel("Color Picker").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _contextAdd: 'colorMap' }),
+                new HCWPreset().setLabel("Encoder").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _contextAdd: 'encoder' }),
+
+             /*    new HCWPreset().setLabel("Dimmer Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
+                new HCWPreset().setLabel("FixtureGroup Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
                 new HCWPreset().setLabel("RGBW Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
                 new HCWPreset().setLabel("Position Presets").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _UN_: 0 }),
-            );
+             */);
 
         const pageMenuWindow = new HCWWindow({ x: 100, y: 0, sx: 400, sy: 400 })
             .setTouchZoneColor(GLOBAL_STYLES.FIELDS.PRESET_GROUP.TEMP_COLOR)
@@ -73,11 +76,30 @@ class FGMWindowManager {
         return pageMenuWindow;
     }
 
-    static getNewContext() {
+    static getNewContext(type, windowId, locationId) {
+        let newContext = null;
 
+        const contexts = {
+            fader() {
+                return new HCWFaderField(`Fader ${locationId}`).setFloat(0).setLocationId(locationId);
+            },
+            encoder() {
+                return new HCWEncoderField(`Encoder ${locationId}`).setFloats(0, 0).setLocationId(locationId);
+            },
+            colorMap() {
+                return new HCWColorMapField(`ColorMap ${locationId}`).setLocationId(locationId);
+            }
+        }
+
+        newContext = contexts[type]();
+
+        return new HCWWindow({ x: 0, y: 0, sx: 100, sy: 100 })
+            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
+            .setId(windowId)
+            .setContextField(newContext);
     }
 
-    static async openWindowAddMenu(data) {
+    static async createNewWindowByUserInput(data) {
         const { x, y, sx, sy } = data;
         const currentPageCursor = FGMShowHandler.getPageCursor();
 
@@ -90,12 +112,33 @@ class FGMWindowManager {
 
         HCWDB.addWindows([menuWindow]);
 
-        const clickedPresetResult = await GlobalInterrupter.waitFor(GLOBAL_TYPES.ACTIONS.PRESET_PRESS);
+        const { GlobalActionType, resolvedAction } = await GlobalInterrupter.waitForSome(
+            GLOBAL_TYPES.ACTIONS.PRESET_PRESS,
+            GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED,
+            GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG);
 
         HCWDB.removeWindowByWindowId(menuWindow.getId());
 
+        if (GlobalActionType == GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG) { // refire itself if new drag
+            this.createNewWindowByUserInput(resolvedAction);
+            return;
+        }
+
+        if (GlobalActionType !== GLOBAL_TYPES.ACTIONS.PRESET_PRESS) {
+            FGMShowHandler.setPageCursor();
+            return;
+        }
+
         const locationId = HCWDB.generateNextLocationId();
         const windowId = HCWDB.generateNextWindowId();
+
+        const newWindow = this.getNewContext(resolvedAction.presetData._contextAdd, windowId, locationId);
+
+        newWindow.setPageId(currentPageCursor);
+        newWindow.setPosition(x, y);
+        newWindow.setSize(sx, sy);
+
+        HCWDB.addWindows([newWindow]);
 
         FGMShowHandler.setPageCursor();
     }

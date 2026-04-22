@@ -16,6 +16,14 @@ class GLOBAL_TYPES {
 
     static get ACTIONS() {
         return {
+            get BACKGROUND_CLICKED() {
+                return 'ACTION_BACKGROUND_CLICKED';
+            },
+
+            get BACKGROUND_DRAG() {
+                return 'ACTION_BACKGROUND_DRAG';
+            },
+
             get ENCODER_VALUE_UPDATE() {
                 return 'ACTION_ENCODER_VALUE_UPDATE';
             },

@@ -8,6 +8,8 @@ class FGMLoadFiles {
             '/fgm/fgm-window-manager.js',
             // List of Keyword executor
             'fgm/key-word-executor/PresetGroup.js',
+            'fgm/key-word-executor/Fader.js',
+            'fgm/key-word-executor/Encoder.js',
         ]
     }
 

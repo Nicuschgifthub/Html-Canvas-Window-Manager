@@ -1,11 +1,23 @@
 class FGMEvents {
 
-    static backgroundClicked() {
+    static backgroundClicked(data) {
         console.log("BG click");
+
+        if (GlobalInterrupter.hasEventWaiting(GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED)) {
+            GlobalInterrupter.resolveEvent(GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED, data);
+            console.log(`%c Interrupted >> Action "${GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED}" handled by waiter.`, 'color: #ffcc00; font-style: italic;');
+            return;
+        }
     }
 
     static backgroundBoxDrag(data) {
-        FGMWindowManager.openWindowAddMenu(data);
+        if (GlobalInterrupter.hasEventWaiting(GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG)) {
+            GlobalInterrupter.resolveEvent(GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG, data);
+            console.log(`%c Interrupted >> Action "${GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG}" handled by waiter.`, 'color: #ffcc00; font-style: italic;');
+            return;
+        }
+
+        FGMWindowManager.createNewWindowByUserInput(data);
     }
 
     static onRenderUpdate() {

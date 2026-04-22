@@ -204,6 +204,8 @@ class HCWBackgroundActions {
     }
 
     static backgroundClickEnd() {
+        if (!HCW.pointer.backgroundPress) return;
+
         if (HCW.pointer.backgroundDragSizeX !== 0 && HCW.pointer.backgroundDragSizeY !== 0) {
             if (typeof FGMEvents !== 'undefined' && FGMEvents.backgroundBoxDrag) {
                 let finalX = Math.min(HCW.pointer.backgroundStartX, HCW.pointer.backgroundStartX + HCW.pointer.backgroundDragSizeX);
@@ -219,7 +221,13 @@ class HCWBackgroundActions {
                     sy: finalHeight
                 });
             }
+        } else {
+            FGMEvents.backgroundClicked({
+                x: HCW.pointer.backgroundStartX,
+                y: HCW.pointer.backgroundStartX,
+            });
         }
+
 
         HCW.pointer.backgroundStartX = 0;
         HCW.pointer.backgroundStartY = 0;
@@ -300,7 +308,6 @@ class HCWTouch {
             contextHit.field._interaction({ type: 'mousedown', mouseX, mouseY });
         } else if (!windowParts.window) {
             HCWBackgroundActions.backgroundClickStart(mouseX, mouseY);
-
         }
 
         HCWRender.updateFrame();

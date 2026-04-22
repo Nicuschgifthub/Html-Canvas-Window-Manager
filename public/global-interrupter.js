@@ -1,31 +1,3 @@
-/* class GlobalInterrupter {
-    static _waitingRooms = new Map();
-
-    static hasEventWaiting(GlobalActionType) {
-        return this._waitingRooms.has(GlobalActionType) &&
-            this._waitingRooms.get(GlobalActionType).length > 0;
-    }
-
-    static waitFor(GlobalActionType) {
-        return new Promise((resolve) => {
-            if (!this._waitingRooms.has(GlobalActionType)) {
-                this._waitingRooms.set(GlobalActionType, []);
-            }
-            this._waitingRooms.get(GlobalActionType).push(resolve);
-        });
-    }
-
-    static resolveEvent(GlobalActionType, data) {
-        if (this.hasEventWaiting(GlobalActionType)) {
-            const resolvers = this._waitingRooms.get(GlobalActionType);
-
-            resolvers.forEach(resolve => resolve(data));
-
-            this._waitingRooms.delete(GlobalActionType);
-        }
-    }
-} */
-
 class GlobalInterrupter {
     static _waitingRooms = new Map();
 
@@ -34,44 +6,58 @@ class GlobalInterrupter {
             this._waitingRooms.get(GlobalActionType).length > 0;
     }
 
-    /**
-     * Waits for the FIRST event of the provided types to occur.
-     * Usage: await GlobalInterrupter.waitFor('LOGIN', 'TIMEOUT');
-     */
-    static waitFor(...GlobalActionTypes) {
-        const promises = GlobalActionTypes.map(type => {
-            return new Promise((resolve) => {
-                if (!this._waitingRooms.has(type)) {
-                    this._waitingRooms.set(type, []);
-                }
-                this._waitingRooms.get(type).push(resolve);
-            });
-        });
-
-        return Promise.race(promises);
+    static _removeResolver(type, resolver) {
+        if (this._waitingRooms.has(type)) {
+            const list = this._waitingRooms.get(type);
+            const index = list.indexOf(resolver);
+            if (index !== -1) {
+                list.splice(index, 1);
+            }
+            if (list.length === 0) {
+                this._waitingRooms.delete(type);
+            }
+        }
     }
 
-    /**
-     * Waits for ALL provided events to occur.
-     * Usage: await GlobalInterrupter.waitForAll('DATA_LOADED', 'ASSETS_LOADED');
-     */
-    static waitForAll(...GlobalActionTypes) {
-        const promises = GlobalActionTypes.map(type => {
-            return new Promise((resolve) => {
-                if (!this._waitingRooms.has(type)) {
-                    this._waitingRooms.set(type, []);
-                }
+    static waitForSome(...GlobalActionTypes) {
+        if (GlobalActionTypes.length === 1) {
+            const type = GlobalActionTypes[0];
+            return new Promise(resolve => {
+                if (!this._waitingRooms.has(type)) this._waitingRooms.set(type, []);
                 this._waitingRooms.get(type).push(resolve);
             });
-        });
+        }
 
-        return Promise.all(promises);
+        return new Promise((resolve) => {
+            const registeredResolvers = [];
+
+            const cleanupAndResolve = (result) => {
+                registeredResolvers.forEach(({ type, fn }) => {
+                    this._removeResolver(type, fn);
+                });
+                resolve(result);
+            };
+
+            GlobalActionTypes.forEach(type => {
+                if (!this._waitingRooms.has(type)) this._waitingRooms.set(type, []);
+
+                const resolverFunc = (data) => cleanupAndResolve(data);
+
+                this._waitingRooms.get(type).push(resolverFunc);
+                registeredResolvers.push({ type, fn: resolverFunc });
+            });
+        });
+    }
+
+    static waitForAll(...GlobalActionTypes) {
+        return Promise.all(GlobalActionTypes.map(type => this.waitFor(type)));
     }
 
     static resolveEvent(GlobalActionType, resolvedAction) {
         if (this.hasEventWaiting(GlobalActionType)) {
             const resolvers = this._waitingRooms.get(GlobalActionType);
-            resolvers.forEach(resolve => resolve({ GlobalActionType, resolvedAction }));
+            const resolversCopy = [...resolvers];
+            resolversCopy.forEach(resolve => resolve({ GlobalActionType, resolvedAction }));
             this._waitingRooms.delete(GlobalActionType);
         }
     }
