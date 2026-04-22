@@ -1,8 +1,5 @@
 class FGMWindowSettings {
     static async openAndAwaitWindowSettings(window) {
-
-        console.log(window)
-
         const contextField = window.getContextField();
 
         console.log(contextField)
@@ -28,6 +25,8 @@ class FGMWindowSettings {
             .setId(GLOBAL_CORE.CONTEXT_FIELDS.SETTINGS_MENU.ID)
 
         HCWDB.addWindows([settingsWindow]);
+
+        // add functions to alter attributes
     }
 
     static windowEdgeClicked(window) {
