@@ -65,7 +65,7 @@ class GLOBAL_CORE {
                         return 1002;
                     },
                     get PAGE() {
-                        return 0;
+                        return GLOBAL_CORE.DEFS.PAGES.EMPTY;
                     },
                     get LOCATION_ID() {
                         return '0.002';

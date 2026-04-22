@@ -6,6 +6,7 @@ class FGMLoadFiles {
             '/fgm/fgm-show-file.js',
             '/fgm/fgm-event-bridge.js',
             '/fgm/fgm-window-manager.js',
+            '/fgm/fgm-window-settings.js',
             // List of Keyword executor
             'fgm/key-word-executor/PresetGroup.js',
             'fgm/key-word-executor/Fader.js',

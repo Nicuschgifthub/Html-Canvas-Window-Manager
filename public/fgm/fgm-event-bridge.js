@@ -29,6 +29,11 @@ class FGMEvents {
     }
 
     static onAction(type, data = {}) {
+        if (type == GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) {
+            FGMWindowSettings.windowEdgeClicked(data.window);
+            return;
+        }
+
         if (!data.fieldClass) {
             console.warn("Event Action without fieldClass:", type, data);
             return;

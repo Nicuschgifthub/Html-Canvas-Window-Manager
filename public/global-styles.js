@@ -21,6 +21,12 @@ class GLOBAL_STYLES {
             SEQUENCE_EDITOR: {},
         }
     }
+
+    static get FIELDS_GLOBAL() {
+        return {
+            TEMP_TOUCH_ZONE_COLOR: '#ffff00'
+        }
+    }
 }
 
 const GS = GLOBAL_STYLES;

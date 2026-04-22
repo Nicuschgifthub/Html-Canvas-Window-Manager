@@ -109,20 +109,22 @@ class HCWWindow {
         return this;
     }
 
-    setMinSizes(x = 0, y = 0) {
-        this.minsizex = x;
-        this.minsizey = y;
+    setMinSizes(sx = 0, sy = 0) {
+        this.minsizex = sx;
+        this.minsizey = sy;
         return this;
     }
 
     setPosition(x, y) {
         this.x = x;
         this.y = y;
+        return this;
     }
 
     setSize(sx, sy) {
         if (sx > this.minsizex) this.sx = sx;
         if (sy > this.minsizey) this.sy = sy;
+        return this;
     }
 
     _init() {

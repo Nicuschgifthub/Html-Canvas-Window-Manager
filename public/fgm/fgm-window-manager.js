@@ -72,7 +72,7 @@ class FGMWindowManager {
             );
 
         const pageMenuWindow = new HCWWindow({ x: 100, y: 0, sx: 400, sy: 400 })
-            .setTouchZoneColor(GLOBAL_STYLES.FIELDS.PRESET_GROUP.TEMP_COLOR)
+            .setTouchZoneColor(GLOBAL_STYLES.FIELDS_GLOBAL.TEMP_TOUCH_ZONE_COLOR)
             .setPageId(GLOBAL_CORE.DEFS.PAGES.EMPTY)
             .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
             .setId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.ID)

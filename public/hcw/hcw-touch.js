@@ -228,7 +228,6 @@ class HCWBackgroundActions {
             });
         }
 
-
         HCW.pointer.backgroundStartX = 0;
         HCW.pointer.backgroundStartY = 0;
         HCW.pointer.backgroundDragSizeX = 0;
