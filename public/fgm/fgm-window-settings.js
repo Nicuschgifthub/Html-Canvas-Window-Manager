@@ -8,9 +8,7 @@ class FGMWindowSettings {
             {
                 label: "Label",
                 getValue: () => targetContext.getLabel(),
-                setterFunction: ((value) => {
-                    targetContext.setLabel(value)
-                }),
+                setterFunction: (value) => targetContext.setLabel(value),
                 isReadOnly: false,
                 setterValueVerify: (newValue) => {
                     const val = newValue.trim();
@@ -22,167 +20,50 @@ class FGMWindowSettings {
             {
                 label: "Location ID",
                 getValue: () => targetContext.getLocationId(),
-                setterFunction: ((value) => {
-                    targetContext.setLocationId(value)
-                }),
-                isReadOnly: false,
+                setterFunction: (value) => targetContext.setLocationId(value),
+                // Disable editing if it's a system ID starting with 0
+                isReadOnly: targetContext.getLocationId().startsWith("0"),
                 setterValueVerify: (newValue) => {
                     const val = newValue.toString().trim();
                     const pattern = /^[1-9]\.\d{3}$/;
                     if (!pattern.test(val)) return { valid: false, infoText: "Format Error: Use X.XXX" };
                     const exists = HCWDB.getContextFieldByLocationId(val);
-                    if (exists && exists !== targetContext) return { valid: false, infoText: `ID ${val} already used by \"${exists.getLabel()}\"` };
+                    if (exists && exists !== targetContext) return { valid: false, infoText: `ID ${val} used by "${exists.getLabel()}"` };
                     return { valid: true, infoText: "" };
                 }
             },
             {
                 label: "Fader Value",
+                _useFloatLogic: true,
                 getValue: () => targetContext.getFloat(),
-                isReadOnly: false,
                 _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.FADER,
-                setterFunction: ((newValue) => {
-                    targetContext.setFloat(newValue)
-                }),
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.0 - 1.0" };
-                    return { valid: true, infoText: "" };
-                }
+                setterFunction: (v) => targetContext.setFloat(v)
             },
             {
                 label: "Outer Value (V1)",
+                _useFloatLogic: true,
                 getValue: () => targetContext.value,
-                isReadOnly: false,
                 _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER,
-                setterFunction: ((newValue) => {
-                    targetContext.setFloats(newValue)
-                }),
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.0 - 1.0" };
-                    return { valid: true, infoText: "" };
-                }
+                setterFunction: (v) => targetContext.setFloats(v)
             },
             {
                 label: "Inner Value (V2)",
+                _useFloatLogic: true,
                 getValue: () => targetContext.value2,
-                isReadOnly: false,
                 _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER,
-                setterFunction: (newValue) => targetContext.setFloats(targetContext.value, Number(newValue)),
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.0 - 1.0" };
-                    return { valid: true, infoText: "" };
-                }
+                setterFunction: (v) => targetContext.setFloats(targetContext.value, v)
             },
-            {
-                label: "Hue",
-                getValue: () => targetContext.h,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.h = Number(newValue); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.000 - 1.000" };
-                    return { valid: true, infoText: "" };
-                }
-            },
-            {
-                label: "Saturation",
-                getValue: () => targetContext.s,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.s = Number(newValue); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.000 - 1.000" };
-                    return { valid: true, infoText: "" };
-                }
-            },
-            {
-                label: "Brightness (V)",
-                getValue: () => targetContext.v,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.v = Number(newValue); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.000 - 1.000" };
-                    return { valid: true, infoText: "" };
-                }
-            },
-            {
-                label: "Red",
-                getValue: () => targetContext.getColors().r,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.setColor({ r: Math.round(Number(newValue)) }); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
-                    return { valid: true, infoText: "" };
-                }
-            },
-            {
-                label: "Green",
-                getValue: () => targetContext.getColors().g,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.setColor({ g: Math.round(Number(newValue)) }); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
-                    return { valid: true, infoText: "" };
-                }
-            },
-            {
-                label: "Blue",
-                getValue: () => targetContext.getColors().b,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.setColor({ b: Math.round(Number(newValue)) }); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
-                    return { valid: true, infoText: "" };
-                }
-            },
-            {
-                label: "White LED",
-                getValue: () => targetContext.extra.white,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.setColor({ white: Math.round(Number(newValue)) }); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
-                    return { valid: true, infoText: "" };
-                }
-            },
-            {
-                label: "Amber LED",
-                getValue: () => targetContext.extra.amber,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.setColor({ amber: Math.round(Number(newValue)) }); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
-                    return { valid: true, infoText: "" };
-                }
-            },
-            {
-                label: "UV LED",
-                getValue: () => targetContext.extra.uv,
-                isReadOnly: false,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
-                setterFunction: (newValue) => { targetContext.setColor({ uv: Math.round(Number(newValue)) }); targetContext._trigger(); },
-                setterValueVerify: (newValue) => {
-                    const num = Number(newValue);
-                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
-                    return { valid: true, infoText: "" };
-                }
-            },
+            // Hue, Sat, Brightness (Natural: Float)
+            { label: "Hue", _useFloatLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.h, setterFunction: (v) => { targetContext.h = v; targetContext._trigger(); } },
+            { label: "Saturation", _useFloatLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.s, setterFunction: (v) => { targetContext.s = v; targetContext._trigger(); } },
+            { label: "Brightness (V)", _useFloatLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.v, setterFunction: (v) => { targetContext.v = v; targetContext._trigger(); } },
+            // RGB & Extra LEDs (Natural: DMX 0-255)
+            { label: "Red", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().r, setterFunction: (v) => { targetContext.setColor({ r: v }); targetContext._trigger(); } },
+            { label: "Green", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().g, setterFunction: (v) => { targetContext.setColor({ g: v }); targetContext._trigger(); } },
+            { label: "Blue", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().b, setterFunction: (v) => { targetContext.setColor({ b: v }); targetContext._trigger(); } },
+            { label: "White LED", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.extra.white, setterFunction: (v) => { targetContext.setColor({ white: v }); targetContext._trigger(); } },
+            { label: "Amber LED", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.extra.amber, setterFunction: (v) => { targetContext.setColor({ amber: v }); targetContext._trigger(); } },
+            { label: "UV LED", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.extra.uv, setterFunction: (v) => { targetContext.setColor({ uv: v }); targetContext._trigger(); } },
             {
                 label: "Type",
                 getValue: () => currentType,
@@ -190,7 +71,48 @@ class FGMWindowSettings {
             }
         ];
 
-        // remove the way to edit locationId if it start with 0.xxx
+        rawDefinitions.forEach(def => {
+            if (!def._useFloatLogic && !def._useDmxLogic) return;
+
+            const originalGet = def.getValue;
+            const originalSet = def.setterFunction;
+            const mode = FGMShowHandler.getValueTypeSettings();
+
+            def.getValue = () => {
+                let floatVal = def._useFloatLogic ? originalGet() : `${DMXHelper.dmxToFloat(originalGet())} ${GLOBAL_TYPES.SYMBOLS.FLOAT}`;
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) return `${DMXHelper.floatToDMX(floatVal)} ${GLOBAL_TYPES.SYMBOLS.DMX_BIT_8}`;
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) return `${Math.round(floatVal * 100)} ${GLOBAL_TYPES.SYMBOLS.PERCENT}`;
+                return floatVal.toFixed(3);
+            };
+
+            def.getKeyboardValue = () => {
+                let floatVal = def._useFloatLogic ? originalGet() : `${DMXHelper.dmxToFloat(originalGet())}`;
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) return `${DMXHelper.floatToDMX(floatVal)}`;
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) return `${Math.round(floatVal * 100)}`;
+                return floatVal.toFixed(3);
+            };
+
+            def.setterFunction = (input) => {
+                let val = String(input).replace('%', '');
+                let floatVal;
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) floatVal = DMXHelper.dmxToFloat(Number(val));
+                else if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) floatVal = Number(val) / 100;
+                else floatVal = Number(val);
+
+                const finalValue = def._useFloatLogic ? floatVal : DMXHelper.floatToDMX(floatVal);
+                originalSet(finalValue);
+            };
+
+            def.setterValueVerify = (input) => {
+                let val = String(input).replace('%', '');
+                let num = Number(val);
+                if (isNaN(num)) return { valid: false, infoText: "Must be a number" };
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8 && (num < 0 || num > 255)) return { valid: false, infoText: "Range: 0-255" };
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT && (num < 0 || num > 100)) return { valid: false, infoText: "Range: 0-100%" };
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.FLOAT && (num < 0 || num > 1)) return { valid: false, infoText: "Range: 0.0-1.0" };
+                return { valid: true, infoText: "" };
+            };
+        });
 
         const rowDefinitions = rawDefinitions.filter(def => {
             return !def._forContextTypeOnly || def._forContextTypeOnly === currentType;
@@ -234,11 +156,9 @@ class FGMWindowSettings {
         if (GlobalActionType == GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) return this.settingsLoop(data);
 
         if (GlobalActionType !== GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS) {
-
             if (GlobalActionType == GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_ADD) {
                 HCWDB.removeWindowByWindowId(targetWindow.getId());
             }
-
             FGMShowHandler.setPageCursor();
             HCWDB.removeWindowByWindowId(settingsWindow.getId());
             HCWRender.updateFrame();
@@ -248,6 +168,7 @@ class FGMWindowSettings {
         const { rowIndex, colIndex } = resolvedAction;
         const definition = rowDefinitions[rowIndex];
 
+        // Edit value column (index 1)
         if (colIndex === 1 && definition && !definition.isReadOnly) {
             settingsWindow.setHidden(true);
             FGMShowHandler.setPageEmpty();
@@ -256,13 +177,12 @@ class FGMWindowSettings {
             try {
                 const result = await FGMKeyboardInteraction.openKeyboard(
                     FGMKeyboardInteractionSettings.create()
-                        .setLabel(`Edit ${definition.label}`)
-                        .setInitialValue(definition.getValue())
+                        .setLabel(`Edit ${definition.label} as `)
+                        .setInitialValue(definition.getKeyboardValue())
                         .setVerify(definition.setterValueVerify)
                         .onEnter((newValue) => {
                             if (definition.setterFunction) {
                                 definition.setterFunction(newValue);
-                                definition.value = newValue;
                             }
                         })
                 );
@@ -280,11 +200,10 @@ class FGMWindowSettings {
                 settingsWindow.setHidden(false);
                 HCWRender.updateFrame();
             }
-        } else {
-            if (definition?.isReadOnly) {
-                console.log(`Attribute "${definition.label}" is read-only.`);
-            }
+        } else if (definition?.isReadOnly) {
+            console.log(`Attribute "${definition.label}" is read-only.`);
         }
+
         return this.settingsLoop(data);
     }
 

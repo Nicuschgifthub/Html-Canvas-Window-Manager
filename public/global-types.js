@@ -223,4 +223,26 @@ class GLOBAL_TYPES {
             }
         }
     }
+
+    static get DMX_VALUE_TYPE() {
+        return {
+            DMX_BIT_8: 'value_8_Bit',
+            FLOAT: 'value_float',
+            PERCENT: 'value_percent'
+        }
+    }
+
+    static get SYMBOLS() {
+        return {
+            get PERCENT() {
+                return '%'
+            },
+            get DMX_BIT_8() {
+                return '%'
+            },
+            get FLOAT() {
+                return 'Float'
+            }
+        }
+    }
 }

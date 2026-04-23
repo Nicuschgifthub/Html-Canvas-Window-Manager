@@ -10,6 +10,9 @@ class FGMShowFile {
             name: "My First Show",
             createdByHCWArtnetType: "6Channel", // FullFGM, CustomFGM, 12Channel, 6Channel
             description: "",
+            settings: {
+                valueType: GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8
+            },
             hcwSettings: {
                 everyPixelX: 100,
                 everyPixelY: 100,
@@ -109,6 +112,10 @@ class FGMShowFile {
                 if (window.getHiddenStatus() == false) window.setHidden(true);
             }
         })
+    }
+
+    getValueTypeSettings() {
+        return this.showFile.settings.valueType;
     }
 
     getPageCursor() {
