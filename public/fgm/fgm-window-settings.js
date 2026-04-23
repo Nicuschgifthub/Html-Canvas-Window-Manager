@@ -21,7 +21,6 @@ class FGMWindowSettings {
                 label: "Location ID",
                 getValue: () => targetContext.getLocationId(),
                 setterFunction: (value) => targetContext.setLocationId(value),
-                // Disable editing if it's a system ID starting with 0
                 isReadOnly: targetContext.getLocationId().startsWith("0"),
                 setterValueVerify: (newValue) => {
                     const val = newValue.toString().trim();
@@ -78,38 +77,86 @@ class FGMWindowSettings {
             const originalSet = def.setterFunction;
             const mode = FGMShowHandler.getValueTypeSettings();
 
+            // 1. Ensure we always have a 0.0 - 1.0 float for calculations
+            const getNormalizedFloat = () => {
+                const val = originalGet();
+                // If it's DMX logic, the internal value is 0-255, so convert to 0-1
+
+
+                if (def._useDmxLogic) {
+                    console.log("Dmx to flaot ", val)
+                    return DMXHelper.dmxToFloat(val);
+                }
+
+                console.log("Float ", val)
+
+                // Otherwise it's already a float
+                return val;
+            };
+
             def.getValue = () => {
-                let floatVal = def._useFloatLogic ? originalGet() : `${DMXHelper.dmxToFloat(originalGet())} ${GLOBAL_TYPES.SYMBOLS.FLOAT}`;
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) return `${DMXHelper.floatToDMX(floatVal)} ${GLOBAL_TYPES.SYMBOLS.DMX_BIT_8}`;
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) return `${Math.round(floatVal * 100)} ${GLOBAL_TYPES.SYMBOLS.PERCENT}`;
-                return floatVal.toFixed(3);
+                const floatVal = getNormalizedFloat();
+
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) {
+                    return `${DMXHelper.floatToDMX(floatVal)} ${GLOBAL_TYPES.SYMBOLS.DMX_BIT_8}`;
+                }
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) {
+                    // floatVal is 1.0, this correctly returns "100 %"
+
+                    console.log("Convert float to Percent float: ", floatVal)
+
+                    return `${Math.round(floatVal * 100)} ${GLOBAL_TYPES.SYMBOLS.PERCENT}`;
+                }
+                return `${floatVal.toFixed(3)} ${GLOBAL_TYPES.SYMBOLS.FLOAT}`;
             };
 
             def.getKeyboardValue = () => {
-                let floatVal = def._useFloatLogic ? originalGet() : `${DMXHelper.dmxToFloat(originalGet())}`;
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) return `${DMXHelper.floatToDMX(floatVal)}`;
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) return `${Math.round(floatVal * 100)}`;
+                const floatVal = getNormalizedFloat();
+
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) {
+                    return `${DMXHelper.floatToDMX(floatVal)}`;
+                }
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) {
+                    return `${Math.round(floatVal * 100)}`;
+                }
                 return floatVal.toFixed(3);
             };
 
             def.setterFunction = (input) => {
-                let val = String(input).replace('%', '');
+                let cleanInput = String(input).replace(/[^\d.-]/g, '');
+                let num = Number(cleanInput);
                 let floatVal;
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) floatVal = DMXHelper.dmxToFloat(Number(val));
-                else if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) floatVal = Number(val) / 100;
-                else floatVal = Number(val);
 
-                const finalValue = def._useFloatLogic ? floatVal : DMXHelper.floatToDMX(floatVal);
+                // Convert the user's input back to a 0.0 - 1.0 float based on the UI mode
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) {
+                    floatVal = DMXHelper.dmxToFloat(num);
+                } else if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) {
+                    floatVal = num / 100;
+                } else {
+                    floatVal = num;
+                }
+
+                // Clamp to safety
+                floatVal = Math.min(Math.max(floatVal, 0), 1);
+
+                // 2. Convert that float back to the "Natural" state the targetContext expects
+                const finalValue = def._useDmxLogic ? DMXHelper.floatToDMX(floatVal) : floatVal;
                 originalSet(finalValue);
             };
 
             def.setterValueVerify = (input) => {
-                let val = String(input).replace('%', '');
-                let num = Number(val);
+                let cleanInput = String(input).replace(/[^\d.-]/g, '');
+                let num = Number(cleanInput);
+
                 if (isNaN(num)) return { valid: false, infoText: "Must be a number" };
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8 && (num < 0 || num > 255)) return { valid: false, infoText: "Range: 0-255" };
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT && (num < 0 || num > 100)) return { valid: false, infoText: "Range: 0-100%" };
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.FLOAT && (num < 0 || num > 1)) return { valid: false, infoText: "Range: 0.0-1.0" };
+
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8 && (num < 0 || num > 255))
+                    return { valid: false, infoText: "Range: 0-255" };
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT && (num < 0 || num > 100))
+                    return { valid: false, infoText: "Range: 0-100%" };
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.FLOAT && (num < 0 || num > 1))
+                    return { valid: false, infoText: "Range: 0.0-1.0" };
+
                 return { valid: true, infoText: "" };
             };
         });

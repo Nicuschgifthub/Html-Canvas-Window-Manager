@@ -32,6 +32,20 @@ class HCWEncoderField extends HCWBaseField {
         return GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER;
     }
 
+    getV1_DMX() {
+        return Math.round(this.value * 255);
+    }
+
+    getV2_DMX() {
+        return Math.round(this.value2 * 255);
+    }
+
+    setDMX(v1_255, v2_255 = null) {
+        const v1_float = v1_255 / 255;
+        const v2_float = (v2_255 !== null) ? (v2_255 / 255) : this.value2;
+        return this.setFloats(v1_float, v2_float);
+    }
+
     setFloats(val1, val2 = null) {
         let v1 = val1;
         let v2 = (val2 !== null) ? val2 : this.value2;

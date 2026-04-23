@@ -30,6 +30,14 @@ class HCWFaderField extends HCWBaseField {
         return GLOBAL_TYPES.CONTEXT_FIELDS.FADER;
     }
 
+    getDMX() {
+        return Math.round(this.value * 255);
+    }
+
+    setDMX(val255) {
+        return this.setFloat(val255 / 255);
+    }
+
     setFloat(val) {
         const oldVal = this.value;
         this.value = Math.max(0, Math.min(1, val));
