@@ -3,6 +3,7 @@ class GLOBAL_STYLES {
 
     static get INFO() {
         return {
+            DANGER: '#ff4444',
             ERROR: '#ff4444',
             GOOD: '#00ff95'
         }

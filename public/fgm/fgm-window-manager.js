@@ -143,7 +143,7 @@ class FGMWindowManager {
 
         HCWDB.removeWindowByWindowId(menuWindow.getId());
 
-        if (GlobalActionType == GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG) { // refire itself if new drag
+        if (GlobalActionType == GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG) {
             this.createNewWindowByUserInput(resolvedAction);
             return;
         }

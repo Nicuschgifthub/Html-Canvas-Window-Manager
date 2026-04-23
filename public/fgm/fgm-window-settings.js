@@ -200,7 +200,9 @@ class FGMWindowSettings {
         const tableField = new HCWTableField(tableTitle)
             .setLocationId(GLOBAL_CORE.CONTEXT_FIELDS.WINDOW_SETTINGS_MENU.LOCATION_ID)
             .setHeaders(["Attribute", "Value"])
-            .setRows(rowDefinitions.map(def => [def.label, def.getValue()]));
+            .setRows(rowDefinitions.map(def => [def.label, def.getValue()]))
+            .setButtonAddRowLabel(`Delete \"${targetContext.getLabel()}\" window`)
+            .setButtonAddRowLabelBGColor(GLOBAL_STYLES.INFO.DANGER);
 
         const settingsWindow = new HCWWindow()
             .setTouchZoneColor(GLOBAL_STYLES.FIELDS_GLOBAL.TEMP_TOUCH_ZONE_COLOR)
@@ -225,12 +227,18 @@ class FGMWindowSettings {
             GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED,
             GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED,
             GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG,
-            GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS
+            GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS,
+            GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_ADD
         );
 
         if (GlobalActionType == GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) return this.settingsLoop(data);
 
         if (GlobalActionType !== GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS) {
+
+            if (GlobalActionType == GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_ADD) {
+                HCWDB.removeWindowByWindowId(targetWindow.getId());
+            }
+
             FGMShowHandler.setPageCursor();
             HCWDB.removeWindowByWindowId(settingsWindow.getId());
             HCWRender.updateFrame();
@@ -263,6 +271,7 @@ class FGMWindowSettings {
                     settingsWindow.getContextField().setRows(
                         rowDefinitions.map(def => [def.label, def.getValue()])
                     );
+                    settingsWindow.getContextField().setButtonAddRowLabel(`Delete \"${targetContext.getLabel()}\" window`);
                 }
             } catch (e) {
                 console.error("Keyboard Interaction Error:", e);
@@ -276,7 +285,6 @@ class FGMWindowSettings {
                 console.log(`Attribute "${definition.label}" is read-only.`);
             }
         }
-
         return this.settingsLoop(data);
     }
 

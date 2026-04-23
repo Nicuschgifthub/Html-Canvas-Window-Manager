@@ -173,7 +173,6 @@ class HCWColorMapField extends HCWBaseField {
 
             if (a.type === 'map') {
                 const m = this.renderProps.map;
-                // Add normalized movement to initial values
                 this.h = this._initialValues.h + (dx / m.w);
                 this.s = this._initialValues.s + (dy / m.h);
 
@@ -262,8 +261,8 @@ class HCWColorMapField extends HCWBaseField {
 
         this.renderProps.map = { x: mapX, y: mapY, w: mapSize, h: mapSize };
 
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(
             mapX + this.h * mapSize,

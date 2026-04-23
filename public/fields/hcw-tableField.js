@@ -30,7 +30,24 @@ class HCWTableField extends HCWBaseField {
             sy: null,
             cells: [],
             deleteButtons: [],
-            addButton: null
+            addButton: null,
+            // Centralized Color Definitions
+            colors: {
+                background: '#1e1e1e',
+                headerBg: '#333333',
+                headerText: '#ffffff',
+                rowEven: '#252525',
+                rowOdd: '#1e1e1e',
+                cellText: '#bbbbbb',
+                gridLines: '#333333',
+                deleteBtnBg: '#770000',
+                deleteBtnText: '#ffffff',
+                addBtnBg: '#006600',
+                addBtnText: '#ffffff',
+                listHeaderText: '#ffffff',
+                listLabelText: '#888888',
+                listSeparator: '#444444'
+            }
         };
     }
 
@@ -52,6 +69,11 @@ class HCWTableField extends HCWBaseField {
 
     setButtonAddRowLabel(label) {
         this.addRowLabel = label;
+        return this;
+    }
+
+    setButtonAddRowLabelBGColor(color = '#006600') {
+        this.renderProps.colors.addBtnBg = color;
         return this;
     }
 
@@ -192,14 +214,15 @@ class HCWTableField extends HCWBaseField {
         const deleteColW = 40;
         const availableW = w.sx - pad * 2 - deleteColW;
         const colW = availableW / (this.headers.length || 1);
+        const colors = this.renderProps.colors;
 
-        ctx.fillStyle = '#1e1e1e';
+        ctx.fillStyle = colors.background;
         ctx.fillRect(w.x, w.y, w.sx, w.sy);
 
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = colors.headerBg;
         ctx.fillRect(w.x, w.y, w.sx, this.headerHeight);
 
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = colors.headerText;
         ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
 
@@ -223,12 +246,12 @@ class HCWTableField extends HCWBaseField {
             const rowY = startDrawY + rowIndex * this.rowHeight;
             if (rowY + this.rowHeight < contentAreaY || rowY > w.y + w.sy) return;
 
-            ctx.fillStyle = rowIndex % 2 === 0 ? '#252525' : '#1e1e1e';
+            ctx.fillStyle = rowIndex % 2 === 0 ? colors.rowEven : colors.rowOdd;
             ctx.fillRect(w.x, rowY, w.sx, this.rowHeight);
 
             row.forEach((cell, colIndex) => {
                 const cellX = w.x + pad + colIndex * colW;
-                ctx.fillStyle = '#bbb';
+                ctx.fillStyle = colors.cellText;
                 ctx.fillText(cell, cellX + colW / 2, rowY + this.rowHeight / 2 + 5);
 
                 this.renderProps.cells.push({
@@ -238,21 +261,22 @@ class HCWTableField extends HCWBaseField {
 
             if (this.showRemoveButton) {
                 const b = this._getDeleteButtonProps(w, rowY, pad, deleteColW);
-                ctx.fillStyle = '#770000';
+                ctx.fillStyle = colors.deleteBtnBg;
                 ctx.fillRect(b.x, b.y, b.w, b.h);
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = colors.deleteBtnText;
                 ctx.fillText('X', b.x + b.w / 2, b.y + b.h / 2 + 5);
                 this.renderProps.deleteButtons.push({ ...b, rowIndex });
             }
 
-            ctx.strokeStyle = '#333';
+            ctx.strokeStyle = colors.gridLines;
             ctx.beginPath();
             ctx.moveTo(w.x, rowY + this.rowHeight);
             ctx.lineTo(w.x2, rowY + this.rowHeight);
             ctx.stroke();
         });
 
-        ctx.strokeStyle = '#333';
+        // Vertical lines
+        ctx.strokeStyle = colors.gridLines;
         for (let i = 1; i < this.headers.length; i++) {
             const x = w.x + pad + i * colW;
             ctx.beginPath();
@@ -270,7 +294,9 @@ class HCWTableField extends HCWBaseField {
 
     _renderList(w, ctx) {
         const pad = 10;
-        ctx.fillStyle = '#1e1e1e';
+        const colors = this.renderProps.colors;
+
+        ctx.fillStyle = colors.background;
         ctx.fillRect(w.x, w.y, w.sx, w.sy);
 
         ctx.save();
@@ -285,7 +311,7 @@ class HCWTableField extends HCWBaseField {
             const rowY = startDrawY + rowIndex * rowH;
             if (rowY + rowH < w.y || rowY > w.y + w.sy) return;
 
-            ctx.fillStyle = rowIndex % 2 === 0 ? '#252525' : '#1e1e1e';
+            ctx.fillStyle = rowIndex % 2 === 0 ? colors.rowEven : colors.rowOdd;
             ctx.fillRect(w.x, rowY, w.sx, rowH);
 
             ctx.textAlign = 'left';
@@ -294,14 +320,14 @@ class HCWTableField extends HCWBaseField {
                 const lineY = rowY + colIndex * 20 + 20;
 
                 if (colIndex === 0) {
-                    ctx.fillStyle = '#fff';
+                    ctx.fillStyle = colors.listHeaderText;
                     ctx.font = 'bold 13px Arial';
                     ctx.fillText(cell, w.x + pad, lineY);
                 } else {
-                    ctx.fillStyle = '#888';
+                    ctx.fillStyle = colors.listLabelText;
                     ctx.font = '12px Monospace';
                     ctx.fillText(`${header}:`, w.x + pad, lineY);
-                    ctx.fillStyle = '#bbb';
+                    ctx.fillStyle = colors.cellText;
                     ctx.fillText(cell, w.x + pad + 100, lineY);
                 }
 
@@ -310,7 +336,7 @@ class HCWTableField extends HCWBaseField {
                 });
             });
 
-            ctx.strokeStyle = '#444';
+            ctx.strokeStyle = colors.listSeparator;
             ctx.beginPath();
             ctx.moveTo(w.x, rowY + rowH);
             ctx.lineTo(w.x2, rowY + rowH);
@@ -337,17 +363,15 @@ class HCWTableField extends HCWBaseField {
         const addBtnY = startDrawY + (this.rows.length * rowH) + 10;
         const x = w.x + 10;
         const w_btn = w.sx - 20;
+        const colors = this.renderProps.colors;
 
         this.renderProps.addButton = { x, y: addBtnY, w: w_btn, h: this.addBtnHeight };
 
         if (addBtnY < w.y + w.sy && addBtnY + this.addBtnHeight > contentAreaY) {
-            ctx.fillStyle = '#1e1e1e';
+            ctx.fillStyle = colors.addBtnBg;
             ctx.fillRect(x, addBtnY, w_btn, this.addBtnHeight);
 
-            ctx.fillStyle = '#006600';
-            ctx.fillRect(x, addBtnY, w_btn, this.addBtnHeight);
-
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = colors.addBtnText;
             ctx.textAlign = 'center';
             ctx.font = 'bold 13px Arial';
             ctx.fillText(this.addRowLabel, x + w_btn / 2, addBtnY + this.addBtnHeight / 2 + 5);
