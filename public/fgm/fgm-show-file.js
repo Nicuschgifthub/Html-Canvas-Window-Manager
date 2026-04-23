@@ -172,6 +172,6 @@ class FGMShowFile {
                 lineColor: this.getHCWSettings().lineColor
             }).addWindows(this.getNewWindowsFromShowFile())
 
-        this.setPageCursor(this.getPageCursor());
+        this.setPageCursor();
     }
 }

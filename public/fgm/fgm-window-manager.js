@@ -4,8 +4,7 @@ class FGMWindowManager {
         HCWDB.addWindows(windows);
     }
 
-    static buildDefaultSetup(onlyReturnWindows = false) {
-
+    static _getPageMenu(returnContextOnly = false) {
         const pagesMenu = new HCWPresetField("Pages")
             .setLocationId(GC.CONTEXT_FIELDS.PAGE_MENU.LOCATION_ID)
             .addPresets(
@@ -17,6 +16,14 @@ class FGMWindowManager {
                         .setData({ _pageChangeTo: i + 1 })
                 ));
 
+        return new HCWWindow({ x: 0, y: 0, sx: 100, sy: 600 })
+            .setPageId(GC.CONTEXT_FIELDS.PAGE_MENU.PAGE)
+            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
+            .setId(GC.CONTEXT_FIELDS.PAGE_MENU.ID)
+            .setContextField(pagesMenu);
+    }
+
+    static _getSettingsMenu(returnContextOnly = false) {
         const settingsMenu = new HCWPresetField("Config")
             .setLocationId(GC.CONTEXT_FIELDS.SETTINGS_MENU.LOCATION_ID)
             .addPresets(
@@ -25,26 +32,18 @@ class FGMWindowManager {
                 new HCWPreset().setLabel("Fixtures").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
             );
 
-        const pageMenuWindow = new HCWWindow({ x: 0, y: 0, sx: 100, sy: 600 })
-            .setPageId(GC.CONTEXT_FIELDS.PAGE_MENU.PAGE)
-            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
-            .setId(GC.CONTEXT_FIELDS.PAGE_MENU.ID)
-            .setContextField(pagesMenu);
-
-        const settingsMenuWindow = new HCWWindow({ x: 100, y: 0, sx: 400, sy: 300 })
+        return new HCWWindow({ x: 100, y: 0, sx: 400, sy: 300 })
             .setPageId(GC.CONTEXT_FIELDS.SETTINGS_MENU.PAGE)
             .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
             .setId(GLOBAL_CORE.CONTEXT_FIELDS.SETTINGS_MENU.ID)
             .setContextField(settingsMenu);
+    }
 
-        const windows = [pageMenuWindow, settingsMenuWindow];
+    static buildDefaultSetup(onlyReturnWindows = false) {
+        const windows = [this._getPageMenu(), this._getSettingsMenu()];
 
         if (onlyReturnWindows) return windows;
         this._setupWindows(windows);
-    }
-
-    static createEncoderWheel() {
-
     }
 
     static buildWindowAddMenu() {
@@ -52,7 +51,9 @@ class FGMWindowManager {
             { label: "Fader", key: "fader" },
             { label: "Color Picker", key: "colorMap" },
             { label: "Encoder", key: "encoder" },
-            { label: "Presets", key: "presetGroup" }
+            { label: "Presets", key: "presetGroup" },
+            { label: "Page Menu", key: "pageMenu" },
+            { label: "Settings Menu", key: "settingsMenu" }
         ];
 
         const windowMenu = new HCWPresetField("Add Window")
@@ -109,10 +110,20 @@ class FGMWindowManager {
                             .setData({ _presetNumber: i })
                     )
                 )
+            },
+            pageMenu() {
+                return FGMWindowManager._getPageMenu();
+            },
+            settingsMenu() {
+                return FGMWindowManager._getSettingsMenu();
             }
         }
 
         newContext = contexts[type]();
+
+        if (newContext.type && newContext.type == GLOBAL_TYPES.WINDOW.TYPE) {
+            return newContext;
+        }
 
         return new HCWWindow({ x: 0, y: 0, sx: windowBuildValues.sx, sy: windowBuildValues.sy })
             .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
@@ -158,7 +169,21 @@ class FGMWindowManager {
 
         const newWindow = this.getNewContext(resolvedAction.presetData._contextAdd, windowId, locationId);
 
-        newWindow.setPageId(currentPageCursor);
+        const existWindow = HCWDB.getWindowById(newWindow.getId());
+
+        if (existWindow) {
+            console.log("Window removed as new same window created")
+            HCWDB.removeWindowByWindowId(existWindow.getId())
+        }
+
+        const existContext = HCWDB.getContextFieldByLocationId(newWindow.getContextField().getLocationId());
+
+        if (existContext) {
+            console.log("Context removed as new same context created")
+            HCWDB.removeWindowByLocationId(existContext.getLocationId())
+        }
+
+        if (newWindow.getPageId() == null) newWindow.setPageId(currentPageCursor);
         newWindow.setPosition(x, y);
         newWindow.setSize(sx, sy);
 

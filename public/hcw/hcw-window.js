@@ -5,7 +5,7 @@ class HCWWindow {
             y: 100,
             sx: 100,
             sy: 100,
-            type: 'default',
+            type: GLOBAL_TYPES.WINDOW.TYPE,
             id: Date.now(),
             minsizex: 0,
             minsizey: 0,

@@ -134,6 +134,14 @@ class GLOBAL_TYPES {
         }
     }
 
+    static get WINDOW() {
+        return {
+            get TYPE() {
+                return 'window';
+            }
+        }
+    }
+
     static get CONTEXT_FIELDS() {
         return {
             get FADER() {
