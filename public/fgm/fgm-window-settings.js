@@ -1,6 +1,6 @@
 class FGMWindowSettings {
     static async openAndAwaitWindowSettings(targetWindow) {
-        const { x, y, sx, sy } = HCWPositions.getMiddleUserFocusPosition(2);
+        const { x, y, sx, sy } = HCWPositions.getMiddleUserFocusPosition(1);
         const targetContext = targetWindow.getContextField();
         const currentType = targetContext.getType();
 
@@ -8,6 +8,7 @@ class FGMWindowSettings {
             {
                 label: "Label",
                 getValue: () => targetContext.getLabel(),
+                getKeyboardValue: () => targetContext.getLabel(), // Overridden for strings
                 setterFunction: (value) => targetContext.setLabel(value),
                 isReadOnly: false,
                 setterValueVerify: (newValue) => {
@@ -20,6 +21,7 @@ class FGMWindowSettings {
             {
                 label: "Location ID",
                 getValue: () => targetContext.getLocationId(),
+                getKeyboardValue: () => targetContext.getLocationId(), // Overridden for strings
                 setterFunction: (value) => targetContext.setLocationId(value),
                 isReadOnly: targetContext.getLocationId().startsWith("0"),
                 setterValueVerify: (newValue) => {
@@ -67,6 +69,7 @@ class FGMWindowSettings {
             {
                 label: "Type",
                 getValue: () => currentType,
+                getKeyboardValue: () => currentType,
                 isReadOnly: true
             }
         ];
@@ -192,7 +195,7 @@ class FGMWindowSettings {
                 const result = await FGMKeyboardInteraction.openKeyboard(
                     FGMKeyboardInteractionSettings.create()
                         .setLabel(`Edit ${definition.label}`)
-                        .setInitialValue(definition.getKeyboardValue())
+                        .setInitialValue(definition.getKeyboardValue ? definition.getKeyboardValue() : definition.getValue())
                         .setVerify(definition.setterValueVerify)
                         .onEnter((newValue) => {
                             if (definition.setterFunction) {

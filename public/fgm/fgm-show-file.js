@@ -8,10 +8,16 @@ class FGMShowFile {
                 hcw: "0.0.1",
             },
             name: "My First Show",
-            createdByHCWArtnetType: "6Channel", // FullFGM, CustomFGM, 12Channel, 6Channel
             description: "",
+            createdByHCWArtnetType: "FullFGM", // FullFGM, CustomFGM, 12Channel, 6Channel
+            info: {
+
+            },
             settings: {
-                valueType: GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT
+                valueType: GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT,
+                artnet: {
+
+                }
             },
             hcwSettings: {
                 everyPixelX: 100,
@@ -31,6 +37,9 @@ class FGMShowFile {
             },
             memory: {
                 programmer: {
+
+                },
+                mapping: {
 
                 }
             }

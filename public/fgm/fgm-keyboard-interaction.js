@@ -63,7 +63,7 @@ class FGMKeyboardInteraction {
     static keyboardWindow = null;
 
     static createKeyboard(settings) {
-        const { x, y, sx, sy } = HCWPositions.getMiddleUserFocusPosition(2);
+        const { x, y, sx, sy } = HCWPositions.getMiddleUserFocusPosition(1);
 
 
         const width = settings.sizeX || sx;
