@@ -84,7 +84,20 @@ class GLOBAL_CORE {
                         return '0.003';
                     }
                 }
-            }
+            },
+            get WINDOW_SETTINGS_MENU() {
+                return {
+                    get ID() {
+                        return 1004;
+                    },
+                    get PAGE() {
+                        return GLOBAL_CORE.DEFS.PAGES.EMPTY;
+                    },
+                    get LOCATION_ID() {
+                        return '0.004';
+                    }
+                }
+            },
         }
     }
 }

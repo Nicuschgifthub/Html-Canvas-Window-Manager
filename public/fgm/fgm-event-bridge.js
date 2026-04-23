@@ -29,6 +29,12 @@ class FGMEvents {
     }
 
     static onAction(type, data = {}) {
+        if (GlobalInterrupter.hasEventWaiting(type)) {
+            GlobalInterrupter.resolveEvent(type, data);
+            console.log(`%c Interrupted >> Action "${type}" handled by waiter.`, 'color: #ffcc00; font-style: italic;');
+            return;
+        }
+
         if (type == GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) {
             FGMWindowSettings.windowEdgeClicked(data.window);
             return;
@@ -36,12 +42,6 @@ class FGMEvents {
 
         if (!data.fieldClass) {
             console.warn("Event Action without fieldClass:", type, data);
-            return;
-        }
-
-        if (GlobalInterrupter.hasEventWaiting(type)) {
-            GlobalInterrupter.resolveEvent(type, data);
-            console.log(`%c Interrupted >> Action "${type}" handled by waiter.`, 'color: #ffcc00; font-style: italic;');
             return;
         }
 

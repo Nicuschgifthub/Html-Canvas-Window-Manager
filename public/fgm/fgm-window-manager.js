@@ -79,6 +79,13 @@ class FGMWindowManager {
     static getNewContext(type, windowId, locationId) {
         let newContext = null;
 
+        let windowBuildValues = {
+            sx: GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY,
+            sy: GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY,
+            minSizeX: GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY,
+            minSizeY: GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY
+        }
+
         const contexts = {
             fader() {
                 return new HCWFaderField(`Fader ${locationId}`).setFloat(0).setLocationId(locationId);
@@ -87,6 +94,10 @@ class FGMWindowManager {
                 return new HCWEncoderField(`Encoder ${locationId}`).setFloats(0, 0).setLocationId(locationId);
             },
             colorMap() {
+                windowBuildValues.sx = 200;
+                windowBuildValues.sy = 200;
+                windowBuildValues.minSizeX = 200;
+                windowBuildValues.minSizeY = 200;
                 return new HCWColorMapField(`ColorMap ${locationId}`).setLocationId(locationId);
             },
             presetGroup() {
@@ -103,8 +114,9 @@ class FGMWindowManager {
 
         newContext = contexts[type]();
 
-        return new HCWWindow({ x: 0, y: 0, sx: 100, sy: 100 })
+        return new HCWWindow({ x: 0, y: 0, sx: windowBuildValues.sx, sy: windowBuildValues.sy })
             .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
+            .setMinSizes(windowBuildValues.minSizeX, windowBuildValues.minSizeY)
             .setId(windowId)
             .setContextField(newContext);
     }

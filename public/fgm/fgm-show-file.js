@@ -87,7 +87,10 @@ class FGMShowFile {
     setPagePresetGroupHighlight(pageNumber) {
         if (pageNumber < 0) return;
         const presetGroup = HCWDB.getContextFieldByLocationId(GLOBAL_CORE.CONTEXT_FIELDS.PAGE_MENU.LOCATION_ID)
-        if (!presetGroup) return;
+        if (!presetGroup) {
+            console.warn(`Cannot find any Preset Group for Page Changes`);
+            return;
+        }
         presetGroup.updateAllPresets({ color: null }, [pageNumber]);
         presetGroup.updatePreset(pageNumber, { color: GLOBAL_STYLES.FIELDS.PRESETS.HIGHLIGHT_COLOR });
     }
