@@ -31,7 +31,7 @@ class FGMWindowSettings {
                     const pattern = /^[1-9]\.\d{3}$/;
                     if (!pattern.test(val)) return { valid: false, infoText: "Format Error: Use X.XXX" };
                     const exists = HCWDB.getContextFieldByLocationId(val);
-                    if (exists && exists !== targetContext) return { valid: false, infoText: `ID ${val} already used` };
+                    if (exists && exists !== targetContext) return { valid: false, infoText: `ID ${val} already used by \"${exists.getLabel()}\"` };
                     return { valid: true, infoText: "" };
                 }
             },
@@ -189,6 +189,8 @@ class FGMWindowSettings {
                 isReadOnly: true
             }
         ];
+
+        // remove the way to edit locationId if it start with 0.xxx
 
         const rowDefinitions = rawDefinitions.filter(def => {
             return !def._forContextTypeOnly || def._forContextTypeOnly === currentType;

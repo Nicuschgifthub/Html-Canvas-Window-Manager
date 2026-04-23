@@ -248,3 +248,10 @@ class HCWDB {
         return false;
     }
 }
+
+class HCWPointerOverride {
+    /* Used to set Focus on contextFields, to get keyboard/... interactions as long as focus is provided */
+    static setFocusFieldToContextWindow(contextWindow) {
+        HCW.pointer.focusedField = contextWindow;
+    }
+}

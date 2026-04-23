@@ -83,6 +83,8 @@ class FGMKeyboardInteraction {
         FGMShowHandler.setPageEmpty();
 
         HCWDB.addWindows([this.keyboardWindow]);
+
+        HCWPointerOverride.setFocusFieldToContextWindow(this.keyboardField);
     }
 
     static async openKeyboard(settingsInstance) {
@@ -105,7 +107,6 @@ class FGMKeyboardInteraction {
             );
 
             const isKeyboardUpdate = Object.values(GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES).includes(GlobalActionType);
-
 
             if (GlobalActionType === GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) {
                 continue;
@@ -155,6 +156,7 @@ class FGMKeyboardInteraction {
 
     static closeKeyboard() {
         if (this.keyboardWindow) {
+            HCWPointerOverride.setFocusFieldToContextWindow(null);
             HCWDB.removeWindowByWindowId(this.keyboardWindow.getId());
             FGMShowHandler.setPageCursor();
             this.keyboardWindow = null;
