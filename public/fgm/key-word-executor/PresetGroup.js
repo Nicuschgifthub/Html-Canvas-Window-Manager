@@ -37,7 +37,7 @@ class KYEPresetGroup {
                 FGMShowHandler.setPageCursor(thisFunctionData);
             },
             _openSettingsPresetGroup() {
-                
+
 
             }
         };

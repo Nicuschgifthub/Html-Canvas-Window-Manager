@@ -1,6 +1,9 @@
 class FGMLoadFiles {
     static files() {
         return [
+            // build structs
+
+            // fgm root manager
             '/fgm/fgm-command-engine.js',
             '/fgm/fgm-context-class-helper.js',
             '/fgm/fgm-show-file.js',

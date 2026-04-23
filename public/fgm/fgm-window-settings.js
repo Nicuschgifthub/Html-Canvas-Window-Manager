@@ -4,6 +4,7 @@ class FGMWindowSettings {
         const targetContext = targetWindow.getContextField();
         const currentType = targetContext.getType();
 
+
         const rawDefinitions = [
             {
                 label: "Label",

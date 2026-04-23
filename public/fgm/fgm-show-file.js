@@ -59,6 +59,9 @@ class FGMShowFile {
                             executorAttribute: "speed"
                         }
                     }
+                },
+                pools: {
+
                 }
             }
         }
