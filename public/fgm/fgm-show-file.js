@@ -11,7 +11,7 @@ class FGMShowFile {
             createdByHCWArtnetType: "6Channel", // FullFGM, CustomFGM, 12Channel, 6Channel
             description: "",
             settings: {
-                valueType: GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8
+                valueType: GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT
             },
             hcwSettings: {
                 everyPixelX: 100,

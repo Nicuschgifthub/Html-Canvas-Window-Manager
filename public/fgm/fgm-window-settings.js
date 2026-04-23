@@ -31,38 +31,39 @@ class FGMWindowSettings {
                     return { valid: true, infoText: "" };
                 }
             },
+            // Faders
             {
                 label: "Fader Value",
-                _useFloatLogic: true,
-                getValue: () => targetContext.getFloat(),
+                _isNumeric: true,
                 _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.FADER,
-                setterFunction: (v) => targetContext.setFloat(v)
+                getValue: () => targetContext.getDMX(),
+                setterFunction: (v) => targetContext.setDMX(v)
             },
+            // Encoders (Standard & Custom)
             {
                 label: "Outer Value (V1)",
-                _useFloatLogic: true,
-                getValue: () => targetContext.value,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER,
-                setterFunction: (v) => targetContext.setFloats(v)
+                _isNumeric: true,
+                _forContextTypeOnly: [GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER, GLOBAL_TYPES.CONTEXT_FIELDS.CUSTOM_WHEEL_ENCODER],
+                getValue: () => targetContext.getV1_DMX(),
+                setterFunction: (v) => targetContext.setDMX(v, targetContext.getV2_DMX())
             },
             {
                 label: "Inner Value (V2)",
-                _useFloatLogic: true,
-                getValue: () => targetContext.value2,
-                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER,
-                setterFunction: (v) => targetContext.setFloats(targetContext.value, v)
+                _isNumeric: true,
+                _forContextTypeOnly: [GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER, GLOBAL_TYPES.CONTEXT_FIELDS.CUSTOM_WHEEL_ENCODER],
+                getValue: () => targetContext.getV2_DMX(),
+                setterFunction: (v) => targetContext.setDMX(targetContext.getV1_DMX(), v)
             },
-            // Hue, Sat, Brightness (Natural: Float)
-            { label: "Hue", _useFloatLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.h, setterFunction: (v) => { targetContext.h = v; targetContext._trigger(); } },
-            { label: "Saturation", _useFloatLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.s, setterFunction: (v) => { targetContext.s = v; targetContext._trigger(); } },
-            { label: "Brightness (V)", _useFloatLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.v, setterFunction: (v) => { targetContext.v = v; targetContext._trigger(); } },
-            // RGB & Extra LEDs (Natural: DMX 0-255)
-            { label: "Red", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().r, setterFunction: (v) => { targetContext.setColor({ r: v }); targetContext._trigger(); } },
-            { label: "Green", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().g, setterFunction: (v) => { targetContext.setColor({ g: v }); targetContext._trigger(); } },
-            { label: "Blue", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().b, setterFunction: (v) => { targetContext.setColor({ b: v }); targetContext._trigger(); } },
-            { label: "White LED", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.extra.white, setterFunction: (v) => { targetContext.setColor({ white: v }); targetContext._trigger(); } },
-            { label: "Amber LED", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.extra.amber, setterFunction: (v) => { targetContext.setColor({ amber: v }); targetContext._trigger(); } },
-            { label: "UV LED", _useDmxLogic: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.extra.uv, setterFunction: (v) => { targetContext.setColor({ uv: v }); targetContext._trigger(); } },
+            // Color Maps
+            { label: "Hue", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getH_DMX(), setterFunction: (v) => { targetContext.setH_DMX(v); targetContext._trigger(); } },
+            { label: "Saturation", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getS_DMX(), setterFunction: (v) => { targetContext.setS_DMX(v); targetContext._trigger(); } },
+            { label: "Brightness (V)", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getV_DMX(), setterFunction: (v) => { targetContext.setV_DMX(v); targetContext._trigger(); } },
+            { label: "Red", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().r, setterFunction: (v) => { targetContext.setColor({ r: v }); targetContext._trigger(); } },
+            { label: "Green", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().g, setterFunction: (v) => { targetContext.setColor({ g: v }); targetContext._trigger(); } },
+            { label: "Blue", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().b, setterFunction: (v) => { targetContext.setColor({ b: v }); targetContext._trigger(); } },
+            { label: "White LED", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().white, setterFunction: (v) => { targetContext.setColor({ white: v }); targetContext._trigger(); } },
+            { label: "Amber LED", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().amber, setterFunction: (v) => { targetContext.setColor({ amber: v }); targetContext._trigger(); } },
+            { label: "UV LED", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().uv, setterFunction: (v) => { targetContext.setColor({ uv: v }); targetContext._trigger(); } },
             {
                 label: "Type",
                 getValue: () => currentType,
@@ -71,83 +72,49 @@ class FGMWindowSettings {
         ];
 
         rawDefinitions.forEach(def => {
-            if (!def._useFloatLogic && !def._useDmxLogic) return;
+            if (!def._isNumeric) return;
 
-            const originalGet = def.getValue;
-            const originalSet = def.setterFunction;
+            const originalGetDMX = def.getValue;
+            const originalSetDMX = def.setterFunction;
             const mode = FGMShowHandler.getValueTypeSettings();
 
-            // 1. Ensure we always have a 0.0 - 1.0 float for calculations
-            const getNormalizedFloat = () => {
-                const val = originalGet();
-                // If it's DMX logic, the internal value is 0-255, so convert to 0-1
-
-
-                if (def._useDmxLogic) {
-                    console.log("Dmx to flaot ", val)
-                    return DMXHelper.dmxToFloat(val);
-                }
-
-                console.log("Float ", val)
-
-                // Otherwise it's already a float
-                return val;
-            };
-
             def.getValue = () => {
-                const floatVal = getNormalizedFloat();
-
+                const dmx = originalGetDMX();
                 if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) {
-                    return `${DMXHelper.floatToDMX(floatVal)} ${GLOBAL_TYPES.SYMBOLS.DMX_BIT_8}`;
+                    return `${dmx} ${GLOBAL_TYPES.SYMBOLS.DMX_BIT_8}`;
                 }
                 if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) {
-                    // floatVal is 1.0, this correctly returns "100 %"
-
-                    console.log("Convert float to Percent float: ", floatVal)
-
-                    return `${Math.round(floatVal * 100)} ${GLOBAL_TYPES.SYMBOLS.PERCENT}`;
+                    return `${Math.round((dmx / 255) * 100)} ${GLOBAL_TYPES.SYMBOLS.PERCENT}`;
                 }
-                return `${floatVal.toFixed(3)} ${GLOBAL_TYPES.SYMBOLS.FLOAT}`;
+                return `${(dmx / 255).toFixed(3)} ${GLOBAL_TYPES.SYMBOLS.FLOAT}`;
             };
 
             def.getKeyboardValue = () => {
-                const floatVal = getNormalizedFloat();
-
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) {
-                    return `${DMXHelper.floatToDMX(floatVal)}`;
-                }
-                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) {
-                    return `${Math.round(floatVal * 100)}`;
-                }
-                return floatVal.toFixed(3);
+                const dmx = originalGetDMX();
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) return dmx.toString();
+                if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) return Math.round((dmx / 255) * 100).toString();
+                return (dmx / 255).toFixed(3);
             };
 
             def.setterFunction = (input) => {
                 let cleanInput = String(input).replace(/[^\d.-]/g, '');
                 let num = Number(cleanInput);
-                let floatVal;
+                let dmxOut;
 
-                // Convert the user's input back to a 0.0 - 1.0 float based on the UI mode
                 if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8) {
-                    floatVal = DMXHelper.dmxToFloat(num);
+                    dmxOut = num;
                 } else if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.PERCENT) {
-                    floatVal = num / 100;
+                    dmxOut = (num / 100) * 255;
                 } else {
-                    floatVal = num;
+                    dmxOut = num * 255;
                 }
 
-                // Clamp to safety
-                floatVal = Math.min(Math.max(floatVal, 0), 1);
-
-                // 2. Convert that float back to the "Natural" state the targetContext expects
-                const finalValue = def._useDmxLogic ? DMXHelper.floatToDMX(floatVal) : floatVal;
-                originalSet(finalValue);
+                originalSetDMX(Math.min(Math.max(Math.round(dmxOut), 0), 255));
             };
 
             def.setterValueVerify = (input) => {
                 let cleanInput = String(input).replace(/[^\d.-]/g, '');
                 let num = Number(cleanInput);
-
                 if (isNaN(num)) return { valid: false, infoText: "Must be a number" };
 
                 if (mode === GLOBAL_TYPES.DMX_VALUE_TYPE.DMX_BIT_8 && (num < 0 || num > 255))
@@ -162,7 +129,9 @@ class FGMWindowSettings {
         });
 
         const rowDefinitions = rawDefinitions.filter(def => {
-            return !def._forContextTypeOnly || def._forContextTypeOnly === currentType;
+            if (!def._forContextTypeOnly) return true;
+            if (Array.isArray(def._forContextTypeOnly)) return def._forContextTypeOnly.includes(currentType);
+            return def._forContextTypeOnly === currentType;
         });
 
         const tableTitle = `Settings: ${targetContext.getLabel()}`;
@@ -182,7 +151,6 @@ class FGMWindowSettings {
             .setId(GLOBAL_CORE.CONTEXT_FIELDS.WINDOW_SETTINGS_MENU.ID);
 
         HCWDB.addWindows([settingsWindow]);
-
         return { settingsWindow, rowDefinitions, targetWindow };
     }
 
@@ -215,7 +183,6 @@ class FGMWindowSettings {
         const { rowIndex, colIndex } = resolvedAction;
         const definition = rowDefinitions[rowIndex];
 
-        // Edit value column (index 1)
         if (colIndex === 1 && definition && !definition.isReadOnly) {
             settingsWindow.setHidden(true);
             FGMShowHandler.setPageEmpty();
@@ -224,7 +191,7 @@ class FGMWindowSettings {
             try {
                 const result = await FGMKeyboardInteraction.openKeyboard(
                     FGMKeyboardInteractionSettings.create()
-                        .setLabel(`Edit ${definition.label} as `)
+                        .setLabel(`Edit ${definition.label}`)
                         .setInitialValue(definition.getKeyboardValue())
                         .setVerify(definition.setterValueVerify)
                         .onEnter((newValue) => {
@@ -247,10 +214,7 @@ class FGMWindowSettings {
                 settingsWindow.setHidden(false);
                 HCWRender.updateFrame();
             }
-        } else if (definition?.isReadOnly) {
-            console.log(`Attribute "${definition.label}" is read-only.`);
         }
-
         return this.settingsLoop(data);
     }
 
