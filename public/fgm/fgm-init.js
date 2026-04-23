@@ -8,7 +8,8 @@ class FGMLoadFiles {
             '/fgm/fgm-window-manager.js',
             '/fgm/fgm-window-settings.js',
             // Input devices
-            'fgm/fgm-keyboard-interaction.js',
+            'fgm/input-device-interactions/fgm-keyboard-interaction.js',
+            'fgm/input-device-interactions/fgm-presetGroup-interaction.js',
             // List of Keyword executor
             'fgm/key-word-executor/PresetGroup.js',
             'fgm/key-word-executor/Fader.js',

@@ -127,6 +127,19 @@ class GLOBAL_CORE {
                     }
                 }
             },
+            get _PRESET_GROUP() {
+                return {
+                    get ID() {
+                        return 1006;
+                    },
+                    get PAGE() {
+                        return GLOBAL_CORE.DEFS.PAGES.INPUT_PAGE;
+                    },
+                    get LOCATION_ID() {
+                        return '0.006';
+                    }
+                }
+            },
         }
     }
 }
