@@ -57,6 +57,11 @@ class HCWKeyboardField extends HCWBaseField {
         return GLOBAL_TYPES.CONTEXT_FIELDS.KEYBOARD;
     }
 
+    setTextColor(color) {
+        this.renderProps.colors.displayText = color;
+        return this;
+    }
+
     setValue(val) {
         this.value = String(val);
         this.cursorPos = this.value.length;

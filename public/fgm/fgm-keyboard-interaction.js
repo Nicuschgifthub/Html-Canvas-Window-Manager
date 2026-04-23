@@ -1,12 +1,14 @@
 class FGMKeyboardInteractionSettings {
     constructor() {
-        // Default values
         this.config = {
             initialValue: "",
             label: "Keyboard",
             onEnter: () => { },
+            onCancel: () => { }, // Added to handle background clicks
             verify: () => true,
-            isNumeric: false
+            isNumeric: false,
+            sizeX: undefined,
+            sizeY: undefined
         };
     }
 
@@ -24,8 +26,19 @@ class FGMKeyboardInteractionSettings {
         return this;
     }
 
+    setSize(x, y) {
+        this.config.sizeX = x;
+        this.config.sizeY = y;
+        return this;
+    }
+
     onEnter(fn) {
         this.config.onEnter = fn;
+        return this;
+    }
+
+    onCancel(fn) {
+        this.config.onCancel = fn;
         return this;
     }
 
@@ -40,15 +53,89 @@ class FGMKeyboardInteractionSettings {
         return this;
     }
 
-    // This returns the final object to the Interaction class
     getConfig() {
         return this.config;
     }
 }
 
 class FGMKeyboardInteraction {
-    static openKeyboard({ }) {
+    static keyboardField = null;
+    static keyboardWindow = null;
+
+    static createKeyboard(settings) {
+        const { x, y, sx, sy } = HCWPositions.getMiddleUserFocusPosition(2);
 
 
+        const width = settings.sizeX || sx;
+        const height = settings.sizeY || sy;
+
+        this.keyboardField = new HCWKeyboardField(settings.label)
+            .setValue(settings.initialValue);
+
+        this.keyboardWindow = new HCWWindow()
+            .setTouchZoneColor(GLOBAL_STYLES.FIELDS_GLOBAL.TEMP_INPUT_FIELD_TOUCH_ZONE_COLOR)
+            .setPosition(x, y)
+            .setSize(width, height)
+            .setContextField(this.keyboardField)
+            .setPageId(GLOBAL_CORE.CONTEXT_FIELDS._KEYBOARD.PAGE)
+            .setId(GLOBAL_CORE.CONTEXT_FIELDS._KEYBOARD.ID);
+
+        FGMShowHandler.setPageEmpty();
+
+        HCWDB.addWindows([this.keyboardWindow]);
+    }
+
+    static async openKeyboard(settingsInstance) {
+        const settings = settingsInstance.getConfig();
+
+        this.createKeyboard(settings);
+
+        while (true) {
+            const { GlobalActionType, resolvedAction } = await GlobalInterrupter.waitForSome(
+                GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.KEY_PRESSED,
+                GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ENTER_PRESSED,
+                GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.BACKSPACE_PRESSED,
+                GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.DELETE_ALL_PRESSED,
+                GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ARROW_LEFT_PRESSED,
+                GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ARROW_RIGHT_PRESSED,
+                GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.SPACE_PRESSED,
+                GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED,
+                GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG
+            );
+
+            const isKeyboardUpdate = Object.values(GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES).includes(GlobalActionType);
+
+            if (isKeyboardUpdate && GlobalActionType !== GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ENTER_PRESSED) {
+                const isValid = settings.verify(resolvedAction.value);
+                this.keyboardField.setTextColor(isValid ? '#00ff95' : '#ff4444');
+                continue;
+            }
+
+            if (GlobalActionType === GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ENTER_PRESSED) {
+                if (settings.verify(resolvedAction.value)) {
+                    settings.onEnter(resolvedAction.value);
+                    this.closeKeyboard();
+                    return resolvedAction.value;
+                }
+                continue;
+            }
+
+            if (GlobalActionType === GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED ||
+                GlobalActionType === GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG) {
+
+                settings.onCancel();
+                this.closeKeyboard();
+                return null;
+            }
+        }
+    }
+
+    static closeKeyboard() {
+        if (this.keyboardWindow) {
+            HCWDB.removeWindowByWindowId(this.keyboardWindow.getId());
+            FGMShowHandler.setPageCursor();
+            this.keyboardWindow = null;
+            this.keyboardField = null;
+        }
     }
 }

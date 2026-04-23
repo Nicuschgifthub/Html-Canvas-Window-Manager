@@ -77,13 +77,10 @@ class FGMWindowSettings {
             return;
         }
 
-        if (rowIndex == 0) {
-            this.settingsLoop(data);
-            return;
-        }
-
         // open keyboard
         console.log(resolvedAction)
+
+        // obj with Object { rowIndex: 0, colIndex: 1, value: "Config"....}
     }
 
     static async windowEdgeClicked(window) {

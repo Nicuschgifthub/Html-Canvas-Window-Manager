@@ -137,7 +137,9 @@ class FGMWindowManager {
         const { GlobalActionType, resolvedAction } = await GlobalInterrupter.waitForSome(
             GLOBAL_TYPES.ACTIONS.PRESET_PRESS,
             GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED,
-            GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG);
+            GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG,
+            GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED
+        );
 
         HCWDB.removeWindowByWindowId(menuWindow.getId());
 

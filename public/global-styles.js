@@ -24,7 +24,8 @@ class GLOBAL_STYLES {
 
     static get FIELDS_GLOBAL() {
         return {
-            TEMP_TOUCH_ZONE_COLOR: '#ffff00'
+            TEMP_TOUCH_ZONE_COLOR: '#ffff00',
+            TEMP_INPUT_FIELD_TOUCH_ZONE_COLOR: '#a600ff'
         }
     }
 }
