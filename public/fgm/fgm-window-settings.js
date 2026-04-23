@@ -2,7 +2,6 @@ class FGMWindowSettings {
 
     static async openAndAwaitWindowSettings(targetWindow) {
         const { x, y, sx, sy } = HCWPositions.getMiddleUserFocusPosition(2);
-
         const targetContext = targetWindow.getContextField();
 
         const rowDefinitions = [
@@ -10,17 +9,13 @@ class FGMWindowSettings {
                 label: "Label",
                 value: targetContext.getLabel(),
                 setter: "setLabel",
-                setterValueVerify: (newValue) => {
-                    // return true or false if new value is valid
-                }
+                setterValueVerify: (newValue) => typeof newValue === 'string' && newValue.trim().length > 0
             },
             {
                 label: "Location ID",
                 value: targetContext.getLocationId(),
                 setter: "setLocationId",
-                setterValueVerify: (newValue) => {
-                    // return true or false if new value is valid
-                }
+                setterValueVerify: (newValue) => !isNaN(newValue) && newValue.toString().trim().length > 0
             }
         ];
 
@@ -29,14 +24,6 @@ class FGMWindowSettings {
             .setLocationId(GLOBAL_CORE.CONTEXT_FIELDS.WINDOW_SETTINGS_MENU.LOCATION_ID)
             .setHeaders(["Attribute", "Value"])
             .setRows(rowDefinitions.map(def => [def.label, def.value]));
-
-        const applyChange = (rowIndex, newValue) => {
-            const definition = rowDefinitions[rowIndex];
-            if (definition && definition.setter && typeof targetContext[definition.setter] === "function") {
-                targetContext[definition.setter](newValue);
-                console.log(`Applied ${newValue} via ${definition.setter}`);
-            }
-        };
 
         const settingsWindow = new HCWWindow()
             .setTouchZoneColor(GLOBAL_STYLES.FIELDS_GLOBAL.TEMP_TOUCH_ZONE_COLOR)
@@ -51,12 +38,14 @@ class FGMWindowSettings {
 
         return {
             settingsWindow,
-            applyChange
+            rowDefinitions,
+            targetWindow
         };
     }
 
     static async settingsLoop(data) {
-        const { settingsWindow, applyChange } = data;
+        const { settingsWindow, rowDefinitions, targetWindow } = data;
+        const targetContext = targetWindow.getContextField();
 
         const { GlobalActionType, resolvedAction } = await GlobalInterrupter.waitForSome(
             GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED,
@@ -66,8 +55,7 @@ class FGMWindowSettings {
         );
 
         if (GlobalActionType == GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) {
-            this.settingsLoop(data);
-            return;
+            return this.settingsLoop(data);
         }
 
         if (GlobalActionType !== GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS) {
@@ -77,17 +65,50 @@ class FGMWindowSettings {
             return;
         }
 
-        // open keyboard
-        console.log(resolvedAction)
+        const { rowIndex, colIndex } = resolvedAction;
+        const definition = rowDefinitions[rowIndex];
 
-        // obj with Object { rowIndex: 0, colIndex: 1, value: "Config"....}
+        if (colIndex === 1 && definition) {
+            settingsWindow.setHidden(true);
+            HCWRender.updateFrame();
+
+            const result = await FGMKeyboardInteraction.openKeyboard(
+                FGMKeyboardInteractionSettings.create()
+                    .setLabel(`Edit ${definition.label}`)
+                    .setInitialValue(definition.value)
+                    .setVerify(definition.setterValueVerify)
+                    .onEnter((newValue) => {
+                        // Update the actual object
+                        if (typeof targetContext[definition.setter] === "function") {
+                            targetContext[definition.setter](newValue);
+                            definition.value = newValue; // Sync local definition
+                            console.log(`Updated ${definition.label} to: ${newValue}`);
+                        }
+                    })
+                    .onCancel(() => {
+                    })
+            );
+
+            if (result !== null) {
+                settingsWindow.getContextField().setRows(
+                    rowDefinitions.map(def => [def.label, def.value])
+                );
+            }
+
+            FGMShowHandler.setPageEmpty();
+            settingsWindow.setHidden(false);
+
+            HCWRender.updateFrame();
+        }
+
+        return this.settingsLoop(data);
     }
 
     static async windowEdgeClicked(window) {
         FGMShowHandler.setPageEmpty();
 
-        const { settingsWindow, applyChange } = this.openAndAwaitWindowSettings(window);
+        const data = await this.openAndAwaitWindowSettings(window);
 
-        this.settingsLoop({ settingsWindow, applyChange });
+        this.settingsLoop(data);
     }
 }
