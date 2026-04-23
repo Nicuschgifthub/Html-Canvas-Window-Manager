@@ -73,6 +73,7 @@ class FGMWindowSettings {
         if (GlobalActionType !== GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS) {
             FGMShowHandler.setPageCursor();
             HCWDB.removeWindowByWindowId(GLOBAL_CORE.CONTEXT_FIELDS.WINDOW_SETTINGS_MENU.ID);
+            HCWRender.updateFrame();
             return;
         }
 

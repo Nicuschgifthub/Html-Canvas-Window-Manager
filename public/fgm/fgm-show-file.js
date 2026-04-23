@@ -103,7 +103,7 @@ class FGMShowFile {
         HCWDB.getWindows().forEach(window => {
             const pageId = window.getPageId();
 
-            if (pageId == -1 || pageId == pageNumber) {
+            if (pageId == -3 || pageId == -2 || pageId == -1 || pageId == pageNumber) {
                 window.setHidden(false);
             } else {
                 if (window.getHiddenStatus() == false) window.setHidden(true);

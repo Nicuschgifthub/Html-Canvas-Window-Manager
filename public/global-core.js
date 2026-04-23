@@ -22,6 +22,9 @@ class GLOBAL_CORE {
             },
             get PAGES() {
                 return {
+                    get INPUT_PAGE() {
+                        return -3;
+                    },
                     get EMPTY() {
                         return -2;
                     },
@@ -95,6 +98,32 @@ class GLOBAL_CORE {
                     },
                     get LOCATION_ID() {
                         return '0.004';
+                    }
+                }
+            },
+            get _KEYBOARD() {
+                return {
+                    get ID() {
+                        return 1005;
+                    },
+                    get PAGE() {
+                        return GLOBAL_CORE.DEFS.PAGES.INPUT_PAGE;
+                    },
+                    get LOCATION_ID() {
+                        return '0.005';
+                    }
+                }
+            },
+            get _NUMBER() {
+                return {
+                    get ID() {
+                        return 1006;
+                    },
+                    get PAGE() {
+                        return GLOBAL_CORE.DEFS.PAGES.INPUT_PAGE;
+                    },
+                    get LOCATION_ID() {
+                        return '0.006';
                     }
                 }
             },
