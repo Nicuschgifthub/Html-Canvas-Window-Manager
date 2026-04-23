@@ -120,7 +120,7 @@ class FGMKeyboardInteraction {
                 this.keyboardField.setTextColor(valid ? GLOBAL_STYLES.INFO.GOOD : GLOBAL_STYLES.INFO.ERROR);
 
                 const baseLabel = settings.label;
-                const displayLabel = valid ? baseLabel : `${baseLabel} || "${infoText}"`;
+                const displayLabel = valid ? baseLabel : `${baseLabel} || ${infoText}`;
                 this.keyboardField.setLabel(displayLabel);
 
                 HCWRender.updateFrame();

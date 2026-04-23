@@ -1,10 +1,12 @@
 class FGMWindowSettings {
-
     static async openAndAwaitWindowSettings(targetWindow) {
         const { x, y, sx, sy } = HCWPositions.getMiddleUserFocusPosition(2);
         const targetContext = targetWindow.getContextField();
+        const currentType = targetContext.getType();
 
-        const rowDefinitions = [
+        console.log(currentType);
+
+        const rawDefinitions = [
             {
                 label: "Label",
                 value: targetContext.getLabel(),
@@ -13,7 +15,6 @@ class FGMWindowSettings {
                 setterValueVerify: (newValue) => {
                     const val = newValue.trim();
                     if (val.length === 0) return { valid: false, infoText: "Label cannot be empty" };
-                    if (val.length > 20) return { valid: false, infoText: "Label is too long" };
                     return { valid: true, infoText: "" };
                 }
             },
@@ -25,25 +26,236 @@ class FGMWindowSettings {
                 setterValueVerify: (newValue) => {
                     const val = newValue.toString().trim();
                     const pattern = /^[1-9]\.\d{3}$/;
-
-                    if (!pattern.test(val)) {
-                        return { valid: false, infoText: "Format Error: Use X.XXX" };
-                    }
+                    if (!pattern.test(val)) return { valid: false, infoText: "Format Error: Use X.XXX" };
 
                     const exists = HCWDB.getContextFieldByLocationId(val);
                     if (exists && exists !== targetContext) {
-                        return { valid: false, infoText: `ID ${val} used by "${exists.getLabel()}"` };
+                        return { valid: false, infoText: `ID ${val} already used` };
+                    }
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "Fader Value",
+                value: targetContext.getFloat(),
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.FADER,
+                setter: "setFloat",
+                setterValueVerify: (newValue) => {
+                    const valStr = newValue.toString().trim();
+
+                    const num = Number(valStr);
+
+                    if (valStr === "" || isNaN(num)) {
+                        return {
+                            valid: false,
+                            infoText: "Invalid Format: Enter a decimal number"
+                        };
+                    }
+
+                    if (num < 0 || num > 1) {
+                        return {
+                            valid: false,
+                            infoText: "Range Error: Value must be between 0 and 1"
+                        };
                     }
 
                     return { valid: true, infoText: "" };
                 }
             },
             {
+                label: "Outer Value (V1)",
+                value: targetContext.value,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER,
+                setter: "setFloats",
+                setterValueVerify: (newValue) => {
+                    const valStr = newValue.toString().trim();
+                    const num = Number(valStr);
+
+                    if (valStr === "" || isNaN(num)) {
+                        return { valid: false, infoText: "Invalid Format: Enter a decimal" };
+                    }
+
+                    if (num < 0 || num > 1) {
+                        return { valid: false, infoText: "Range Error: Value must be between 0 and 1" };
+                    }
+
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "Inner Value (V2)",
+                value: targetContext.value2,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.ENCODER,
+                customSetter: (newValue) => {
+                    targetContext.setFloats(targetContext.value, Number(newValue));
+                },
+                setterValueVerify: (newValue) => {
+                    const valStr = newValue.toString().trim();
+                    const num = Number(valStr);
+
+                    if (valStr === "" || isNaN(num)) {
+                        return { valid: false, infoText: "Invalid Format: Enter a decimal" };
+                    }
+
+                    if (num < 0 || num > 1) {
+                        return { valid: false, infoText: "Range Error: Value must be between 0 and 1" };
+                    }
+
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "Hue",
+                value: targetContext.h,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.h = Number(newValue);
+                    targetContext._trigger(); // Updates RGB and emits action
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.000 - 1.000" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "Saturation",
+                value: targetContext.s,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.s = Number(newValue);
+                    targetContext._trigger();
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.000 - 1.000" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "Brightness (V)",
+                value: targetContext.v,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.v = Number(newValue);
+                    targetContext._trigger();
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 1) return { valid: false, infoText: "Range: 0.000 - 1.000" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+
+            // --- RGB BYTES (Direct DMX Control) ---
+            {
+                label: "Red",
+                value: targetContext.getColors().r,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.setColor({ r: Math.round(Number(newValue)) });
+                    targetContext._trigger();
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "Green",
+                value: targetContext.getColors().g,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.setColor({ g: Math.round(Number(newValue)) });
+                    targetContext._trigger();
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "Blue",
+                value: targetContext.getColors().b,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.setColor({ b: Math.round(Number(newValue)) });
+                    targetContext._trigger();
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+
+            // --- EXTRA LEDS ---
+            {
+                label: "White LED",
+                value: targetContext.extra.white,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.setColor({ white: Math.round(Number(newValue)) });
+                    targetContext._trigger();
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "Amber LED",
+                value: targetContext.extra.amber,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.setColor({ amber: Math.round(Number(newValue)) });
+                    targetContext._trigger();
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
+                label: "UV LED",
+                value: targetContext.extra.uv,
+                isReadOnly: false,
+                _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT,
+                customSetter: (newValue) => {
+                    targetContext.setColor({ uv: Math.round(Number(newValue)) });
+                    targetContext._trigger();
+                },
+                setterValueVerify: (newValue) => {
+                    const num = Number(newValue);
+                    if (isNaN(num) || num < 0 || num > 255) return { valid: false, infoText: "Range: 0 - 255" };
+                    return { valid: true, infoText: "" };
+                }
+            },
+            {
                 label: "Type",
-                value: targetContext.getType(),
+                value: currentType,
                 isReadOnly: true
             }
         ];
+
+        const rowDefinitions = rawDefinitions.filter(def => {
+            return !def._forContextTypeOnly || def._forContextTypeOnly === currentType;
+        });
 
         const tableTitle = `Settings: ${targetContext.getLabel()}`;
         const tableField = new HCWTableField(tableTitle)
@@ -55,7 +267,6 @@ class FGMWindowSettings {
             .setTouchZoneColor(GLOBAL_STYLES.FIELDS_GLOBAL.TEMP_TOUCH_ZONE_COLOR)
             .setPosition(x, y)
             .setSize(sx, sy)
-            .setMinSizes(300, 400)
             .setContextField(tableField)
             .setPageId(GLOBAL_CORE.CONTEXT_FIELDS.WINDOW_SETTINGS_MENU.PAGE)
             .setId(GLOBAL_CORE.CONTEXT_FIELDS.WINDOW_SETTINGS_MENU.ID);
