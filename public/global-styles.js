@@ -1,6 +1,13 @@
 class GLOBAL_STYLES {
     static get VERSION() { return '0.0.1'; }
 
+    static get INFO() {
+        return {
+            ERROR: '#ff4444',
+            GOOD: '#00ff95'
+        }
+    }
+
     static get FIELDS() {
         return {
             COLOR_MAP: {},

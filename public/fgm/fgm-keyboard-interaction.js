@@ -4,8 +4,8 @@ class FGMKeyboardInteractionSettings {
             initialValue: "",
             label: "Keyboard",
             onEnter: () => { },
-            onCancel: () => { }, // Added to handle background clicks
-            verify: () => true,
+            onCancel: () => { },
+            verify: () => { return { valid: true, infoText: "" } },
             isNumeric: false,
             sizeX: undefined,
             sizeY: undefined
@@ -100,19 +100,42 @@ class FGMKeyboardInteraction {
                 GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ARROW_RIGHT_PRESSED,
                 GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.SPACE_PRESSED,
                 GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED,
-                GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG
+                GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG,
+                GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED
             );
 
             const isKeyboardUpdate = Object.values(GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES).includes(GlobalActionType);
 
+
+            if (GlobalActionType === GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) {
+                continue;
+            }
+
+            if (GlobalActionType === GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.KEY_PRESSED ||
+                GlobalActionType === GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.BACKSPACE_PRESSED ||
+                GlobalActionType === GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.DELETE_ALL_PRESSED
+            ) {
+                const { valid, infoText } = settings.verify(resolvedAction.value);
+
+                this.keyboardField.setTextColor(valid ? GLOBAL_STYLES.INFO.GOOD : GLOBAL_STYLES.INFO.ERROR);
+
+                const baseLabel = settings.label;
+                const displayLabel = valid ? baseLabel : `${baseLabel} || "${infoText}"`;
+                this.keyboardField.setLabel(displayLabel);
+
+                HCWRender.updateFrame();
+                continue;
+            }
+
             if (isKeyboardUpdate && GlobalActionType !== GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ENTER_PRESSED) {
                 const isValid = settings.verify(resolvedAction.value);
-                this.keyboardField.setTextColor(isValid ? '#00ff95' : '#ff4444');
+                this.keyboardField.setTextColor(isValid ? GLOBAL_STYLES.INFO.GOOD : GLOBAL_STYLES.INFO.ERROR);
                 continue;
             }
 
             if (GlobalActionType === GLOBAL_TYPES.ACTIONS.KEYBOARD_UPDATES.ENTER_PRESSED) {
-                if (settings.verify(resolvedAction.value)) {
+                const { valid } = settings.verify(resolvedAction.value);
+                if (valid) {
                     settings.onEnter(resolvedAction.value);
                     this.closeKeyboard();
                     return resolvedAction.value;

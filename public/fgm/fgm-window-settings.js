@@ -9,13 +9,47 @@ class FGMWindowSettings {
                 label: "Label",
                 value: targetContext.getLabel(),
                 setter: "setLabel",
-                setterValueVerify: (newValue) => typeof newValue === 'string' && newValue.trim().length > 0
+                setterValueVerify: (newValue) => {
+                    const val = newValue.trim();
+                    if (val.length === 0) return { valid: false, infoText: "Label cannot be empty" };
+                    if (val.length > 20) return { valid: false, infoText: "Label is too long" };
+                    return { valid: true, infoText: "" };
+                }
             },
             {
                 label: "Location ID",
                 value: targetContext.getLocationId(),
                 setter: "setLocationId",
-                setterValueVerify: (newValue) => !isNaN(newValue) && newValue.toString().trim().length > 0
+                setterValueVerify: (newValue) => {
+                    const val = newValue.toString().trim();
+
+                    /**
+                     * Pattern Breakdown for X.XXX:
+                     * ^      : Start
+                     * [1-9]  : First digit must be 1-9
+                     * \.     : A literal dot (escaped)
+                     * \d{3}  : Exactly three digits after the dot
+                     * $      : End
+                     */
+                    const pattern = /^[1-9]\.\d{3}$/;
+
+                    if (!pattern.test(val)) {
+                        return {
+                            valid: false,
+                            infoText: "Format Error: Use X.XXX (e.g., 1.000 - 9.999)"
+                        };
+                    }
+
+                    const exists = HCWDB.getContextFieldByLocationId(val);
+                    if (exists && exists !== targetContext) {
+                        return {
+                            valid: false,
+                            infoText: `ID ${val} already used by "${exists.getLabel()}"`
+                        };
+                    }
+
+                    return { valid: true, infoText: "" };
+                }
             }
         ];
 
