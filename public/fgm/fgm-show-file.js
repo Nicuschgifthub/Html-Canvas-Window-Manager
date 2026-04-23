@@ -84,13 +84,21 @@ class FGMShowFile {
         })
     }
 
+    setPagePresetGroupHighlight(pageNumber) {
+        if (pageNumber < 0) return;
+        const presetGroup = HCWDB.getContextFieldByLocationId(GLOBAL_CORE.CONTEXT_FIELDS.PAGE_MENU.LOCATION_ID)
+        if (!presetGroup) return;
+        presetGroup.updateAllPresets({ color: null }, [pageNumber]);
+        presetGroup.updatePreset(pageNumber, { color: GLOBAL_STYLES.FIELDS.PRESETS.HIGHLIGHT_COLOR });
+    }
+
     setPageCursor(pageNumber = this.showFile.pages.cursor) {
         this.showFile.pages.cursor = pageNumber;
 
+        this.setPagePresetGroupHighlight(pageNumber);
+
         HCWDB.getWindows().forEach(window => {
             const pageId = window.getPageId();
-
-            console.log(pageId)
 
             if (pageId == -1 || pageId == pageNumber) {
                 window.setHidden(false);

@@ -168,6 +168,16 @@ class HCWDB {
         return contextField;
     }
 
+    static getWindowById(windowId) {
+        let windowToReturn = null;
+        this.getWindows().forEach(window => {
+            if (window.getId() == windowId) {
+                windowToReturn = window
+            }
+        })
+        return windowToReturn;
+    }
+
     static generateNextWindowId() {
         const windows = this.getWindows();
         const existingIds = new Set(windows.map(win => win.getId()));

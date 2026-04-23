@@ -172,7 +172,7 @@ class HCWPresetField extends HCWBaseField {
     }
 
     updatePreset(id, updates = {}) {
-        const preset = this.presets.find(p => p.id === id);
+        const preset = this.presets.find(p => p.getId() == id);
         if (preset) {
             preset.update(updates);
             this.updateFrame();
@@ -184,7 +184,7 @@ class HCWPresetField extends HCWBaseField {
 
     updateAllPresets(updates = {}, blacklistIds = []) {
         this.presets.forEach(preset => {
-            if (blacklistIds.find(p => p === preset.id)) return;
+            if (blacklistIds.find(p => p === preset.getId())) return;
             preset.update(updates);
         });
         this.updateFrame();
