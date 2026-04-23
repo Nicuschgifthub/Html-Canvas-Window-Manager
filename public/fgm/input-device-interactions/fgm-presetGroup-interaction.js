@@ -22,7 +22,6 @@ class FGMPresetGroupInteraction {
             this.field.clearAllPresets();
             this.field.setLabel(current.label || "Settings");
 
-            // 1. Navigation: Back Button
             if (currentStack.length > 1) {
                 this.field.addPresets(
                     new HCWPreset("<- Back")

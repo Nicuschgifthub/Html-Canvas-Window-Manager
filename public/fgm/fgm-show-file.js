@@ -39,8 +39,26 @@ class FGMShowFile {
                 programmer: {
 
                 },
-                mapping: {
+                dmxUniverses: {
+                    0: [] // universe 0 with 512 * (8Bit 0-255)  
+                },
+                executor: {
 
+                },
+                mapping: { // examples
+                    directFixtureLink: {
+                        1.002: {
+                            fixtureId: 1,
+                            fixtureAttribute: 1,
+                            fixtureChannel: 1
+                        }
+                    },
+                    executorLink: {
+                        1.002: {
+                            executorId: 1,
+                            executorAttribute: "speed"
+                        }
+                    }
                 }
             }
         }

@@ -27,6 +27,7 @@ class FGMWindowManager {
         const settingsMenu = new HCWPresetField("Config")
             .setLocationId(GC.CONTEXT_FIELDS.SETTINGS_MENU.LOCATION_ID)
             .addPresets(
+                new HCWPreset().setLabel("Settings").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _openSettingsPresetGroup: {} }),
                 new HCWPreset().setLabel("Status").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
                 new HCWPreset().setLabel("ArtNet").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
                 new HCWPreset().setLabel("Fixtures").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),

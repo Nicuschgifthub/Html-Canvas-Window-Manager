@@ -236,13 +236,37 @@ class GLOBAL_TYPES {
     static get SYMBOLS() {
         return {
             get PERCENT() {
-                return '%'
+                return '%';
             },
             get DMX_BIT_8() {
-                return 'Bit8'
+                return 'Bit8';
             },
             get FLOAT() {
-                return 'Float'
+                return 'Float';
+            }
+        }
+    }
+
+    static get POOLS() {
+        return {
+            get TYPES() {
+                return {
+                    get GROUP() {
+                        return 'pool_type_group';
+                    },
+                    get DIMMER() {
+                        return 'pool_type_dimmer';
+                    },
+                    get POSITION() {
+                        return 'pool_type_position';
+                    },
+                    get COLOR() {
+                        return 'pool_type_color';
+                    },
+                    get SHUTTER() {
+                        return 'pool_type_shutter';
+                    }
+                }
             }
         }
     }

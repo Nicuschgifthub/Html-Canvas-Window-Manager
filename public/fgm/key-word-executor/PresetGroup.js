@@ -35,6 +35,10 @@ class KYEPresetGroup {
                 presetGroup.updateAllPresets({ color: null });
                 preset.setColor(GS.FIELDS.PRESETS.HIGHLIGHT_COLOR);
                 FGMShowHandler.setPageCursor(thisFunctionData);
+            },
+            _openSettingsPresetGroup() {
+                
+
             }
         };
     }
