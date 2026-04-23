@@ -47,6 +47,10 @@ class FGMWindowSettings {
         const { settingsWindow, rowDefinitions, targetWindow } = data;
         const targetContext = targetWindow.getContextField();
 
+        if (!HCWDB.getWindowById(settingsWindow.getId())) {
+            return;
+        }
+
         const { GlobalActionType, resolvedAction } = await GlobalInterrupter.waitForSome(
             GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED,
             GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED,
@@ -60,7 +64,7 @@ class FGMWindowSettings {
 
         if (GlobalActionType !== GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS) {
             FGMShowHandler.setPageCursor();
-            HCWDB.removeWindowByWindowId(GLOBAL_CORE.CONTEXT_FIELDS.WINDOW_SETTINGS_MENU.ID);
+            HCWDB.removeWindowByWindowId(settingsWindow.getId());
             HCWRender.updateFrame();
             return;
         }
@@ -70,35 +74,35 @@ class FGMWindowSettings {
 
         if (colIndex === 1 && definition) {
             settingsWindow.setHidden(true);
-            HCWRender.updateFrame();
-
-            const result = await FGMKeyboardInteraction.openKeyboard(
-                FGMKeyboardInteractionSettings.create()
-                    .setLabel(`Edit ${definition.label}`)
-                    .setInitialValue(definition.value)
-                    .setVerify(definition.setterValueVerify)
-                    .onEnter((newValue) => {
-                        // Update the actual object
-                        if (typeof targetContext[definition.setter] === "function") {
-                            targetContext[definition.setter](newValue);
-                            definition.value = newValue; // Sync local definition
-                            console.log(`Updated ${definition.label} to: ${newValue}`);
-                        }
-                    })
-                    .onCancel(() => {
-                    })
-            );
-
-            if (result !== null) {
-                settingsWindow.getContextField().setRows(
-                    rowDefinitions.map(def => [def.label, def.value])
-                );
-            }
-
             FGMShowHandler.setPageEmpty();
-            settingsWindow.setHidden(false);
-
             HCWRender.updateFrame();
+
+            try {
+                const result = await FGMKeyboardInteraction.openKeyboard(
+                    FGMKeyboardInteractionSettings.create()
+                        .setLabel(`Edit ${definition.label}`)
+                        .setInitialValue(definition.value)
+                        .setVerify(definition.setterValueVerify)
+                        .onEnter((newValue) => {
+                            if (typeof targetContext[definition.setter] === "function") {
+                                targetContext[definition.setter](newValue);
+                                definition.value = newValue;
+                            }
+                        })
+                );
+
+                if (result !== null) {
+                    settingsWindow.getContextField().setRows(
+                        rowDefinitions.map(def => [def.label, def.value])
+                    );
+                }
+            } catch (e) {
+                console.error("Keyboard Interaction Error:", e);
+            } finally {
+                FGMShowHandler.setPageEmpty();
+                settingsWindow.setHidden(false);
+                HCWRender.updateFrame();
+            }
         }
 
         return this.settingsLoop(data);
@@ -106,9 +110,7 @@ class FGMWindowSettings {
 
     static async windowEdgeClicked(window) {
         FGMShowHandler.setPageEmpty();
-
         const data = await this.openAndAwaitWindowSettings(window);
-
         this.settingsLoop(data);
     }
 }
