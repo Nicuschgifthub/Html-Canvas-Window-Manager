@@ -9,6 +9,7 @@ class FGMWindowSettings {
                 label: "Label",
                 value: targetContext.getLabel(),
                 setter: "setLabel",
+                isReadOnly: false,
                 setterValueVerify: (newValue) => {
                     const val = newValue.trim();
                     if (val.length === 0) return { valid: false, infoText: "Label cannot be empty" };
@@ -20,36 +21,27 @@ class FGMWindowSettings {
                 label: "Location ID",
                 value: targetContext.getLocationId(),
                 setter: "setLocationId",
+                isReadOnly: false,
                 setterValueVerify: (newValue) => {
                     const val = newValue.toString().trim();
-
-                    /**
-                     * Pattern Breakdown for X.XXX:
-                     * ^      : Start
-                     * [1-9]  : First digit must be 1-9
-                     * \.     : A literal dot (escaped)
-                     * \d{3}  : Exactly three digits after the dot
-                     * $      : End
-                     */
                     const pattern = /^[1-9]\.\d{3}$/;
 
                     if (!pattern.test(val)) {
-                        return {
-                            valid: false,
-                            infoText: "Format Error: Use X.XXX (e.g., 1.000 - 9.999)"
-                        };
+                        return { valid: false, infoText: "Format Error: Use X.XXX" };
                     }
 
                     const exists = HCWDB.getContextFieldByLocationId(val);
                     if (exists && exists !== targetContext) {
-                        return {
-                            valid: false,
-                            infoText: `ID ${val} already used by "${exists.getLabel()}"`
-                        };
+                        return { valid: false, infoText: `ID ${val} used by "${exists.getLabel()}"` };
                     }
 
                     return { valid: true, infoText: "" };
                 }
+            },
+            {
+                label: "Type",
+                value: targetContext.getType(),
+                isReadOnly: true
             }
         ];
 
@@ -70,20 +62,14 @@ class FGMWindowSettings {
 
         HCWDB.addWindows([settingsWindow]);
 
-        return {
-            settingsWindow,
-            rowDefinitions,
-            targetWindow
-        };
+        return { settingsWindow, rowDefinitions, targetWindow };
     }
 
     static async settingsLoop(data) {
         const { settingsWindow, rowDefinitions, targetWindow } = data;
         const targetContext = targetWindow.getContextField();
 
-        if (!HCWDB.getWindowById(settingsWindow.getId())) {
-            return;
-        }
+        if (!HCWDB.getWindowById(settingsWindow.getId())) return;
 
         const { GlobalActionType, resolvedAction } = await GlobalInterrupter.waitForSome(
             GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED,
@@ -92,9 +78,7 @@ class FGMWindowSettings {
             GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS
         );
 
-        if (GlobalActionType == GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) {
-            return this.settingsLoop(data);
-        }
+        if (GlobalActionType == GLOBAL_TYPES.ACTIONS.WINDOW.CLICKED) return this.settingsLoop(data);
 
         if (GlobalActionType !== GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS) {
             FGMShowHandler.setPageCursor();
@@ -106,7 +90,7 @@ class FGMWindowSettings {
         const { rowIndex, colIndex } = resolvedAction;
         const definition = rowDefinitions[rowIndex];
 
-        if (colIndex === 1 && definition) {
+        if (colIndex === 1 && definition && !definition.isReadOnly) {
             settingsWindow.setHidden(true);
             FGMShowHandler.setPageEmpty();
             HCWRender.updateFrame();
@@ -136,6 +120,10 @@ class FGMWindowSettings {
                 FGMShowHandler.setPageEmpty();
                 settingsWindow.setHidden(false);
                 HCWRender.updateFrame();
+            }
+        } else {
+            if (definition?.isReadOnly) {
+                console.log(`Attribute "${definition.label}" is read-only.`);
             }
         }
 
