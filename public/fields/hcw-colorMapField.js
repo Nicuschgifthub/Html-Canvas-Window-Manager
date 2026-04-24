@@ -29,6 +29,7 @@ class HCWColorMapField extends HCWBaseField {
             startY: null,
             endX: null,
             endY: null,
+            previewBox: null,
             sliders: {
                 r: null,
                 g: null,
@@ -220,92 +221,106 @@ class HCWColorMapField extends HCWBaseField {
 
     render(w) {
         const ctx = HCW.ctx;
-        const pad = 8;
-        const labelW = 14;
-        let vSliderW = 12;
-
+        const pad = 10;
         const innerW = w.sx - pad * 2;
         const innerH = w.sy - pad * 2;
-        const topH = Math.floor(innerH * 0.7);
 
-        const mapSize = Math.max(1, Math.floor(Math.min(
-            topH,
-            innerW - (vSliderW + pad) * 4
-        )));
+        const previewH = 35;
+        const topY = w.y + pad + 12;
+        const previewSize = previewH;
+        const dataWidth = innerW - previewSize - pad;
 
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(w.x + pad, topY, innerW, previewH);
+
+        const rgb = this.getColors();
+        const finalR = Math.min(255, rgb.r);
+        const finalG = Math.min(255, rgb.g);
+        const finalB = Math.min(255, rgb.b);
+
+        ctx.fillStyle = `rgb(${finalR}, ${finalG}, ${finalB})`;
+        ctx.fillRect(w.x + pad + dataWidth + pad, topY, previewSize, previewH);
+
+        ctx.fillStyle = '#888';
+        ctx.font = '10px Monospace';
+        ctx.textAlign = 'left';
+        const dmxText = `W:${this.extra.white.toString().padStart(3, '0')} A:${this.extra.amber.toString().padStart(3, '0')} U:${this.extra.uv.toString().padStart(3, '0')}`;
+        ctx.fillText(dmxText, w.x + pad + 5, topY + (previewH / 2) + 4);
+
+        const mapTop = topY + previewH + pad;
+        const mapSize = Math.floor(innerH * 0.55);
         this._ensureColorMap(mapSize);
 
         const mapX = w.x + pad;
-        const mapY = w.y + pad;
+        const mapY = mapTop;
 
-        if (this._colorMapCanvas instanceof HTMLCanvasElement && this._colorMapSize > 0) {
+        if (this._colorMapCanvas instanceof HTMLCanvasElement) {
             ctx.drawImage(this._colorMapCanvas, mapX, mapY);
-        } else {
-            ctx.fillStyle = '#111';
-            ctx.fillRect(mapX, mapY, mapSize, mapSize);
         }
-
         this.renderProps.map = { x: mapX, y: mapY, w: mapSize, h: mapSize };
 
         ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(
-            mapX + this.h * mapSize,
+            mapX + (this.h * mapSize),
             mapY + (1 - this.s) * mapSize,
-            5, 0, Math.PI * 2
+            4,
+            0,
+            Math.PI * 2
         );
         ctx.stroke();
 
-        const baseX = mapX + mapSize + pad;
+        const vFaderW = (innerW - mapSize - (pad * 4)) / 4;
         const vKeys = ['value', 'white', 'amber', 'uv'];
-        const vColors = ['#fff', '#ddd', '#ffb000', '#8000ff'];
+        const vColors = ['#ffffff', '#f0f0f0', '#ffbf00', '#bb00ff'];
 
         vKeys.forEach((k, i) => {
-            const mapDistance = mapX + mapSize;
-            const spaceForVFaders = this.renderProps.endX - mapDistance;
-            vSliderW = (spaceForVFaders - (vKeys.length * pad + pad)) / (vKeys.length);
-
-            const x = baseX + i * (vSliderW + pad);
-            ctx.fillStyle = '#222';
-            ctx.fillRect(x, mapY, vSliderW, mapSize);
+            const x = mapX + mapSize + pad + (i * (vFaderW + pad));
+            ctx.fillStyle = '#111';
+            ctx.fillRect(x, mapY, vFaderW, mapSize);
 
             const val = k === 'value' ? this.v * 255 : this.extra[k];
-            const h = (val / 255) * mapSize;
+            const barH = (val / 255) * mapSize;
 
             ctx.fillStyle = vColors[i];
-            ctx.fillRect(x, mapY + mapSize - h, vSliderW, h);
+            ctx.globalAlpha = k === 'value' ? 1.0 : 0.6;
+            ctx.fillRect(x, mapY + mapSize - barH, vFaderW, barH);
+            ctx.globalAlpha = 1.0;
 
-            const rect = { x, y: mapY, w: vSliderW, h: mapSize };
+            const rect = { x, y: mapY, w: vFaderW, h: mapSize };
             if (k === 'value') this.renderProps.valueFader = rect;
             else this.renderProps.sliders[k] = rect;
         });
 
-        let sy = mapY + mapSize + pad;
-        const bottomH = innerH - topH - pad;
-        const sh = Math.max(8, bottomH / 4);
-        const sw = innerW - labelW;
+        let hy = mapY + mapSize + pad;
+        const hSliderH = Math.max(12, (w.y + w.sy - hy - pad) / 3 - 4);
+        const hSliderW = innerW - 20;
 
-        const rgb = this.getColors();
-        this.renderProps.sliders.r = this._drawHSlider(ctx, 'R', mapX + labelW, sy, sw, sh, rgb.r, '#ff4444'); sy += sh + pad;
-        this.renderProps.sliders.g = this._drawHSlider(ctx, 'G', mapX + labelW, sy, sw, sh, rgb.g, '#44ff44'); sy += sh + pad;
-        this.renderProps.sliders.b = this._drawHSlider(ctx, 'B', mapX + labelW, sy, sw, sh, rgb.b, '#4444ff');
+        this.renderProps.sliders.r = this._drawModernHSlider(ctx, 'R', mapX + 20, hy, hSliderW, hSliderH, rgb.r, '#ff4444'); hy += hSliderH + 4;
+        this.renderProps.sliders.g = this._drawModernHSlider(ctx, 'G', mapX + 20, hy, hSliderW, hSliderH, rgb.g, '#44ff44'); hy += hSliderH + 4;
+        this.renderProps.sliders.b = this._drawModernHSlider(ctx, 'B', mapX + 20, hy, hSliderW, hSliderH, rgb.b, '#4444ff');
 
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px Arial';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Arial';
         ctx.textAlign = "left";
-        ctx.fillText(this.getLabel(), w.x + pad, w.y + 10);
+        ctx.fillText(this.getLabel().toUpperCase(), w.x + pad, w.y + 17);
     }
 
-    _drawHSlider(ctx, label, x, y, w, h, value, color) {
-        ctx.fillStyle = '#222';
+    _drawModernHSlider(ctx, label, x, y, w, h, value, color) {
+        // Track
+        ctx.fillStyle = '#1a1a1a';
         ctx.fillRect(x, y, w, h);
+        // Fill
         ctx.fillStyle = color;
+        ctx.globalAlpha = 0.8;
         ctx.fillRect(x, y, (value / 255) * w, h);
+        ctx.globalAlpha = 1.0;
+        // Label
         ctx.fillStyle = '#fff';
-        ctx.font = '12px Arial';
-        ctx.textAlign = "center";
-        ctx.fillText(label, x - 8, y + h - 1);
+        ctx.font = '10px Monospace';
+        ctx.textAlign = "right";
+        ctx.fillText(label, x - 5, y + h / 2 + 4);
         return { x, y, w, h };
     }
 }
