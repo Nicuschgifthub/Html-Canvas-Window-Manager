@@ -7,6 +7,8 @@ class HCWEncoderField extends HCWBaseField {
         this.value = 0.0;
         this.value2 = 0.0;
 
+        this.outerSlowFactor = 0.25;
+
         this.displayType = 'byte';
 
         this.renderProps = {
@@ -120,6 +122,8 @@ class HCWEncoderField extends HCWBaseField {
                 this.renderProps.activeRing = 'outer';
             }
 
+            this._lastInteractionAngle = Math.atan2(interaction.mouseY - cy, interaction.mouseX - cx);
+
         } else if (interaction.type === 'mousemove') {
             if (this.renderProps.activeRing) {
                 this._updateFromDelta(interaction.mouseX, interaction.mouseY);
@@ -127,9 +131,10 @@ class HCWEncoderField extends HCWBaseField {
 
         } else if (interaction.type === 'mouseup') {
             this.renderProps.activeRing = null;
+            this._lastInteractionAngle = null;
 
         } else if (interaction.type === 'scroll') {
-            const step = 0.02;
+            const step = 0.01;
             const direction = interaction.deltaY > 0 ? -1 : 1;
             this.setFloats(this.value + (step * direction));
         }
@@ -154,7 +159,7 @@ class HCWEncoderField extends HCWBaseField {
         if (this.renderProps.activeRing === 'inner') {
             this.setFloats(this.value, this.value2 + rotationSensitivity);
         } else {
-            this.setFloats(this.value + rotationSensitivity, this.value2);
+            this.setFloats(this.value + (rotationSensitivity * this.outerSlowFactor), this.value2);
         }
 
         this._lastInteractionAngle = currentAngle;
