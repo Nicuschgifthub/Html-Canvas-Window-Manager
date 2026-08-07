@@ -8,5 +8,5 @@ class _DEFS_STORE {
 }
 
 class FGMBuildStructsKey {
-    static get
+
 }

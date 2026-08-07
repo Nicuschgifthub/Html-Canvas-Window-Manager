@@ -11,6 +11,8 @@ class FGMEvents {
     }
 
     static backgroundBoxDrag(data) {
+        console.log("BG Box Drag");
+
         if (GlobalInterrupter.hasEventWaiting(GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG)) {
             GlobalInterrupter.resolveEvent(GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG, data);
             console.log(`%c Interrupted >> Action "${GLOBAL_TYPES.ACTIONS.BACKGROUND_DRAG}" handled by waiter.`, 'color: #ffcc00; font-style: italic;');
@@ -29,6 +31,8 @@ class FGMEvents {
     }
 
     static onAction(type, data = {}) {
+        console.log("Action");
+
         if (GlobalInterrupter.hasEventWaiting(type)) {
             GlobalInterrupter.resolveEvent(type, data);
             console.log(`%c Interrupted >> Action "${type}" handled by waiter.`, 'color: #ffcc00; font-style: italic;');
