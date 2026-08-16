@@ -40,6 +40,48 @@ class FGMWindowManager {
             encoder() {
                 return new HCWEncoderField(`Encoder ${locationId}`).setFloats(0, 0).setLocationId(locationId);
             },
+            customEncoder() {
+                windowBuildValues.sx = 200;
+                windowBuildValues.sy = 200;
+                windowBuildValues.minSizeX = 150;
+                windowBuildValues.minSizeY = 150;
+                return new HCWCustomEncoderField(`Custom Wheel ${locationId}`).setLocationId(locationId);
+            },
+            keyboard() {
+                windowBuildValues.sx = 500;
+                windowBuildValues.sy = 300;
+                windowBuildValues.minSizeX = 400;
+                windowBuildValues.minSizeY = 250;
+                return new HCWKeyboardField(`Keyboard ${locationId}`).setLocationId(locationId);
+            },
+            number() {
+                windowBuildValues.sx = 300;
+                windowBuildValues.sy = 350;
+                windowBuildValues.minSizeX = 200;
+                windowBuildValues.minSizeY = 250;
+                return new HCWNumberField(`Numpad ${locationId}`).setLocationId(locationId);
+            },
+            table() {
+                windowBuildValues.sx = 400;
+                windowBuildValues.sy = 300;
+                windowBuildValues.minSizeX = 300;
+                windowBuildValues.minSizeY = 200;
+                return new HCWTableField(`Table ${locationId}`).setLocationId(locationId).setHeaders(["Channel", "Value"]).setRows([["1", "255"], ["2", "128"]]);
+            },
+            search() {
+                windowBuildValues.sx = 300;
+                windowBuildValues.sy = 150;
+                windowBuildValues.minSizeX = 200;
+                windowBuildValues.minSizeY = 100;
+                return new HCWSearchField(`Search ${locationId}`).setLocationId(locationId);
+            },
+            sequenceEditor() {
+                windowBuildValues.sx = 500;
+                windowBuildValues.sy = 300;
+                windowBuildValues.minSizeX = 350;
+                windowBuildValues.minSizeY = 200;
+                return new HCWSequenceEditorField(`Sequence ${locationId}`).setLocationId(locationId);
+            },
             colorMap() {
                 windowBuildValues.sx = 400;
                 windowBuildValues.sy = 400;
@@ -55,7 +97,7 @@ class FGMWindowManager {
                             .setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR)
                             .setData({ _presetNumber: i })
                     )
-                )
+                );
             },
             pageMenu() {
                 return FGMWindowManager._getPageMenu();

@@ -22,6 +22,7 @@ class GLOBAL_STYLES {
             },
             PRESETS: {
                 DEFAULT_COLOR: '#00059c',
+                GRAY: '#353535',
                 HIGHLIGHT_COLOR: '#005b2f'
             },
             SEARCH: {},
