@@ -297,6 +297,7 @@ class HCWTouch {
         const windowParts = HCWInteraction.getWindowPartByCords(mouseX, mouseY);
 
         if (windowParts.window) {
+            HCWDB.bringToFront(windowParts.window);
             HCW.pointer._windowPressCandidate = windowParts.window;
             HCW.pointer._windowPressStartX = mouseX;
             HCW.pointer._windowPressStartY = mouseY;

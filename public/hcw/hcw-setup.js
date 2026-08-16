@@ -160,6 +160,24 @@ class HCWSetup {
 }
 
 class HCWDB {
+    static _windowsMap = new Map();
+    static _locationMap = new Map();
+
+    static _syncIndexes() {
+        this._windowsMap.clear();
+        this._locationMap.clear();
+
+        const windows = HCW.windows || [];
+        windows.forEach(win => {
+            if (!win) return;
+            this._windowsMap.set(win.getId(), win);
+            const field = typeof win.getContextField === 'function' ? win.getContextField() : win.contextfield;
+            if (field && typeof field.getLocationId === 'function' && field.getLocationId()) {
+                this._locationMap.set(field.getLocationId().toString(), field);
+            }
+        });
+    }
+
     static getHCW() {
         return HCW;
     }
@@ -169,7 +187,9 @@ class HCWDB {
     }
 
     static addWindows(windowArray) {
+        if (!windowArray) return;
         HCW.HCWClassInstance.addWindows(windowArray);
+        this._syncIndexes();
     }
 
     static addWindowAndResolveCollisions(window) {
@@ -181,32 +201,41 @@ class HCWDB {
     }
 
     static getContextFieldByLocationId(locationId) {
-        let contextField = null;
-        this.getWindows().forEach(window => {
-            if (window.getContextField().getLocationId() == locationId) {
-                contextField = window.getContextField();
-            }
-        })
-        return contextField;
+        if (!locationId) return null;
+        const key = locationId.toString();
+        if (this._locationMap.has(key)) return this._locationMap.get(key);
+
+        // Fallback sync if map missed an inline update
+        this._syncIndexes();
+        return this._locationMap.get(key) || null;
     }
 
     static getWindowById(windowId) {
-        let windowToReturn = null;
-        this.getWindows().forEach(window => {
-            if (window.getId() == windowId) {
-                windowToReturn = window
+        if (windowId == null) return null;
+        if (this._windowsMap.has(windowId)) return this._windowsMap.get(windowId);
+
+        // Fallback sync if map missed an inline update
+        this._syncIndexes();
+        return this._windowsMap.get(windowId) || null;
+    }
+
+    static bringToFront(window) {
+        if (!window || !HCW.windows) return;
+        const index = HCW.windows.indexOf(window);
+        if (index > -1 && index !== HCW.windows.length - 1) {
+            HCW.windows.splice(index, 1);
+            HCW.windows.push(window);
+            if (typeof HCWRender !== 'undefined' && typeof HCWRender.updateFrame === 'function') {
+                HCWRender.updateFrame();
             }
-        })
-        return windowToReturn;
+        }
     }
 
     static generateNextWindowId() {
-        const windows = this.getWindows();
-        const existingIds = new Set(windows.map(win => win.getId()));
-
+        this._syncIndexes();
         let candidateId = GLOBAL_CORE.DEFS.ALL_IDS.START_UNRESERVED_WINDOW_IDS;
 
-        while (existingIds.has(candidateId)) {
+        while (this._windowsMap.has(candidateId)) {
             candidateId++;
         }
 
@@ -214,9 +243,7 @@ class HCWDB {
     }
 
     static generateNextLocationId() {
-        const windows = this.getWindows();
-
-        const existingIds = windows.map(win => win.getContextField().getLocationId().toString());
+        this._syncIndexes();
 
         let major = GLOBAL_CORE.DEFS.ALL_IDS.START_UNRESERVED_LOCATION_IDS.MAJOR;
         let minor = GLOBAL_CORE.DEFS.ALL_IDS.START_UNRESERVED_LOCATION_IDS.MINOR;
@@ -225,7 +252,7 @@ class HCWDB {
             const formattedMinor = minor.toString().padStart(3, '0');
             const candidateId = `${major}.${formattedMinor}`;
 
-            if (!existingIds.includes(candidateId)) {
+            if (!this._locationMap.has(candidateId)) {
                 return candidateId;
             }
 
@@ -248,26 +275,35 @@ class HCWDB {
 
         const index = windows.findIndex(window => window.getId() === windowId);
 
-        if (index !== -1) {
-            HCW.windows.splice(index, 1);
-            return true;
+        if (index > -1) {
+            const removedWindow = windows.splice(index, 1)[0];
+            if (removedWindow) {
+                this._windowsMap.delete(removedWindow.getId());
+                const field = typeof removedWindow.getContextField === 'function' ? removedWindow.getContextField() : removedWindow.contextfield;
+                if (field && typeof field.getLocationId === 'function' && field.getLocationId()) {
+                    this._locationMap.delete(field.getLocationId().toString());
+                }
+            }
+            HCWRender.updateFrame();
         }
-
-        return false;
     }
 
     static removeWindowByLocationId(locationId) {
         const windows = this.getWindows();
         if (!windows) return;
 
-        const index = windows.findIndex(window => window.getContextField().getLocationId() === locationId);
+        const index = windows.findIndex(window => window.getContextField() && window.getContextField().getLocationId() == locationId);
 
-        if (index !== -1) {
-            HCW.windows.splice(index, 1);
-            return true;
+        if (index > -1) {
+            const removedWindow = windows.splice(index, 1)[0];
+            if (removedWindow) {
+                this._windowsMap.delete(removedWindow.getId());
+                if (removedWindow.getContextField() && removedWindow.getContextField().getLocationId()) {
+                    this._locationMap.delete(removedWindow.getContextField().getLocationId().toString());
+                }
+            }
+            HCWRender.updateFrame();
         }
-
-        return false;
     }
 }
 
