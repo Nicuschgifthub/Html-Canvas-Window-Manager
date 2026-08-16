@@ -44,6 +44,13 @@ class FGMWindowManager {
                 windowBuildValues.minSizeY = 300;
                 return new HCWXYPadField(`Pan/Tilt ${locationId}`).setLocationId(locationId);
             },
+            viewer3D() {
+                windowBuildValues.sx = 450;
+                windowBuildValues.sy = 380;
+                windowBuildValues.minSizeX = 300;
+                windowBuildValues.minSizeY = 250;
+                return new HCW3DViewerField(`3D View ${locationId}`).setLocationId(locationId);
+            },
             encoder() {
                 return new HCWEncoderField(`Encoder ${locationId}`).setFloats(0, 0).setLocationId(locationId);
             },

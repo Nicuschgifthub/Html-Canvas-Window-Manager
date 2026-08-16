@@ -85,6 +85,37 @@ _DEFS_STORE.add('window-settings', (input) => {
                 targetContext.setPanTilt(targetContext.pan, normTilt);
             }
         },
+        // 3D Stage Viewer
+        {
+            label: "Camera Yaw (°)",
+            _isNumeric: true,
+            _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.VIEWER_3D,
+            getValue: () => Math.round((targetContext.yaw * 180) / Math.PI),
+            setterFunction: (v) => {
+                targetContext.yaw = (parseFloat(v) || 0) * (Math.PI / 180);
+                targetContext.updateFrame();
+            }
+        },
+        {
+            label: "Camera Pitch (°)",
+            _isNumeric: true,
+            _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.VIEWER_3D,
+            getValue: () => Math.round((targetContext.pitch * 180) / Math.PI),
+            setterFunction: (v) => {
+                targetContext.pitch = (parseFloat(v) || 0) * (Math.PI / 180);
+                targetContext.updateFrame();
+            }
+        },
+        {
+            label: "Camera Zoom",
+            _isNumeric: true,
+            _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.VIEWER_3D,
+            getValue: () => parseFloat(targetContext.zoom.toFixed(2)),
+            setterFunction: (v) => {
+                targetContext.zoom = Math.max(0.2, Math.min(5.0, parseFloat(v) || 1.0));
+                targetContext.updateFrame();
+            }
+        },
         {
             label: "Type",
             getValue: () => currentType,

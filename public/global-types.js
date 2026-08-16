@@ -36,6 +36,10 @@ class GLOBAL_TYPES {
                 return 'ACTION_XY_PAD_UPDATE';
             },
 
+            get VIEWER_3D_UPDATE() {
+                return 'ACTION_VIEWER_3D_UPDATE';
+            },
+
             get FADER_VALUE_UPDATE() {
                 return 'ACTION_FADER_VALUE_UPDATE';
             },
@@ -183,6 +187,9 @@ class GLOBAL_TYPES {
             },
             get XY_PAD() {
                 return 'CONTEXT_FIELD_XY_PAD';
+            },
+            get VIEWER_3D() {
+                return 'CONTEXT_FIELD_3D_VIEWER';
             }
         }
     }
@@ -228,6 +235,9 @@ class GLOBAL_TYPES {
                     },
                     get XY_PAD() {
                         return 'XYPad';
+                    },
+                    get VIEWER_3D() {
+                        return 'Viewer3D';
                     }
                 }
             }

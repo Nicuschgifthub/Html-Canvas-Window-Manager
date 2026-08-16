@@ -309,7 +309,7 @@ const HCWFactory = {
         HCWWindow, HCWBaseField, HCWFaderField, HCWPresetField,
         HCWPreset, HCWEncoderField, HCWKeyboardField, HCWNumberField,
         HCWColorMapField, HCWTableField, HCWCustomEncoderField,
-        HCWSearchField, HCWSearchResult, HCWXYPadField
+        HCWSearchField, HCWSearchResult, HCWXYPadField, HCW3DViewerField
     },
 
     serialize(data) {

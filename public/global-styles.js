@@ -220,6 +220,19 @@ class GLOBAL_STYLES {
                 PRESET_BG: P.KEY_DEFAULT,
                 PRESET_ACTIVE: P.KEY_ACTIVE,
                 PRESET_TEXT: P.TEXT_PRIMARY
+            },
+            VIEWER_3D: {
+                BACKGROUND: P.BG_PRIMARY,
+                VIEWPORT_BG: P.BG_SECONDARY,
+                GRID: '#1f2923',
+                FIXTURE_BODY: '#444444',
+                FIXTURE_HEAD: '#666666',
+                BEAM_COLOR: '#00ff9555',
+                BEAM_CORE: '#00ff95',
+                TEXT: P.TEXT_PRIMARY,
+                ACCENT: P.ACCENT_GREEN,
+                BUTTON_BG: P.KEY_DEFAULT,
+                BUTTON_ACTIVE: P.KEY_ACTIVE
             }
         };
     }

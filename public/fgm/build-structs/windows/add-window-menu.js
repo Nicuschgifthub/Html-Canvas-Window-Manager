@@ -3,6 +3,7 @@ _DEFS_STORE.add('window-add-menu', () => {
         { label: "Fader", key: "fader" },
         { label: "Color Picker", key: "colorMap" },
         { label: "Pan / Tilt Pad", key: "xyPad" },
+        { label: "3D Stage View", key: "viewer3D" },
         { label: "Encoder", key: "encoder" },
         { label: "Presets", key: "presetGroup" },
         { label: "Page Menu", key: "pageMenu" },
