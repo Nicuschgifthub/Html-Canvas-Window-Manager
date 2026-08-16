@@ -132,8 +132,9 @@ class HCWSetup {
     }
 
     async _loadFiles() {
-        const scriptPromises = this.files().map(file => this._loadScript(file));
-        return Promise.all(scriptPromises);
+        for (const file of this.files()) {
+            await this._loadScript(file);
+        }
     }
 
     _loadScript(src) {
@@ -141,7 +142,7 @@ class HCWSetup {
             const script = document.createElement("script");
             script.src = src;
             script.type = "text/javascript";
-            script.async = true;
+            script.async = false;
 
             script.onload = () => {
                 console.log(`HCW Script loaded: ${src}`);

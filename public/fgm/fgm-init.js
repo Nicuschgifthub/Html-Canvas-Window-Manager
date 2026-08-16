@@ -3,7 +3,12 @@ class FGMLoadFiles {
         return [
             // build structs
             '/fgm/build-structs/defs-store.js',
-            '/fgm/build-structs/defs-window-settings.js',
+            // .settings
+            '/fgm/build-structs/settings/defs-window-settings.js',
+            // .windows
+            '/fgm/build-structs/windows/config-menu-window.js',
+            '/fgm/build-structs/windows/page-menu-window.js',
+            '/fgm/build-structs/windows/add-window-menu.js',
             '/fgm/build-structs/fgm-build-structs.js',
             // fgm root manager
             '/fgm/fgm-command-engine.js',
@@ -25,8 +30,9 @@ class FGMLoadFiles {
     }
 
     static async _loadFiles() {
-        const scriptPromises = this.files().map(file => this._loadScript(file));
-        return Promise.all(scriptPromises);
+        for (const file of this.files()) {
+            await this._loadScript(file);
+        }
     }
 
     static _loadScript(src) {
@@ -34,7 +40,7 @@ class FGMLoadFiles {
             const script = document.createElement("script");
             script.src = src;
             script.type = "text/javascript";
-            script.async = true;
+            script.async = false;
 
             script.onload = () => {
                 console.log(`FGM Script loaded: ${src}`);

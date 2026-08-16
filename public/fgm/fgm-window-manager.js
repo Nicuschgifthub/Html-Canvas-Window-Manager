@@ -1,45 +1,5 @@
 class FGMWindowManager {
 
-    static _setupWindows(windows) {
-        HCWDB.addWindows(windows);
-    }
-
-    static _getPageMenu(returnContextOnly = false) {
-        const pagesMenu = new HCWPresetField("Pages")
-            .setLocationId(GC.CONTEXT_FIELDS.PAGE_MENU.LOCATION_ID)
-            .addPresets(
-                new HCWPreset().setLabel("Menu").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _pageChangeTo: 0 }),
-                ...Array.from({ length: 50 }, (_, i) =>
-                    new HCWPreset()
-                        .setLabel(`Page ${i + 1}`)
-                        .setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR)
-                        .setData({ _pageChangeTo: i + 1 })
-                ));
-
-        return new HCWWindow({ x: 0, y: 0, sx: 100, sy: 600 })
-            .setPageId(GC.CONTEXT_FIELDS.PAGE_MENU.PAGE)
-            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
-            .setId(GC.CONTEXT_FIELDS.PAGE_MENU.ID)
-            .setContextField(pagesMenu);
-    }
-
-    static _getSettingsMenu(returnContextOnly = false) {
-        const settingsMenu = new HCWPresetField("Config")
-            .setLocationId(GC.CONTEXT_FIELDS.SETTINGS_MENU.LOCATION_ID)
-            .addPresets(
-                new HCWPreset().setLabel("Settings").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _openSettingsPresetGroup: {} }),
-                new HCWPreset().setLabel("Status").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
-                new HCWPreset().setLabel("ArtNet").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
-                new HCWPreset().setLabel("Fixtures").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),
-            );
-
-        return new HCWWindow({ x: 100, y: 0, sx: 400, sy: 300 })
-            .setPageId(GC.CONTEXT_FIELDS.SETTINGS_MENU.PAGE)
-            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
-            .setId(GLOBAL_CORE.CONTEXT_FIELDS.SETTINGS_MENU.ID)
-            .setContextField(settingsMenu);
-    }
-
     static buildDefaultSetup(onlyReturnWindows = false) {
         const windows = [this._getPageMenu(), this._getSettingsMenu()];
 
@@ -47,35 +7,20 @@ class FGMWindowManager {
         this._setupWindows(windows);
     }
 
+    static _setupWindows(windows) {
+        HCWDB.addWindows(windows);
+    }
+
+    static _getPageMenu(returnContextOnly = false) {
+        return FGMBuildStructs.build('window-page-menu');
+    }
+
+    static _getSettingsMenu(returnContextOnly = false) {
+        return FGMBuildStructs.build('window-config-menu');
+    }
+
     static buildWindowAddMenu() {
-        const windowTypes = [
-            { label: "Fader", key: "fader" },
-            { label: "Color Picker", key: "colorMap" },
-            { label: "Encoder", key: "encoder" },
-            { label: "Presets", key: "presetGroup" },
-            { label: "Page Menu", key: "pageMenu" },
-            { label: "Settings Menu", key: "settingsMenu" }
-        ];
-
-        const windowMenu = new HCWPresetField("Add Window")
-            .setLocationId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.LOCATION_ID)
-            .addPresets(
-                ...windowTypes.map(type =>
-                    new HCWPreset()
-                        .setLabel(type.label)
-                        .setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR)
-                        .setData({ _contextAdd: type.key })
-                )
-            );
-
-        const pageMenuWindow = new HCWWindow({ x: 100, y: 0, sx: 400, sy: 400 })
-            .setTouchZoneColor(GLOBAL_STYLES.FIELDS_GLOBAL.TEMP_TOUCH_ZONE_COLOR)
-            .setPageId(GLOBAL_CORE.DEFS.PAGES.EMPTY)
-            .setMinSizes(GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY, GLOBAL_CORE.DEFS.WINDOW.SIZE.MIN_SIZEXY)
-            .setId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.ID)
-            .setContextField(windowMenu);
-
-        return pageMenuWindow;
+        return FGMBuildStructs.build('window-add-menu');
     }
 
     static getNewContext(type, windowId, locationId) {
