@@ -134,17 +134,16 @@ class FGMWindowManager {
     }
 
     static async createNewWindowByUserInput(data) {
-        const { x, y, sx, sy } = data;
+        const { x, y, sx, sy } = HCWGridSnap.snapBox(data);
         const currentPageCursor = FGMShowHandler.getPageCursor();
 
         FGMShowHandler.setPageEmpty();
 
         const menuWindow = this.buildWindowAddMenu();
-
         menuWindow.setPosition(x, y);
         menuWindow.setSize(sx, sy);
 
-        HCWDB.addWindows([menuWindow]);
+        HCWDB.addWindowAndResolveCollisions(menuWindow);
 
         const { GlobalActionType, resolvedAction } = await GlobalInterrupter.waitForSome(
             GLOBAL_TYPES.ACTIONS.PRESET_PRESS,
@@ -173,23 +172,24 @@ class FGMWindowManager {
         const existWindow = HCWDB.getWindowById(newWindow.getId());
 
         if (existWindow) {
-            console.log("Window removed as new same window created")
-            HCWDB.removeWindowByWindowId(existWindow.getId())
+            console.log("Window removed as new same window created");
+            HCWDB.removeWindowByWindowId(existWindow.getId());
         }
 
         const existContext = HCWDB.getContextFieldByLocationId(newWindow.getContextField().getLocationId());
 
         if (existContext) {
-            console.log("Context removed as new same context created")
-            HCWDB.removeWindowByLocationId(existContext.getLocationId())
+            console.log("Context removed as new same context created");
+            HCWDB.removeWindowByLocationId(existContext.getLocationId());
         }
 
         if (newWindow.getPageId() == null) newWindow.setPageId(currentPageCursor);
         newWindow.setPosition(x, y);
         newWindow.setSize(sx, sy);
 
-        HCWDB.addWindows([newWindow]);
+        HCWDB.addWindowAndResolveCollisions(newWindow);
 
         FGMShowHandler.setPageCursor();
+        HCWWindow.resolveCollisions(newWindow);
     }
 }

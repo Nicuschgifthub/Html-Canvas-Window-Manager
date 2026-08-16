@@ -16,6 +16,23 @@ class HCWGridSnap {
         return closestPoint || [x, y];
     }
 
+    static snapBox(box = {}) {
+        const gridX = (typeof HCW !== 'undefined' && HCW.grid && HCW.grid.pointDistanceX) ? HCW.grid.pointDistanceX : 100;
+        const gridY = (typeof HCW !== 'undefined' && HCW.grid && HCW.grid.pointDistanceY) ? HCW.grid.pointDistanceY : 100;
+
+        const x = box.x || 0;
+        const y = box.y || 0;
+        const sx = box.sx || gridX;
+        const sy = box.sy || gridY;
+
+        return {
+            x: Math.round(x / gridX) * gridX,
+            y: Math.round(y / gridY) * gridY,
+            sx: Math.max(gridX, Math.round(sx / gridX) * gridX),
+            sy: Math.max(gridY, Math.round(sy / gridY) * gridY)
+        };
+    }
+
     static updateWindows() {
         if (HCW.pointer.usermoveorresize) return;
 

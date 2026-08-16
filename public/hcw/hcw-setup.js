@@ -170,6 +170,14 @@ class HCWDB {
         HCW.HCWClassInstance.addWindows(windowArray);
     }
 
+    static addWindowAndResolveCollisions(window) {
+        if (!window) return;
+        this.addWindows([window]);
+        if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
+            HCWWindow.resolveCollisions(window);
+        }
+    }
+
     static getContextFieldByLocationId(locationId) {
         let contextField = null;
         this.getWindows().forEach(window => {
