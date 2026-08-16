@@ -1,4 +1,6 @@
-# 🔒 This Repo will be continued as WebBasedFixtureControl
+# 🔒 This Repo when version 1.0 is out will be continued as WebBasedFixtureControl
+
+But before that this will be the history and development to WebBasedFixtureControl.
 
 This was lightweight HTML website featuring a canvas-based window manager.
 Its now on the way of transformation to my new web app.
