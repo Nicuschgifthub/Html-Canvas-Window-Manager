@@ -10,12 +10,12 @@ I am working on a new way on how the entire backbone code will work
 
 ## Current images
 
-![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/latest.png)
+![Current-example-1](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/latest.png)
 
-![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/add-window.png)
-![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-window.png)
-![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-color-value.png)
-![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-location.png)
+![Current-example-2](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/add-window.png)
+![Current-example-3](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-window.png)
+![Current-example-4](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-color-value.png)
+![Current-example-5](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-location.png)
 
 ## Images of the first test
 
