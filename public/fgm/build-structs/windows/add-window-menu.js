@@ -2,6 +2,7 @@ _DEFS_STORE.add('window-add-menu', () => {
     const windowTypes = [
         { label: "Fader", key: "fader" },
         { label: "Color Picker", key: "colorMap" },
+        { label: "Pan / Tilt Pad", key: "xyPad" },
         { label: "Encoder", key: "encoder" },
         { label: "Presets", key: "presetGroup" },
         { label: "Page Menu", key: "pageMenu" },

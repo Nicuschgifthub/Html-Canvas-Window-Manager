@@ -146,6 +146,18 @@ class GLOBAL_STYLES {
                 HEADER_TEXT: P.TEXT_PRIMARY,
                 ROW_BG: P.BG_SECONDARY,
                 ACCENT: P.ACCENT_GREEN
+            },
+            XY_PAD: {
+                BACKGROUND: P.BG_PRIMARY,
+                PAD_BG: P.BG_SECONDARY,
+                GRID: '#222222',
+                CROSSHAIR: P.TEXT_SECONDARY,
+                TARGET: P.ACCENT_GREEN,
+                TARGET_GLOW: '#00ff9566',
+                TEXT: P.TEXT_PRIMARY,
+                PRESET_BG: P.KEY_DEFAULT,
+                PRESET_ACTIVE: P.KEY_ACTIVE,
+                PRESET_TEXT: P.TEXT_PRIMARY
             }
         };
     }

@@ -106,6 +106,10 @@ class FGMEvents {
                 commandString = `${keyword} ${location} At outer ${data.outer.byte} inner ${data.inner.byte}`;
                 break;
 
+            case GLOBAL_TYPES.ACTIONS.XY_PAD_UPDATE:
+                commandString = `${keyword} ${location} At pan ${data.panDMX} tilt ${data.tiltDMX}`;
+                break;
+
             case 'ACTION_SEQUENCE_EDITOR_UPDATE':
                 commandString = `${keyword} ${location} Update`;
                 break;

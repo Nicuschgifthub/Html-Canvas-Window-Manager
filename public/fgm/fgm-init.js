@@ -26,6 +26,7 @@ class FGMLoadFiles {
             'fgm/key-word-executor/Encoder.js',
             'fgm/key-word-executor/ColorMap.js',
             'fgm/key-word-executor/Table.js',
+            'fgm/key-word-executor/XYPad.js',
         ]
     }
 

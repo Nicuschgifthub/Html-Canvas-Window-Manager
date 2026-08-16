@@ -134,6 +134,9 @@ class HCWBaseField {
             case "HCWCustomEncoderField":
                 this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.C_ENCODER;
                 break;
+            case "HCWXYPadField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.XY_PAD;
+                break;
             default:
                 break;
         }

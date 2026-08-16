@@ -37,6 +37,13 @@ class FGMWindowManager {
             fader() {
                 return new HCWFaderField(`Fader ${locationId}`).setFloat(0).setLocationId(locationId);
             },
+            xyPad() {
+                windowBuildValues.sx = 400;
+                windowBuildValues.sy = 300;
+                windowBuildValues.minSizeX = 400;
+                windowBuildValues.minSizeY = 300;
+                return new HCWXYPadField(`Pan/Tilt ${locationId}`).setLocationId(locationId);
+            },
             encoder() {
                 return new HCWEncoderField(`Encoder ${locationId}`).setFloats(0, 0).setLocationId(locationId);
             },

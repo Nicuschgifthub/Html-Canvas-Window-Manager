@@ -32,6 +32,10 @@ class GLOBAL_TYPES {
                 return 'ACTION_COLOR_ENCODER_VALUE_UPDATE';
             },
 
+            get XY_PAD_UPDATE() {
+                return 'ACTION_XY_PAD_UPDATE';
+            },
+
             get FADER_VALUE_UPDATE() {
                 return 'ACTION_FADER_VALUE_UPDATE';
             },
@@ -176,6 +180,9 @@ class GLOBAL_TYPES {
             },
             get CUSTOM_WHEEL_ENCODER() {
                 return 'CONTEXT_FIELD_CUSTOM_WHEEL_ENCODER';
+            },
+            get XY_PAD() {
+                return 'CONTEXT_FIELD_XY_PAD';
             }
         }
     }
@@ -218,6 +225,9 @@ class GLOBAL_TYPES {
                     },
                     get C_ENCODER() {
                         return 'CustomEncoder';
+                    },
+                    get XY_PAD() {
+                        return 'XYPad';
                     }
                 }
             }

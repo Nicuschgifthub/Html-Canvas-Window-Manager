@@ -64,6 +64,27 @@ _DEFS_STORE.add('window-settings', (input) => {
         { label: "White LED", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().white, setterFunction: (v) => { targetContext.setColor({ white: v }); targetContext._trigger(); } },
         { label: "Amber LED", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().amber, setterFunction: (v) => { targetContext.setColor({ amber: v }); targetContext._trigger(); } },
         { label: "UV LED", _isNumeric: true, _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.COLOR_MAP_INPUT, getValue: () => targetContext.getColors().uv, setterFunction: (v) => { targetContext.setColor({ uv: v }); targetContext._trigger(); } },
+        // Pan / Tilt Pad (XY Pad)
+        {
+            label: "Pan Value (DMX)",
+            _isNumeric: true,
+            _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.XY_PAD,
+            getValue: () => targetContext.getPanDMX(),
+            setterFunction: (v) => {
+                const normPan = Math.max(0, Math.min(255, parseFloat(v) || 0)) / 255;
+                targetContext.setPanTilt(normPan, targetContext.tilt);
+            }
+        },
+        {
+            label: "Tilt Value (DMX)",
+            _isNumeric: true,
+            _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.XY_PAD,
+            getValue: () => targetContext.getTiltDMX(),
+            setterFunction: (v) => {
+                const normTilt = Math.max(0, Math.min(255, parseFloat(v) || 0)) / 255;
+                targetContext.setPanTilt(targetContext.pan, normTilt);
+            }
+        },
         {
             label: "Type",
             getValue: () => currentType,
