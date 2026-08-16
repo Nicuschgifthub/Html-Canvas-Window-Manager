@@ -119,9 +119,10 @@ class HCWFaderField extends HCWBaseField {
         HCW.ctx.fillRect(x, levelY, sx, levelHeight);
 
         HCW.ctx.fillStyle = colors.text;
-        HCW.ctx.font = "12px Arial";
+        HCW.ctx.font = GS.FONTS.TITLE;
         HCW.ctx.textAlign = "left";
         HCW.ctx.fillText(this.getLabel(), x + 5, y + 15);
+        HCW.ctx.font = GS.FONTS.MONO_READOUT;
         HCW.ctx.fillText(this._getFormattedValue(), x + 5, y + 30);
     }
 }

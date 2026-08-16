@@ -170,11 +170,11 @@ class HCWSearchField extends HCWBaseField {
         ctx.fillRect(w.x + pad, w.y + pad, w.sx - pad * 2, this.headerHeight);
 
         ctx.fillStyle = GS.FIELDS.SEARCH.TEXT;
-        ctx.font = 'bold 16px Arial';
+        ctx.font = GS.FONTS.HEADER;
         ctx.textAlign = 'left';
         ctx.fillText(this.searchValue || "Click to search...", w.x + pad + 10, w.y + pad + this.headerHeight / 2 + 6);
 
-        ctx.font = '14px Arial';
+        ctx.font = GS.FONTS.LABEL;
         let currentY = w.y + pad + this.headerHeight + this.gap + 10;
 
         this.results.forEach((result, index) => {
@@ -188,11 +188,11 @@ class HCWSearchField extends HCWBaseField {
             ctx.fillRect(rx, currentY, rw, rh);
 
             ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
-            ctx.font = 'bold 13px Arial';
+            ctx.font = GS.FONTS.TITLE;
             ctx.fillText(result.getName() || "Unknown", rx + 10, currentY + 18);
 
             ctx.fillStyle = GS.PALETTE.TEXT_SECONDARY;
-            ctx.font = '11px Arial';
+            ctx.font = GS.FONTS.SMALL;
             ctx.fillText(result.getSubText(), rx + 10, currentY + 35);
 
             this.renderProps.resultButtons.push({

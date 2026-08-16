@@ -260,10 +260,10 @@ class HCWCustomEncoderField extends HCWBaseField {
 
         if (sy > 100) {
             ctx.fillStyle = colors.text;
-            ctx.font = "12px Arial";
+            ctx.font = GS.FONTS.TITLE;
             ctx.textAlign = "center";
             ctx.fillText(this.getLabel(), cx, knobCy + this.renderProps.outerRadius + 16);
-            ctx.font = "10px Monospace";
+            ctx.font = GS.FONTS.MONO_READOUT;
             ctx.fillText(Math.round(this.value * 255), cx, knobCy + this.renderProps.outerRadius + 30);
         }
     }

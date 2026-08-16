@@ -25,6 +25,20 @@ class GLOBAL_STYLES {
         };
     }
 
+    static get FONTS() {
+        return {
+            PRIMARY: 'Arial, sans-serif',
+            MONO: 'Monospace, monospace',
+            TITLE: 'bold 13px Arial, sans-serif',
+            HEADER: 'bold 14px Arial, sans-serif',
+            LABEL: 'bold 12px Arial, sans-serif',
+            SMALL: '11px Arial, sans-serif',
+            SMALL_BOLD: 'bold 11px Arial, sans-serif',
+            MONO_READOUT: '12px Monospace, monospace',
+            MONO_DISPLAY: '20px Monospace, monospace'
+        };
+    }
+
     static get WINDOW() {
         const P = this.PALETTE;
         return {

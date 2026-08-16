@@ -169,7 +169,7 @@ class HCWKeyboardField extends HCWBaseField {
         const da = this.renderProps.displayArea;
         if (!da) return;
 
-        HCW.ctx.font = "20px Monospace";
+        HCW.ctx.font = GS.FONTS.MONO_DISPLAY;
         const metrics = HCW.ctx.measureText(this.value);
         let textStartX;
 
@@ -212,7 +212,7 @@ class HCWKeyboardField extends HCWBaseField {
         HCW.ctx.fillRect(x, y, sx, sy);
 
         HCW.ctx.fillStyle = this.renderProps.colors.headerText;
-        HCW.ctx.font = "bold 14px Arial";
+        HCW.ctx.font = GS.FONTS.HEADER;
         HCW.ctx.textAlign = "center";
         HCW.ctx.fillText(this.getLabel(), x + (sx / 2), y + 20);
         HCW.ctx.textAlign = "start";
@@ -226,7 +226,7 @@ class HCWKeyboardField extends HCWBaseField {
         this.renderProps.displayArea = { x: daX, y: displayY, w: daW, h: daH };
 
         HCW.ctx.fillStyle = this.renderProps.colors.displayText;
-        HCW.ctx.font = "20px Monospace";
+        HCW.ctx.font = GS.FONTS.MONO_DISPLAY;
         HCW.ctx.textAlign = "left";
 
         let textToDraw = this.value;
@@ -325,7 +325,7 @@ class HCWKeyboardField extends HCWBaseField {
                 HCW.ctx.fillRect(currentX, rowY, colW, rowH);
 
                 HCW.ctx.fillStyle = this.renderProps.colors.keyText;
-                HCW.ctx.font = (displayLabel.length > 1) ? "bold 11px Arial" : "14px Arial";
+                HCW.ctx.font = (displayLabel.length > 1) ? GS.FONTS.SMALL_BOLD : GS.FONTS.LABEL;
                 HCW.ctx.textAlign = "center";
                 HCW.ctx.fillText(displayLabel, currentX + (colW / 2), rowY + (rowH / 2) + 5);
                 HCW.ctx.textAlign = "start";

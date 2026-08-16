@@ -279,7 +279,7 @@ class HCWPresetField extends HCWBaseField {
         HCW.ctx.fillRect(x, y, sx, sy);
 
         HCW.ctx.fillStyle = this.renderProps.colors.headerText;
-        HCW.ctx.font = "bold 14px Arial";
+        HCW.ctx.font = GS.FONTS.TITLE;
         HCW.ctx.textAlign = "center";
         HCW.ctx.fillText(this.getLabel(), x + (sx / 2), y + 20);
         HCW.ctx.textAlign = "start";
@@ -333,7 +333,7 @@ class HCWPresetField extends HCWBaseField {
                 }
 
                 HCW.ctx.fillStyle = this.renderProps.colors.itemText;
-                HCW.ctx.font = "12px Arial";
+                HCW.ctx.font = GS.FONTS.LABEL;
                 HCW.ctx.textAlign = "center";
 
                 const name = preset.getName();
@@ -388,7 +388,7 @@ class HCWPresetField extends HCWBaseField {
                     HCW.ctx.fillRect(px, py + this.itemHeight - barHeight, itemWidth * progress, barHeight);
 
                     HCW.ctx.fillStyle = this.renderProps.colors.itemText;
-                    HCW.ctx.font = "10px Arial";
+                    HCW.ctx.font = GS.FONTS.SMALL;
                     HCW.ctx.fillText(Math.round(progress * 100) + "%", px + (itemWidth / 2), py + this.itemHeight - barHeight - 4);
                 }
 

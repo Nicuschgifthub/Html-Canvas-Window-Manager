@@ -223,7 +223,7 @@ class HCWTableField extends HCWBaseField {
         ctx.fillRect(w.x, w.y, w.sx, this.headerHeight);
 
         ctx.fillStyle = colors.headerText;
-        ctx.font = 'bold 14px Arial';
+        ctx.font = GS.FONTS.HEADER;
         ctx.textAlign = 'center';
 
         this.headers.forEach((header, i) => {
@@ -241,7 +241,7 @@ class HCWTableField extends HCWBaseField {
 
         const startDrawY = contentAreaY + this.scrollY;
 
-        ctx.font = '13px Arial';
+        ctx.font = GS.FONTS.TITLE;
         this.rows.forEach((row, rowIndex) => {
             const rowY = startDrawY + rowIndex * this.rowHeight;
             if (rowY + this.rowHeight < contentAreaY || rowY > w.y + w.sy) return;
@@ -321,11 +321,11 @@ class HCWTableField extends HCWBaseField {
 
                 if (colIndex === 0) {
                     ctx.fillStyle = colors.listHeaderText;
-                    ctx.font = 'bold 13px Arial';
+                    ctx.font = GS.FONTS.TITLE;
                     ctx.fillText(cell, w.x + pad, lineY);
                 } else {
                     ctx.fillStyle = colors.listLabelText;
-                    ctx.font = '12px Monospace';
+                    ctx.font = GS.FONTS.MONO_READOUT;
                     ctx.fillText(`${header}:`, w.x + pad, lineY);
                     ctx.fillStyle = colors.cellText;
                     ctx.fillText(cell, w.x + pad + 100, lineY);
@@ -373,7 +373,7 @@ class HCWTableField extends HCWBaseField {
 
             ctx.fillStyle = colors.addBtnText;
             ctx.textAlign = 'center';
-            ctx.font = 'bold 13px Arial';
+            ctx.font = GS.FONTS.TITLE;
             ctx.fillText(this.addRowLabel, x + w_btn / 2, addBtnY + this.addBtnHeight / 2 + 5);
         }
     }

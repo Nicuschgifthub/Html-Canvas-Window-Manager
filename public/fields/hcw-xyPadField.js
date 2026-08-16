@@ -146,12 +146,12 @@ class HCWXYPadField extends HCWBaseField {
 
         // Header Title & Readout
         ctx.fillStyle = colors.text;
-        ctx.font = 'bold 13px Arial';
+        ctx.font = GS.FONTS.TITLE;
         ctx.textAlign = 'left';
         ctx.fillText(this.getLabel(), x + 10, y + 22);
 
         ctx.textAlign = 'right';
-        ctx.font = '12px Monospace';
+        ctx.font = GS.FONTS.MONO_READOUT;
         ctx.fillStyle = colors.target;
         ctx.fillText(`P:${this.getPanAngle()}° (${this.getPanDMX()}) T:${this.getTiltAngle()}° (${this.getTiltDMX()})`, x + sx - 10, y + 22);
 
@@ -246,7 +246,7 @@ class HCWXYPadField extends HCWBaseField {
             ctx.fillRect(bx, btnY, btnW, btnH);
 
             ctx.fillStyle = colors.presetText;
-            ctx.font = 'bold 11px Arial';
+            ctx.font = GS.FONTS.SMALL_BOLD;
             ctx.textAlign = 'center';
             ctx.fillText(preset.label, bx + btnW / 2, btnY + btnH / 2 + 4);
 

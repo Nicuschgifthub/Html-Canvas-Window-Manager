@@ -241,8 +241,8 @@ class HCWColorMapField extends HCWBaseField {
         ctx.fillStyle = `rgb(${finalR}, ${finalG}, ${finalB})`;
         ctx.fillRect(w.x + pad + dataWidth + pad, topY, previewSize, previewH);
 
-        ctx.fillStyle = '#888';
-        ctx.font = '10px Monospace';
+        ctx.fillStyle = GS.FIELDS.COLOR_MAP.TEXT_MUTED;
+        ctx.font = GS.FONTS.MONO_READOUT;
         ctx.textAlign = 'left';
         const dmxText = `W:${this.extra.white.toString().padStart(3, '0')} A:${this.extra.amber.toString().padStart(3, '0')} U:${this.extra.uv.toString().padStart(3, '0')}`;
         ctx.fillText(dmxText, w.x + pad + 5, topY + (previewH / 2) + 4);
@@ -301,8 +301,8 @@ class HCWColorMapField extends HCWBaseField {
         this.renderProps.sliders.g = this._drawModernHSlider(ctx, 'G', mapX + 20, hy, hSliderW, hSliderH, rgb.g, '#44ff44'); hy += hSliderH + 4;
         this.renderProps.sliders.b = this._drawModernHSlider(ctx, 'B', mapX + 20, hy, hSliderW, hSliderH, rgb.b, '#4444ff');
 
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px Arial';
+        ctx.fillStyle = GS.FIELDS.COLOR_MAP.TEXT;
+        ctx.font = GS.FONTS.TITLE;
         ctx.textAlign = "left";
         ctx.fillText(this.getLabel().toUpperCase(), w.x + pad, w.y + 17);
     }
@@ -318,7 +318,7 @@ class HCWColorMapField extends HCWBaseField {
         ctx.globalAlpha = 1.0;
         // Label
         ctx.fillStyle = '#fff';
-        ctx.font = '10px Monospace';
+        ctx.font = GS.FONTS.MONO_READOUT;
         ctx.textAlign = "right";
         ctx.fillText(label, x - 5, y + h / 2 + 4);
         return { x, y, w, h };

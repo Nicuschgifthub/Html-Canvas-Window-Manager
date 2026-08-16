@@ -230,11 +230,11 @@ class HCWEncoderField extends HCWBaseField {
 
         if (showText) {
             HCW.ctx.fillStyle = colors.text;
-            HCW.ctx.font = "12px Arial";
+            HCW.ctx.font = GS.FONTS.TITLE;
             HCW.ctx.textAlign = "center";
             HCW.ctx.fillText(this.getLabel(), cx, knobCy + outerRadius + 16);
 
-            HCW.ctx.font = "10px Monospace";
+            HCW.ctx.font = GS.FONTS.MONO_READOUT;
             const v1Str = this._getFormattedValue(this.value);
             const v2Str = this._getFormattedValue(this.value2);
             HCW.ctx.fillText(`${v1Str} | ${v2Str}`, cx, knobCy + outerRadius + 30);

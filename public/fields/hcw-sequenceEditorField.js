@@ -199,7 +199,7 @@ class HCWSequenceEditorField extends HCWBaseField {
         ctx.lineWidth = 1;
         ctx.beginPath();
         let currentX = x - this.scrollX;
-        ctx.font = '11px Arial';
+        ctx.font = GS.FONTS.SMALL;
         ctx.textAlign = 'center';
         ctx.fillStyle = this.colors.headerText;
 
@@ -263,7 +263,7 @@ class HCWSequenceEditorField extends HCWBaseField {
             }
 
             let currentX = x - this.scrollX;
-            ctx.font = '12px Arial';
+            ctx.font = GS.FONTS.LABEL;
             ctx.textAlign = 'center';
             ctx.fillStyle = this.colors.text;
 
