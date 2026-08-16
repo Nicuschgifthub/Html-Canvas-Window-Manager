@@ -26,16 +26,16 @@ class HCWNumberField extends HCWBaseField {
 
         this.renderProps = {
             colors: {
-                background: '#1b1717ff',
-                headerText: '#ffffff',
-                displayBg: '#000000',
-                displayText: '#00ff95',
-                cursorColor: '#00ff95',
-                keyDefault: '#333333',
-                keyActive: '#555555',
-                keyText: '#ffffff',
-                enterKey: '#005500',
-                enterKeyActive: '#007700'
+                background: GS.FIELDS.NUMBER_KEYPAD.BACKGROUND,
+                headerText: GS.FIELDS.NUMBER_KEYPAD.HEADER_TEXT,
+                displayBg: GS.FIELDS.NUMBER_KEYPAD.DISPLAY_BG,
+                displayText: GS.FIELDS.NUMBER_KEYPAD.DISPLAY_TEXT,
+                cursorColor: GS.FIELDS.NUMBER_KEYPAD.CURSOR_COLOR,
+                keyDefault: GS.FIELDS.NUMBER_KEYPAD.KEY_DEFAULT,
+                keyActive: GS.FIELDS.NUMBER_KEYPAD.KEY_ACTIVE,
+                keyText: GS.FIELDS.NUMBER_KEYPAD.KEY_TEXT,
+                enterKey: GS.FIELDS.NUMBER_KEYPAD.ENTER_KEY,
+                enterKeyActive: GS.FIELDS.NUMBER_KEYPAD.ENTER_KEY_ACTIVE
             },
             startX: null,
             startY: null,

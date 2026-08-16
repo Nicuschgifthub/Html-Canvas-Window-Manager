@@ -32,16 +32,17 @@ class HCWSequenceEditorField extends HCWBaseField {
         this.selectedCell = null; // { rowIndex, colIndex, subIndex }
 
         this.colors = {
-            background: '#0a0a0aff',
+            background: GS.FIELDS.SEQUENCE_EDITOR.BACKGROUND,
             headerBg: '#1a1a1aff',
-            headerText: '#ccc',
-            grid: '#333',
-            text: '#eee',
+            headerText: GS.PALETTE.TEXT_SECONDARY,
+            grid: GS.PALETTE.KEY_DEFAULT,
+            text: GS.PALETTE.TEXT_PRIMARY,
             activeRow: '#2d4d2d',
             activeLine: '#00ff00',
             selectedRow: '#000080',
-            selectedCell: '#0000ff', // Blue for single cell
-            rowAlt: '#141414'
+            selectedCell: GS.PALETTE.ACCENT_GREEN,
+            rowAlt: '#141414',
+            accent: GS.FIELDS.SEQUENCE_EDITOR.ACCENT
         };
 
         // Mock generic data if no sequence is present for testing

@@ -9,9 +9,9 @@ class HCWFaderField extends HCWBaseField {
 
         this.renderProps = {
             colors: {
-                background: '#1b1717ff',
-                fader: '#574b4bff',
-                text: '#ffffff'
+                background: GS.FIELDS.FADER.BACKGROUND,
+                fader: GS.FIELDS.FADER.FADER,
+                text: GS.FIELDS.FADER.TEXT
             },
             startX: null,
             startY: null,

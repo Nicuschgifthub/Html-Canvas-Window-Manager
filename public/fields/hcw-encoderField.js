@@ -13,12 +13,12 @@ class HCWEncoderField extends HCWBaseField {
 
         this.renderProps = {
             colors: {
-                background: '#1b1717ff',
-                knobOuter: '#574b4bff',
-                knobInner: '#3d3434',
-                indicator: '#ffffff',
-                indicatorInner: '#00ff95',
-                text: '#ffffff'
+                background: GS.FIELDS.ENCODER.BACKGROUND,
+                knobOuter: GS.FIELDS.ENCODER.KNOB_OUTER,
+                knobInner: GS.FIELDS.ENCODER.KNOB_INNER,
+                indicator: GS.FIELDS.ENCODER.INDICATOR_OUTER,
+                indicatorInner: GS.FIELDS.ENCODER.INDICATOR_INNER,
+                text: GS.FIELDS.ENCODER.TEXT
             },
             centerX: null, centerY: null,
             outerRadius: null, innerRadius: null,

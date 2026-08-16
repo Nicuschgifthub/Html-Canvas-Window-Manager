@@ -163,13 +163,13 @@ class HCWSearchField extends HCWBaseField {
 
         const pad = 10;
 
-        ctx.fillStyle = '#1b1717';
+        ctx.fillStyle = GS.FIELDS.SEARCH.BACKGROUND;
         ctx.fillRect(w.x, w.y, w.sx, w.sy);
 
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = GS.PALETTE.KEY_DEFAULT;
         ctx.fillRect(w.x + pad, w.y + pad, w.sx - pad * 2, this.headerHeight);
 
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = GS.FIELDS.SEARCH.TEXT;
         ctx.font = 'bold 16px Arial';
         ctx.textAlign = 'left';
         ctx.fillText(this.searchValue || "Click to search...", w.x + pad + 10, w.y + pad + this.headerHeight / 2 + 6);
@@ -184,14 +184,14 @@ class HCWSearchField extends HCWBaseField {
             const rw = w.sx - pad * 2;
             const rh = this.resultItemHeight;
 
-            ctx.fillStyle = '#2a2a2a';
+            ctx.fillStyle = GS.PALETTE.KEY_ACTIVE;
             ctx.fillRect(rx, currentY, rw, rh);
 
-            ctx.fillStyle = '#00ff95';
+            ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
             ctx.font = 'bold 13px Arial';
             ctx.fillText(result.getName() || "Unknown", rx + 10, currentY + 18);
 
-            ctx.fillStyle = '#bbb';
+            ctx.fillStyle = GS.PALETTE.TEXT_SECONDARY;
             ctx.font = '11px Arial';
             ctx.fillText(result.getSubText(), rx + 10, currentY + 35);
 

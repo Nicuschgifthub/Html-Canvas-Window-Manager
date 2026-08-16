@@ -16,11 +16,11 @@ class HCWCustomEncoderField extends HCWBaseField {
 
         this.renderProps = {
             colors: {
-                background: '#1b1717ff',
-                knobOuter: '#574b4bff',
-                knobInner: '#3d3434',
-                indicator: '#ffffff',
-                text: '#ffffff'
+                background: GS.FIELDS.CUSTOM_ENCODER.BACKGROUND,
+                knobOuter: GS.FIELDS.CUSTOM_ENCODER.KNOB_OUTER,
+                knobInner: GS.FIELDS.CUSTOM_ENCODER.KNOB_INNER,
+                indicator: GS.FIELDS.CUSTOM_ENCODER.INDICATOR,
+                text: GS.FIELDS.CUSTOM_ENCODER.TEXT
             },
             centerX: null, centerY: null,
             outerRadius: null, innerRadius: null,
