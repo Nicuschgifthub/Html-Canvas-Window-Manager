@@ -334,6 +334,33 @@ class HCWTouch {
 
     static _handleMouseMove(e) {
         e.preventDefault();
+
+        if (e.touches && e.touches.length === 2) {
+            const rect = HCW.canvas.getBoundingClientRect();
+            const scaleX = HCW.canvas.width / rect.width;
+            const scaleY = HCW.canvas.height / rect.height;
+
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+
+            const midX = ((t1.clientX + t2.clientX) / 2 - rect.left) * scaleX;
+            const midY = ((t1.clientY + t2.clientY) / 2 - rect.top) * scaleY;
+
+            if (HCWTouch._lastPinchDist && HCWTouch._lastPinchDist > 0) {
+                const ratio = dist / HCWTouch._lastPinchDist;
+                const contextHit = HCWInteraction.getContextHitByCords(midX, midY);
+                if (contextHit.field && typeof contextHit.field._interaction === 'function') {
+                    contextHit.field._interaction({ type: 'pinch', ratio, distDelta: dist - HCWTouch._lastPinchDist });
+                }
+            }
+            HCWTouch._lastPinchDist = dist;
+            HCWRender.updateFrame();
+            return;
+        } else {
+            HCWTouch._lastPinchDist = null;
+        }
+
         const { mouseX, mouseY } = HCWTouch._eventMouseToCords(e);
 
         if (HCWWindowActions.getMovingWindow()) {
@@ -365,6 +392,7 @@ class HCWTouch {
 
     static _handleMouseUp(e) {
         e.preventDefault();
+        HCWTouch._lastPinchDist = null;
 
         // Check for Dragging Window End
         if (HCWWindowActions.getMovingWindow()) {

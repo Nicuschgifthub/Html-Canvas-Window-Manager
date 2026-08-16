@@ -51,8 +51,9 @@ class HCW3DViewerField extends HCWBaseField {
         const y2 = y * cosP - z1 * sinP;
         const z2 = y * sinP + z1 * cosP;
 
-        const distance = 420 / this.zoom;
-        const scale = fov / (fov + z2 + distance);
+        // Perspective depth scale multiplied directly by camera zoom factor
+        const baseDistance = 450;
+        const scale = (fov / (fov + z2 + baseDistance)) * this.zoom;
 
         return {
             x: cx + x1 * scale,
@@ -119,107 +120,262 @@ class HCW3DViewerField extends HCWBaseField {
         ctx.stroke();
     }
 
-    // Render a full moving head fixture: truss bar, two yoke arms, head, and beam
+    // Render a full moving head fixture with true 3D ray-plane floor intercept & dual-layer volumetric beam
     _renderMovingHeadFixture(ctx, cx, cy, wx, color = '#00ff95', panNorm = 0.5, tiltNorm = 0.6) {
-        // World position of fixture base mount on truss
+        const floorY = 120;
         const mountY = -120;
         const mountX = wx;
 
-        // --- Truss clamp mounting point ---
-        const mountPt = this._project3D(mountX, mountY, 0, cx, cy);
-
-        // --- Yoke arms (two vertical bars down from mount) ---
+        // --- 1. Base Mount & Yoke 3D Geometry ---
         const yokeSpread = 18;
-        const yokeBottom = mountY + 70;
+        const yokeBottom = mountY + 65;
 
-        const yokeL1 = this._project3D(mountX - yokeSpread, mountY, 0, cx, cy);
-        const yokeL2 = this._project3D(mountX - yokeSpread, yokeBottom, 0, cx, cy);
-        const yokeR1 = this._project3D(mountX + yokeSpread, mountY, 0, cx, cy);
-        const yokeR2 = this._project3D(mountX + yokeSpread, yokeBottom, 0, cx, cy);
+        // Pan angle rotates Yoke around Y axis (-135° to +135°)
+        const panAngle = (panNorm - 0.5) * Math.PI * 1.5;
+        // Tilt angle rotates Head around local X axis (-100° to +100°)
+        const tiltAngle = (tiltNorm - 0.5) * Math.PI * 1.1;
 
-        ctx.strokeStyle = '#777777';
-        ctx.lineWidth = 3;
+        // Yoke 3D offsets with Pan rotation
+        const yokeCosP = Math.cos(panAngle);
+        const yokeSinP = Math.sin(panAngle);
+
+        const yokeL1 = this._project3D(mountX - yokeSpread * yokeCosP, mountY, -yokeSpread * yokeSinP, cx, cy);
+        const yokeL2 = this._project3D(mountX - yokeSpread * yokeCosP, yokeBottom, -yokeSpread * yokeSinP, cx, cy);
+        const yokeR1 = this._project3D(mountX + yokeSpread * yokeCosP, mountY, yokeSpread * yokeSinP, cx, cy);
+        const yokeR2 = this._project3D(mountX + yokeSpread * yokeCosP, yokeBottom, yokeSpread * yokeSinP, cx, cy);
+
+        // Draw Yoke Structure
+        ctx.strokeStyle = '#555555';
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(yokeL1.x, yokeL1.y); ctx.lineTo(yokeL2.x, yokeL2.y);
         ctx.moveTo(yokeR1.x, yokeR1.y); ctx.lineTo(yokeR2.x, yokeR2.y);
         ctx.stroke();
 
-        // --- Head position (pan rotates around Y, tilt rotates around X of yoke) ---
-        const panAngle = (panNorm - 0.5) * Math.PI * 1.2; // -108 to +108 degrees
-        const tiltAngle = (tiltNorm - 0.5) * Math.PI * 0.9; // -81 to +81 degrees
-
-        const headY = yokeBottom;
-        const headX = mountX;
-
-        // Compute beam endpoint based on pan/tilt
-        const beamLen = 280;
-        const beamDX = Math.sin(panAngle) * beamLen;
-        const beamDY = Math.cos(tiltAngle) * beamLen;
-        const beamDZ = -Math.sin(tiltAngle) * beamLen;
-
-        // Head cylinder
-        const headPt = this._project3D(headX, headY, 0, cx, cy);
-        const headRadius = 14 * headPt.scale;
-
-        ctx.fillStyle = '#333333';
-        ctx.strokeStyle = '#00ff95';
+        ctx.strokeStyle = '#222222';
         ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // --- 2. Head Center & Direction Vector ---
+        const headX = mountX;
+        const headY = yokeBottom;
+        const headZ = 0;
+
+        // Direction Vector D = (Dx, Dy, Dz) derived from Pan (yaw) & Tilt (pitch)
+        // When Tilt = 0, Dy = 1 (pointing straight down towards floor Y=120)
+        const sinP = Math.sin(panAngle);
+        const cosP = Math.cos(panAngle);
+        const sinT = Math.sin(tiltAngle);
+        const cosT = Math.cos(tiltAngle);
+
+        const Dx = sinT * sinP;
+        const Dy = cosT;
+        const Dz = sinT * cosP;
+
+        // Lens Origin in 3D (offset 16 units along direction D from head center)
+        const lensR = 16;
+        const lensX = headX + Dx * lensR;
+        const lensY = headY + Dy * lensR;
+        const lensZ = headZ + Dz * lensR;
+        const lensPt = this._project3D(lensX, lensY, lensZ, cx, cy);
+
+        // --- 3. Ray-Plane Intersection Math (Floor Y = 120) ---
+        const deltaY = floorY - lensY;
+        let hitsFloor = false;
+        let tCenter = 400; // max length in air if not hitting floor
+
+        if (Dy > 0.03) {
+            const tIntersect = deltaY / Dy;
+            if (tIntersect > 0 && tIntersect < 800) {
+                hitsFloor = true;
+                tCenter = tIntersect;
+            }
+        }
+
+        const hitCenterX = lensX + Dx * tCenter;
+        const hitCenterY = lensY + Dy * tCenter;
+        const hitCenterZ = lensZ + Dz * tCenter;
+        const hitCenterPt = this._project3D(hitCenterX, hitCenterY, hitCenterZ, cx, cy);
+
+        // --- 4. Volumetric Cone & Floor Intercept Polygon Calculations ---
+        const beamAngleRad = 16 * (Math.PI / 180); // 16 degree beam cone
+        const tanHalfAngle = Math.tan(beamAngleRad / 2);
+
+        // Perpendicular Basis Vectors U and V for Cone Sampling
+        let Ux = 1, Uy = 0, Uz = 0;
+        const horizLen = Math.sqrt(Dx * Dx + Dz * Dz);
+        if (horizLen > 0.001) {
+            Ux = Dz / horizLen;
+            Uy = 0;
+            Uz = -Dx / horizLen;
+        }
+        const Vx = Dy * Uz - Dz * Uy;
+        const Vy = Dz * Ux - Dx * Uz;
+        const Vz = Dx * Uy - Dy * Ux;
+
+        const numSamples = 16;
+        const boundaryPts3D = [];
+        const boundaryPts2D = [];
+
+        for (let i = 0; i < numSamples; i++) {
+            const a = (i / numSamples) * Math.PI * 2;
+            const cosA = Math.cos(a);
+            const sinA = Math.sin(a);
+
+            // Ray direction for sample perimeter ray
+            const Rx = Dx + tanHalfAngle * (cosA * Ux + sinA * Vx);
+            const Ry = Dy + tanHalfAngle * (cosA * Uy + sinA * Vy);
+            const Rz = Dz + tanHalfAngle * (cosA * Uz + sinA * Vz);
+
+            const Rlen = Math.sqrt(Rx * Rx + Ry * Ry + Rz * Rz);
+            const normRx = Rx / Rlen;
+            const normRy = Ry / Rlen;
+            const normRz = Rz / Rlen;
+
+            let pt3D;
+            if (hitsFloor && normRy > 0.01) {
+                const tSample = deltaY / normRy;
+                pt3D = {
+                    x: lensX + normRx * tSample,
+                    y: floorY,
+                    z: lensZ + normRz * tSample
+                };
+            } else {
+                pt3D = {
+                    x: lensX + normRx * tCenter,
+                    y: lensY + normRy * tCenter,
+                    z: lensZ + normRz * tCenter
+                };
+            }
+
+            boundaryPts3D.push(pt3D);
+            boundaryPts2D.push(this._project3D(pt3D.x, pt3D.y, pt3D.z, cx, cy));
+        }
+
+        // --- 5. Step A: Render Floor Intercept Light Pool & Surface Reflection ---
+        if (hitsFloor) {
+            // Calculate floor pool radius for gradient scaling
+            let maxPoolRadius = 5;
+            boundaryPts2D.forEach(pt => {
+                const d = Math.hypot(pt.x - hitCenterPt.x, pt.y - hitCenterPt.y);
+                if (d > maxPoolRadius) maxPoolRadius = d;
+            });
+
+            // A1. Outer Floor Light Pool (Projected 3D Polygon)
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(boundaryPts2D[0].x, boundaryPts2D[0].y);
+            for (let i = 1; i < boundaryPts2D.length; i++) {
+                ctx.lineTo(boundaryPts2D[i].x, boundaryPts2D[i].y);
+            }
+            ctx.closePath();
+
+            const poolGrad = ctx.createRadialGradient(
+                hitCenterPt.x, hitCenterPt.y, 0,
+                hitCenterPt.x, hitCenterPt.y, Math.max(8, maxPoolRadius)
+            );
+            poolGrad.addColorStop(0, color + 'ff');
+            poolGrad.addColorStop(0.35, color + 'aa');
+            poolGrad.addColorStop(0.75, color + '35');
+            poolGrad.addColorStop(1, color + '00');
+
+            ctx.fillStyle = poolGrad;
+            ctx.fill();
+
+            // A2. Intense Inner Hotspot Spot
+            ctx.beginPath();
+            ctx.ellipse(hitCenterPt.x, hitCenterPt.y, Math.max(3, maxPoolRadius * 0.35), Math.max(2, maxPoolRadius * 0.2), 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffffdd';
+            ctx.fill();
+
+            // A3. Subtle Floor Specular Ring Outline
+            ctx.strokeStyle = color + '88';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // --- 6. Step B: Render Dual-Layer Volumetric Atmosphere Beam Cone ---
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter'; // Additive blending for volumetric light realism!
+
+        // B1. Outer Volumetric Haze Cone
         ctx.beginPath();
-        ctx.arc(headPt.x, headPt.y, Math.max(4, headRadius), 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
+        ctx.moveTo(lensPt.x, lensPt.y);
+        for (let i = 0; i < boundaryPts2D.length; i++) {
+            ctx.lineTo(boundaryPts2D[i].x, boundaryPts2D[i].y);
+        }
+        ctx.closePath();
 
-        // Lens glow circle inside head
-        const lensRadius = headRadius * 0.55;
-        const lensGrad = ctx.createRadialGradient(headPt.x, headPt.y, 0, headPt.x, headPt.y, lensRadius);
-        lensGrad.addColorStop(0, color + 'ff');
-        lensGrad.addColorStop(1, color + '00');
-        ctx.fillStyle = lensGrad;
-        ctx.beginPath();
-        ctx.arc(headPt.x, headPt.y, Math.max(2, lensRadius), 0, Math.PI * 2);
-        ctx.fill();
-
-        // --- Light cone beam ---
-        const beamTip = this._project3D(headX, headY, 0, cx, cy);
-        const beamEnd = this._project3D(headX + beamDX, headY + beamDY, beamDZ, cx, cy);
-
-        // Cone width at end point
-        const spread = 55;
-        const spreadAngle = (panAngle + Math.PI / 2);
-        const spreadX = Math.cos(spreadAngle) * spread;
-        const spreadZ = Math.sin(spreadAngle) * spread;
-
-        const coneL = this._project3D(headX + beamDX - spreadX, headY + beamDY, beamDZ - spreadZ, cx, cy);
-        const coneR = this._project3D(headX + beamDX + spreadX, headY + beamDY, beamDZ + spreadZ, cx, cy);
-
-        const beamGrad = ctx.createLinearGradient(beamTip.x, beamTip.y, beamEnd.x, beamEnd.y);
-        beamGrad.addColorStop(0, color + 'cc');
-        beamGrad.addColorStop(0.6, color + '44');
-        beamGrad.addColorStop(1, color + '08');
+        const beamGrad = ctx.createLinearGradient(lensPt.x, lensPt.y, hitCenterPt.x, hitCenterPt.y);
+        beamGrad.addColorStop(0, color + 'ee');
+        beamGrad.addColorStop(0.15, color + '88');
+        beamGrad.addColorStop(0.5, color + '44');
+        beamGrad.addColorStop(0.85, color + '22');
+        beamGrad.addColorStop(1, color + '05');
 
         ctx.fillStyle = beamGrad;
-        ctx.beginPath();
-        ctx.moveTo(beamTip.x, beamTip.y);
-        ctx.lineTo(coneL.x, coneL.y);
-        ctx.lineTo(coneR.x, coneR.y);
-        ctx.closePath();
         ctx.fill();
 
-        // Pool of light on the floor (ellipse)
-        const poolY = 120;
-        const poolCX = headX + beamDX;
-        const poolCZ = beamDZ;
-        const poolPt = this._project3D(poolCX, poolY, poolCZ, cx, cy);
-        const poolW = 48 * poolPt.scale;
-        const poolH = 14 * poolPt.scale;
-
-        const poolGrad = ctx.createRadialGradient(poolPt.x, poolPt.y, 0, poolPt.x, poolPt.y, Math.max(5, poolW));
-        poolGrad.addColorStop(0, color + '88');
-        poolGrad.addColorStop(1, color + '00');
-        ctx.fillStyle = poolGrad;
+        // B2. Intense Inner Core Beam (Laser Shaft)
+        const innerRatio = 0.45;
         ctx.beginPath();
-        ctx.ellipse(poolPt.x, poolPt.y, Math.max(4, poolW), Math.max(2, poolH), 0, 0, Math.PI * 2);
+        ctx.moveTo(lensPt.x, lensPt.y);
+        for (let i = 0; i < boundaryPts2D.length; i++) {
+            const ix = lensPt.x + (boundaryPts2D[i].x - lensPt.x) * innerRatio;
+            const iy = lensPt.y + (boundaryPts2D[i].y - lensPt.y) * innerRatio;
+            ctx.lineTo(ix, iy);
+        }
+        ctx.closePath();
+
+        const coreGrad = ctx.createLinearGradient(lensPt.x, lensPt.y, hitCenterPt.x, hitCenterPt.y);
+        coreGrad.addColorStop(0, '#ffffff');
+        coreGrad.addColorStop(0.2, color + 'cc');
+        coreGrad.addColorStop(0.7, color + '66');
+        coreGrad.addColorStop(1, color + '10');
+
+        ctx.fillStyle = coreGrad;
+        ctx.fill();
+
+        // B3. Atmospheric Dust Strands (Subtle volumetric rays)
+        ctx.strokeStyle = '#ffffff35';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let s = 0; s < 3; s++) {
+            const idx = Math.floor((s + 0.5) * (numSamples / 3));
+            ctx.moveTo(lensPt.x, lensPt.y);
+            ctx.lineTo(boundaryPts2D[idx].x, boundaryPts2D[idx].y);
+        }
+        ctx.stroke();
+
+        ctx.restore();
+
+        // --- 7. Step C: Fixture Head Optics & Lens Bloom Flare ---
+        const headPt = this._project3D(headX, headY, headZ, cx, cy);
+        const headRadius = Math.max(5, 14 * headPt.scale);
+
+        // Head Housing Cylinder
+        ctx.fillStyle = '#262626';
+        ctx.strokeStyle = '#444444';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(headPt.x, headPt.y, headRadius, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+
+        // Lens Flare / Source Bloom at Lens Position
+        const flareR = Math.max(3, headRadius * 0.7);
+        const flareGrad = ctx.createRadialGradient(lensPt.x, lensPt.y, 0, lensPt.x, lensPt.y, flareR * 1.8);
+        flareGrad.addColorStop(0, '#ffffff');
+        flareGrad.addColorStop(0.35, color + 'ff');
+        flareGrad.addColorStop(0.8, color + '55');
+        flareGrad.addColorStop(1, color + '00');
+
+        ctx.fillStyle = flareGrad;
+        ctx.beginPath();
+        ctx.arc(lensPt.x, lensPt.y, flareR * 1.8, 0, Math.PI * 2);
         ctx.fill();
     }
+
 
     // Render a section of truss bar spanning the stage
     _renderTruss(ctx, cx, cy, x1, x2, y, z) {
@@ -268,20 +424,26 @@ class HCW3DViewerField extends HCWBaseField {
         }
     }
 
-    // Full stage scene: truss + 5 moving heads
+    // Full stage scene: truss + 5 moving heads with back-to-front depth sorting
     _renderStage(ctx, cx, cy) {
         this._renderFloor(ctx, cx, cy);
         this._renderTruss(ctx, cx, cy, -240, 240, -120, 0);
 
         const fixturePositions = [
             { x: -180, pan: 0.35, tilt: 0.65, color: '#00ff95' },
-            { x: -90,  pan: 0.55, tilt: 0.55, color: '#4499ff' },
-            { x: 0,    pan: 0.50, tilt: 0.70, color: '#ffffff' },
-            { x: 90,   pan: 0.45, tilt: 0.60, color: '#ff4499' },
-            { x: 180,  pan: 0.62, tilt: 0.50, color: '#ffaa00' }
+            { x: -90, pan: 0.55, tilt: 0.55, color: '#4499ff' },
+            { x: 0, pan: 0.50, tilt: 0.70, color: '#ffffff' },
+            { x: 90, pan: 0.45, tilt: 0.60, color: '#ff4499' },
+            { x: 180, pan: 0.62, tilt: 0.50, color: '#ffaa00' }
         ];
 
-        fixturePositions.forEach(f => {
+        // Sort fixtures back-to-front based on camera depth Z
+        const sortedFixtures = fixturePositions.map(f => {
+            const proj = this._project3D(f.x, -120, 0, cx, cy);
+            return { ...f, depth: proj.depth };
+        }).sort((a, b) => b.depth - a.depth);
+
+        sortedFixtures.forEach(f => {
             this._renderMovingHeadFixture(ctx, cx, cy, f.x, f.color, f.pan, f.tilt);
         });
     }
@@ -359,7 +521,7 @@ class HCW3DViewerField extends HCWBaseField {
         } else if (interaction.type === 'mousemove' && this._isDragging) {
             const dx = interaction.mouseX - this._lastMouseX;
             const dy = interaction.mouseY - this._lastMouseY;
-            this.yaw   -= dx * 0.008;
+            this.yaw -= dx * 0.008;
             this.pitch += dy * 0.008;
             this.pitch = Math.max(-1.3, Math.min(1.3, this.pitch));
             this._lastMouseX = interaction.mouseX;
@@ -370,9 +532,15 @@ class HCW3DViewerField extends HCWBaseField {
             this._pressedPreset = null;
             this.updateFrame();
         } else if (interaction.type === 'scroll') {
-            const direction = interaction.deltaY > 0 ? -1 : 1;
-            this.zoom = Math.max(0.01, this.zoom + direction * 0.12);
+            // Multiplicative geometric zoom: constant percentage scale change at all zoom levels
+            const factor = interaction.deltaY > 0 ? 0.88 : 1.14;
+            this.zoom = Math.max(0.02, Math.min(50.0, this.zoom * factor));
             this.updateFrame();
+        } else if (interaction.type === 'pinch') {
+            if (interaction.ratio) {
+                this.zoom = Math.max(0.02, Math.min(50.0, this.zoom * interaction.ratio));
+                this.updateFrame();
+            }
         }
     }
 
