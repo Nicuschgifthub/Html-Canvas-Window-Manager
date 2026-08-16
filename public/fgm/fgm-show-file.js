@@ -184,7 +184,7 @@ class FGMShowFile {
 
             let windowData = serializedWindow;
             if (typeof serializedWindow === 'string') {
-                try { windowData = JSON.parse(serializedWindow); } catch (e) {}
+                try { windowData = JSON.parse(serializedWindow); } catch (e) { }
             }
 
             this.getPages()[pageId].push(windowData);
