@@ -470,11 +470,42 @@ class HCWTouch {
         }
     }
 
+    static _handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer) {
+            e.dataTransfer.dropEffect = 'copy';
+        }
+    }
+
+    static _handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const files = e.dataTransfer ? e.dataTransfer.files : null;
+        if (!files || files.length === 0) return;
+
+        const file = files[0];
+        if (typeof FGMShowHandler !== 'undefined' && typeof FGMShowHandler.importShowFromFile === 'function') {
+            FGMShowHandler.importShowFromFile(file).then(show => {
+                console.log(`%c Show File Loaded Successfully: ${file.name}`, 'background: #00ff95; color: #000; font-size: 14px; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
+            }).catch(err => {
+                console.error("Failed to load dropped show file:", err);
+            });
+        }
+    }
+
     static setupListener() {
         HCW.canvas.addEventListener('mousedown', this._handleMouseDown);
         HCW.canvas.addEventListener('mousemove', this._handleMouseMove);
         HCW.canvas.addEventListener('mouseup', this._handleMouseUp);
         HCW.canvas.addEventListener('wheel', this._handleWheel);
+
+        HCW.canvas.addEventListener('dragover', this._handleDragOver);
+        HCW.canvas.addEventListener('drop', this._handleDrop);
+
+        window.addEventListener('dragover', this._handleDragOver);
+        window.addEventListener('drop', this._handleDrop);
 
         window.addEventListener('keydown', this._handleKeyDown.bind(this));
         window.addEventListener('keyup', this._handleKeyUp.bind(this));

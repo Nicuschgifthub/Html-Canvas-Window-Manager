@@ -173,28 +173,119 @@ class FGMShowFile {
     }
 
     saveWindowsToShowFilePages() {
-        this.getHCWClass().getWindows().forEach(window => {
-
+        this.showFile.pages.content = {};
+        const windows = (typeof HCWDB !== 'undefined' && HCWDB.getWindows) ? HCWDB.getWindows() : [];
+        windows.forEach(window => {
+            if (!window) return;
             const serializedWindow = HCWFactory.serialize(window);
+            const pageId = window.getPageId();
 
-            if (!this.getPages()[window.getPageId()]) this.getPages()[window.getPageId()] = [];
+            if (!this.getPages()[pageId]) this.getPages()[pageId] = [];
 
-            this.getPages()[window.getPageId()].push(serializedWindow)
-        })
+            let windowData = serializedWindow;
+            if (typeof serializedWindow === 'string') {
+                try { windowData = JSON.parse(serializedWindow); } catch (e) {}
+            }
+
+            this.getPages()[pageId].push(windowData);
+        });
     }
 
     getNewWindowsFromShowFile() {
         const showFile = this.getShowFile();
         const allWindows = [];
 
-        Object.keys(showFile.pages.content).forEach(pageId => {
-            showFile.pages.content[pageId].forEach(windowData => {
-                const windowInstance = HCWFactory.reconstruct(windowData);
-                allWindows.push(windowInstance);
+        if (showFile && showFile.pages && showFile.pages.content) {
+            Object.keys(showFile.pages.content).forEach(pageId => {
+                const pageWindows = showFile.pages.content[pageId];
+                if (Array.isArray(pageWindows)) {
+                    pageWindows.forEach(windowData => {
+                        const windowInstance = HCWFactory.reconstruct(windowData);
+                        if (windowInstance) allWindows.push(windowInstance);
+                    });
+                }
             });
-        });
+        }
 
         return allWindows;
+    }
+
+    exportShowJSON() {
+        this.saveWindowsToShowFilePages();
+        return JSON.stringify(this.showFile, null, 2);
+    }
+
+    exportShowToFile(filename = null) {
+        const jsonStr = this.exportShowJSON();
+        const defaultName = (this.getName() || "show").toLowerCase().replace(/\s+/g, '_');
+        const name = filename || `${defaultName}_show.json`;
+
+        if (typeof document !== 'undefined') {
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        return jsonStr;
+    }
+
+    importShowJSON(json) {
+        let data = json;
+        if (typeof json === 'string') {
+            try {
+                data = JSON.parse(json);
+            } catch (e) {
+                console.error("Failed to parse show JSON:", e);
+                return false;
+            }
+        }
+
+        if (!data || typeof data !== 'object' || !data.pages) {
+            console.error("Invalid show file structure");
+            return false;
+        }
+
+        this.showFile = data;
+
+        const existingWindows = (typeof HCWDB !== 'undefined' && HCWDB.getWindows) ? HCWDB.getWindows() : [];
+        if (existingWindows) {
+            existingWindows.length = 0;
+        }
+
+        const newWindows = this.getNewWindowsFromShowFile();
+        if (this.HCWClass) {
+            this.HCWClass.addWindows(newWindows);
+        } else if (typeof HCWDB !== 'undefined' && typeof HCWDB.addWindows === 'function') {
+            HCWDB.addWindows(newWindows);
+        }
+
+        this.setPageCursor(this.showFile.pages.cursor || 0);
+
+        if (typeof HCWRender !== 'undefined' && typeof HCWRender.updateFrame === 'function') {
+            HCWRender.updateFrame();
+        }
+
+        return true;
+    }
+
+    importShowFromFile(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) return reject(new Error("No file provided"));
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const success = this.importShowJSON(e.target.result);
+                if (success) resolve(this.getShowFile());
+                else reject(new Error("Failed to load show file JSON"));
+            };
+            reader.onerror = (err) => reject(err);
+            reader.readAsText(file);
+        });
     }
 
     loadShow() {
