@@ -89,11 +89,11 @@ class HCWPresetField extends HCWBaseField {
 
         this.renderProps = {
             colors: {
-                background: '#1b1717ff',
-                headerText: '#ffffff',
-                itemText: '#ffffffff',
-                itemDefaultColor: '#aaaaaa',
-                itemPressedColor: '#ffffff'
+                background: GS.FIELDS.PRESET_GROUP.BACKGROUND,
+                headerText: GS.FIELDS.PRESET_GROUP.HEADER_TEXT,
+                itemText: GS.FIELDS.PRESET_GROUP.ITEM_TEXT,
+                itemDefaultColor: GS.FIELDS.PRESET_GROUP.ITEM_DEFAULT_COLOR,
+                itemPressedColor: GS.FIELDS.PRESET_GROUP.ITEM_PRESSED_COLOR
             },
             startX: null,
             startY: null,

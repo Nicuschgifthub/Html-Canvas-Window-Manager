@@ -1,17 +1,17 @@
 class HCWCanvasDraw {
-    static drawRect(x, y, sx, sy, color = '#ffffff') {
+    static drawRect(x, y, sx, sy, color = (typeof GS !== 'undefined' && GS.PALETTE) ? GS.PALETTE.TEXT_PRIMARY : '#ffffff') {
         if (!HCW.ctx) return;
         HCW.ctx.fillStyle = color;
         HCW.ctx.fillRect(x, y, sx, sy);
     }
 
-    static drawBackground(color = '#000000') {
+    static drawBackground(color = (typeof GS !== 'undefined' && GS.CANVAS) ? GS.CANVAS.BACKGROUND : '#000000') {
         if (!HCW.ctx || !HCW.canvas) return;
         HCW.ctx.fillStyle = color;
         HCW.ctx.fillRect(0, 0, HCW.canvas.width, HCW.canvas.height);
     }
 
-    static drawHollowRect(x, y, sx, sy, color = '#ffff00', thickness = 2, alpha = 0.5) {
+    static drawHollowRect(x, y, sx, sy, color = (typeof GS !== 'undefined' && GS.CANVAS) ? GS.CANVAS.SELECTION_OUTLINE : '#ffff00', thickness = 2, alpha = 0.5) {
         if (!HCW.ctx) return;
         HCW.ctx.save();
         HCW.ctx.globalAlpha = alpha;

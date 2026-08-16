@@ -25,6 +25,25 @@ class GLOBAL_STYLES {
         };
     }
 
+    static get WINDOW() {
+        const P = this.PALETTE;
+        return {
+            BASE_COLOR: '#454545',
+            TOUCH_ZONE_COLOR: '#969696',
+            TOUCH_ZONE_HIGHLIGHT_COLOR: '#d6d6d6',
+            DEFAULT_BORDER: P.BG_DARK
+        };
+    }
+
+    static get CANVAS() {
+        const P = this.PALETTE;
+        return {
+            BACKGROUND: P.BG_SECONDARY,
+            GRID_LINE: P.ACCENT_GREEN,
+            SELECTION_OUTLINE: '#ffff00'
+        };
+    }
+
     static get INFO() {
         return {
             DANGER: '#ff4444',
@@ -96,6 +115,11 @@ class GLOBAL_STYLES {
                 ENTER_KEY_ACTIVE: P.KEY_SPECIAL_ACTIVE
             },
             PRESET_GROUP: {
+                BACKGROUND: P.BG_PRIMARY,
+                HEADER_TEXT: P.TEXT_PRIMARY,
+                ITEM_TEXT: P.TEXT_PRIMARY,
+                ITEM_DEFAULT_COLOR: '#aaaaaa',
+                ITEM_PRESSED_COLOR: P.TEXT_PRIMARY,
                 TEMP_COLOR: '#ffff00'
             },
             PRESETS: {
