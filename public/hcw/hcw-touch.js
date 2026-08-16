@@ -243,7 +243,7 @@ class HCWBackgroundActions {
         } else {
             FGMEvents.backgroundClicked({
                 x: HCW.pointer.backgroundStartX,
-                y: HCW.pointer.backgroundStartX,
+                y: HCW.pointer.backgroundStartY,
             });
         }
 

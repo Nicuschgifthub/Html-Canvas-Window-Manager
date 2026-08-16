@@ -1,5 +1,6 @@
 _DEFS_STORE.add('window-settings', (input) => {
     const { targetContext } = input;
+    const currentType = targetContext ? targetContext.getType() : '';
 
     const rawDefinitions = [
         {

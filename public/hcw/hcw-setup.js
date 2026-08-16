@@ -120,6 +120,7 @@ class HCWSetup {
 
     files() {
         return [
+            'hcw/hcw-color.js',
             'hcw/hcw-helper.js',
             'hcw/hcw-grid-snap.js',
             'hcw/hcw-mouse-style.js',

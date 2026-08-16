@@ -2,7 +2,9 @@ class FGMLoadFiles {
     static files() {
         return [
             // build structs
-
+            '/fgm/build-structs/defs-store.js',
+            '/fgm/build-structs/defs-window-settings.js',
+            '/fgm/build-structs/fgm-build-structs.js',
             // fgm root manager
             '/fgm/fgm-command-engine.js',
             '/fgm/fgm-context-class-helper.js',
@@ -18,6 +20,7 @@ class FGMLoadFiles {
             'fgm/key-word-executor/Fader.js',
             'fgm/key-word-executor/Encoder.js',
             'fgm/key-word-executor/ColorMap.js',
+            'fgm/key-word-executor/Table.js',
         ]
     }
 

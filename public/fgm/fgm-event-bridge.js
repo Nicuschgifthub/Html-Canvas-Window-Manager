@@ -61,7 +61,7 @@ class FGMEvents {
                 break;
 
             case GLOBAL_TYPES.ACTIONS.ENCODER_VALUE_UPDATE:
-                commandString = `${keyword} ${location} At inner ${data.outer.byte} outer ${data.inner.byte}`;
+                commandString = `${keyword} ${location} At outer ${data.outer.byte} inner ${data.inner.byte}`;
                 break;
 
             case GLOBAL_TYPES.ACTIONS.PRESET_PRESS:
