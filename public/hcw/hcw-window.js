@@ -173,65 +173,104 @@ class HCWWindow {
     static resolveCollisions(activeWindow) {
         if (!activeWindow || activeWindow.hidden) return;
 
-        let processed = new Set();
-        let queue = [activeWindow];
+        if (typeof HCWGridSnap !== 'undefined' && typeof HCWGridSnap.updateWindows === 'function') {
+            HCWGridSnap.updateWindows();
+        }
 
-        let iterations = 0;
-        const maxIterations = 100;
+        const gridX = (typeof HCW !== 'undefined' && HCW.grid && HCW.grid.pointDistanceX) ? HCW.grid.pointDistanceX : 100;
+        const gridY = (typeof HCW !== 'undefined' && HCW.grid && HCW.grid.pointDistanceY) ? HCW.grid.pointDistanceY : 100;
 
-        const gridX = (typeof HCW !== 'undefined' && HCW.grid && HCW.grid.pointDistanceX) ? HCW.grid.pointDistanceX : 0;
-        const gridY = (typeof HCW !== 'undefined' && HCW.grid && HCW.grid.pointDistanceY) ? HCW.grid.pointDistanceY : 0;
+        const maxPasses = 50;
 
-        while (queue.length > 0 && iterations < maxIterations) {
-            let current = queue.shift();
-            processed.add(current);
-            iterations++;
+        for (let pass = 0; pass < maxPasses; pass++) {
+            let anyOverlap = false;
 
-            const currentCenter = current.getCenter();
+            const visibleWindows = HCW.windows.filter(w => !w.hidden);
+            if (visibleWindows.length <= 1) break;
 
-            HCW.windows.forEach(other => {
-                if (other.hidden || other === current || processed.has(other)) return;
+            for (let i = 0; i < visibleWindows.length; i++) {
+                const w1 = visibleWindows[i];
 
-                if (current.checkOverlap(other)) {
-                    other.sx = Math.max(other.sx, other.minsizex || 0);
-                    other.sy = Math.max(other.sy, other.minsizey || 0);
+                for (let j = 0; j < visibleWindows.length; j++) {
+                    if (i === j) continue;
+                    const w2 = visibleWindows[j];
 
-                    let rightX = current.x + current.sx;
-                    if (gridX > 0) rightX = Math.ceil(rightX / gridX) * gridX;
+                    if (w2 === activeWindow) continue;
 
-                    let leftX = current.x - other.sx;
-                    if (gridX > 0) leftX = Math.floor(leftX / gridX) * gridX;
+                    if (w1.checkOverlap(w2)) {
+                        anyOverlap = true;
 
-                    let downY = current.y + current.sy;
-                    if (gridY > 0) downY = Math.ceil(downY / gridY) * gridY;
+                        w2.sx = Math.max(w2.sx, w2.minsizex || 0);
+                        w2.sy = Math.max(w2.sy, w2.minsizey || 0);
 
-                    let upY = current.y - other.sy;
-                    if (gridY > 0) upY = Math.floor(upY / gridY) * gridY;
+                        const c1 = w1.getCenter();
+                        const c2 = w2.getCenter();
 
-                    const otherCenter = other.getCenter();
+                        const prefRight = c2.x >= c1.x;
+                        const prefDown = c2.y >= c1.y;
 
-                    let candX = (otherCenter.x >= currentCenter.x) ? rightX : leftX;
-                    let candY = (otherCenter.y >= currentCenter.y) ? downY : upY;
+                        const candidates = [];
 
-                    if (candX < 0) candX = rightX;
-                    if (candY < 0) candY = downY;
+                        // 1. Right
+                        let rightX = Math.ceil((w1.x + w1.sx) / gridX) * gridX;
+                        let scoreRight = Math.abs(rightX - w2.x) - (prefRight ? 0.1 * gridX : 0);
+                        if (activeWindow && activeWindow !== w2 &&
+                            rightX < activeWindow.x + activeWindow.sx && rightX + w2.sx > activeWindow.x &&
+                            w2.y < activeWindow.y + activeWindow.sy && w2.y + w2.sy > activeWindow.y) {
+                            scoreRight += 10000;
+                        }
+                        candidates.push({ x: rightX, y: w2.y, score: scoreRight });
 
-                    const distX = Math.abs(candX - other.x);
-                    const distY = Math.abs(candY - other.y);
+                        // 2. Left
+                        let leftX = Math.floor((w1.x - w2.sx) / gridX) * gridX;
+                        if (leftX >= 0) {
+                            let scoreLeft = Math.abs(leftX - w2.x) - (!prefRight ? 0.1 * gridX : 0);
+                            if (activeWindow && activeWindow !== w2 &&
+                                leftX < activeWindow.x + activeWindow.sx && leftX + w2.sx > activeWindow.x &&
+                                w2.y < activeWindow.y + activeWindow.sy && w2.y + w2.sy > activeWindow.y) {
+                                scoreLeft += 10000;
+                            }
+                            candidates.push({ x: leftX, y: w2.y, score: scoreLeft });
+                        }
 
-                    if (distX <= distY) {
-                        other.x = candX;
-                    } else {
-                        other.y = candY;
+                        // 3. Down
+                        let downY = Math.ceil((w1.y + w1.sy) / gridY) * gridY;
+                        let scoreDown = Math.abs(downY - w2.y) - (prefDown ? 0.1 * gridY : 0);
+                        if (activeWindow && activeWindow !== w2 &&
+                            w2.x < activeWindow.x + activeWindow.sx && w2.x + w2.sx > activeWindow.x &&
+                            downY < activeWindow.y + activeWindow.sy && downY + w2.sy > activeWindow.y) {
+                            scoreDown += 10000;
+                        }
+                        candidates.push({ x: w2.x, y: downY, score: scoreDown });
+
+                        // 4. Up
+                        let upY = Math.floor((w1.y - w2.sy) / gridY) * gridY;
+                        if (upY >= 0) {
+                            let scoreUp = Math.abs(upY - w2.y) - (!prefDown ? 0.1 * gridY : 0);
+                            if (activeWindow && activeWindow !== w2 &&
+                                w2.x < activeWindow.x + activeWindow.sx && w2.x + w2.sx > activeWindow.x &&
+                                upY < activeWindow.y + activeWindow.sy && upY + w2.sy > activeWindow.y) {
+                                scoreUp += 10000;
+                            }
+                            candidates.push({ x: w2.x, y: upY, score: scoreUp });
+                        }
+
+                        candidates.sort((a, b) => a.score - b.score);
+
+                        const best = candidates[0];
+                        if (best) {
+                            w2.x = best.x;
+                            w2.y = best.y;
+
+                            if (typeof w2._calculateTouchZones === 'function') w2._calculateTouchZones();
+                            if (typeof w2._calculateBoundingBox === 'function') w2._calculateBoundingBox();
+                            if (typeof w2._calculateContextWindow === 'function') w2._calculateContextWindow();
+                        }
                     }
-
-                    other._calculateTouchZones();
-                    other._calculateBoundingBox();
-                    other._calculateContextWindow();
-
-                    queue.push(other);
                 }
-            });
+            }
+
+            if (!anyOverlap) break;
         }
     }
 

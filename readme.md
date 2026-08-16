@@ -10,9 +10,14 @@ I am working on a new way on how the entire backbone code will work
 
 ## Current images
 
-![example-1](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/latest.png)
+![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/latest.png)
 
-## Old images of working ./old-v1
+![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/add-window.png)
+![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-window.png)
+![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-color-value.png)
+![Current-example](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-location.png)
+
+## Images of the first test
 
 ![example-2](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/config-old.png)
 
