@@ -3,11 +3,11 @@ _DEFS_STORE.add('window-add-menu', () => {
         { label: "Fader", key: "fader" },
         { label: "Color Picker", key: "colorMap" },
         { label: "Pan / Tilt Pad", key: "xyPad" },
-        { label: "3D Stage View", key: "viewer3D" },
         { label: "Encoder", key: "encoder" },
         { label: "Presets", key: "presetGroup" },
         { label: "Page Menu", key: "pageMenu" },
         { label: "Settings Menu", key: "settingsMenu" },
+        { label: "3D Stage View", key: "viewer3D", internalOnly: true },
         { label: "Custom Wheel", key: "customEncoder", internalOnly: true },
         { label: "Sequence Editor", key: "sequenceEditor", internalOnly: true },
         { label: "Table", key: "table", internalOnly: true },
@@ -16,7 +16,8 @@ _DEFS_STORE.add('window-add-menu', () => {
         { label: "Numpad", key: "number", internalOnly: true }
     ];
 
-    // The internalOnly is there to let the user know that you wont be able to open this usally, currently just for testing
+    // The internalOnly is there to let the user know that you wont be able to open this usally.
+    // Also many things like the 3D viewer are not finished at all so its just for testing.
 
     const windowMenu = new HCWPresetField("Add Window")
         .setLocationId(GC.CONTEXT_FIELDS.ADD_WINDOW_MENU.LOCATION_ID)

@@ -359,8 +359,8 @@ class HCW3DViewerField extends HCWBaseField {
         } else if (interaction.type === 'mousemove' && this._isDragging) {
             const dx = interaction.mouseX - this._lastMouseX;
             const dy = interaction.mouseY - this._lastMouseY;
-            this.yaw -= dx * 0.008;
-            this.pitch -= dy * 0.008;
+            this.yaw   -= dx * 0.008;
+            this.pitch += dy * 0.008;
             this.pitch = Math.max(-1.3, Math.min(1.3, this.pitch));
             this._lastMouseX = interaction.mouseX;
             this._lastMouseY = interaction.mouseY;
