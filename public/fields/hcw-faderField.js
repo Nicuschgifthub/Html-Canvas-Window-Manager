@@ -133,14 +133,14 @@ class HCWFaderField extends HCWBaseField {
         const trackH = sy - headerH - 45; // Space for bottom readout
 
         // Draw Recessed Track Slot Background
-        ctx.fillStyle = '#0a0a0a';
+        ctx.fillStyle = GS.FIELDS.FADER.TRACK_BG;
         ctx.fillRect(x + trackMarginX, trackY, trackW, trackH);
-        ctx.strokeStyle = '#282828';
+        ctx.strokeStyle = GS.FIELDS.FADER.TRACK_BORDER;
         ctx.lineWidth = 1;
         ctx.strokeRect(x + trackMarginX, trackY, trackW, trackH);
 
         // 3. Ruler Tick Marks (0%, 25%, 50%, 75%, 100%)
-        ctx.strokeStyle = '#383838';
+        ctx.strokeStyle = GS.FIELDS.FADER.TICK_MARK;
         ctx.lineWidth = 1;
         for (let i = 0; i <= 4; i++) {
             const tickY = trackY + (trackH * (i / 4));
@@ -163,14 +163,14 @@ class HCWFaderField extends HCWBaseField {
 
         if (fillH > 0) {
             const fillGrad = ctx.createLinearGradient(0, fillY + fillH, 0, fillY);
-            fillGrad.addColorStop(0, '#005b2f');
-            fillGrad.addColorStop(1, GS.PALETTE.ACCENT_GREEN);
+            fillGrad.addColorStop(0, GS.FIELDS.FADER.FILL_BOTTOM);
+            fillGrad.addColorStop(1, GS.FIELDS.FADER.FILL_TOP);
 
             ctx.fillStyle = fillGrad;
             ctx.fillRect(x + trackMarginX + 1, fillY, trackW - 2, fillH);
 
             // Bright Top Level Highlight
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = GS.PALETTE.TEXT_PRIMARY;
             ctx.fillRect(x + trackMarginX + 1, fillY, trackW - 2, 2);
         }
 
@@ -186,19 +186,19 @@ class HCWFaderField extends HCWBaseField {
 
         // Cap 3D Metallic Gradient
         const capGrad = ctx.createLinearGradient(0, capY, 0, capY + capH);
-        capGrad.addColorStop(0, '#5a5050');
-        capGrad.addColorStop(0.5, '#3a3333');
-        capGrad.addColorStop(1, '#1e1a1a');
+        capGrad.addColorStop(0, GS.FIELDS.FADER.CAP_TOP);
+        capGrad.addColorStop(0.5, GS.FIELDS.FADER.CAP_MID);
+        capGrad.addColorStop(1, GS.FIELDS.FADER.CAP_BOT);
 
         ctx.fillStyle = capGrad;
         ctx.fillRect(capX, capY, capW, capH);
 
-        ctx.strokeStyle = '#776b6b';
+        ctx.strokeStyle = GS.FIELDS.FADER.CAP_BORDER;
         ctx.lineWidth = 1;
         ctx.strokeRect(capX, capY, capW, capH);
 
         // Cap Grip Ridges
-        ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+        ctx.fillStyle = GS.FIELDS.FADER.CAP_GRIP;
         ctx.fillRect(capX + 4, capY + (capH / 2) - 1, capW - 8, 2);
 
         // 6. Bottom Readout Badge

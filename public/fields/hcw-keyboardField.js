@@ -208,62 +208,80 @@ class HCWKeyboardField extends HCWBaseField {
     render(contextwindow) {
         const { x, y, sx, sy } = contextwindow;
 
-        HCW.ctx.fillStyle = this.renderProps.colors.background;
-        HCW.ctx.fillRect(x, y, sx, sy);
+        const ctx = HCW.ctx;
+        if (!ctx) return;
 
-        HCW.ctx.fillStyle = this.renderProps.colors.headerText;
-        HCW.ctx.font = GS.FONTS.HEADER;
-        HCW.ctx.textAlign = "center";
-        HCW.ctx.fillText(this.getLabel(), x + (sx / 2), y + 20);
-        HCW.ctx.textAlign = "start";
+        // 1. Background
+        ctx.fillStyle = this.renderProps.colors.background;
+        ctx.fillRect(x, y, sx, sy);
 
-        const displayY = y + this.headerHeight;
-        HCW.ctx.fillStyle = this.renderProps.colors.displayBg;
-        const daX = x + 5;
-        const daW = sx - 10;
+        // 2. Header Bar
+        ctx.fillStyle = '#141414';
+        ctx.fillRect(x, y, sx, this.headerHeight);
+
+        ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+        ctx.fillRect(x, y + this.headerHeight - 2, sx, 2);
+
+        ctx.fillStyle = this.renderProps.colors.headerText;
+        ctx.font = GS.FONTS.HEADER;
+        ctx.textAlign = "center";
+        ctx.fillText(this.getLabel(), x + (sx / 2), y + 18);
+        ctx.textAlign = "start";
+
+        // 3. Display Box Area
+        const displayY = y + this.headerHeight + 4;
+        const daX = x + 6;
+        const daW = sx - 12;
         const daH = this.displayHeight;
-        HCW.ctx.fillRect(daX, displayY, daW, daH);
+
+        ctx.fillStyle = this.renderProps.colors.displayBg;
+        ctx.fillRect(daX, displayY, daW, daH);
+        ctx.strokeStyle = '#282828';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(daX, displayY, daW, daH);
+
         this.renderProps.displayArea = { x: daX, y: displayY, w: daW, h: daH };
 
-        HCW.ctx.fillStyle = this.renderProps.colors.displayText;
-        HCW.ctx.font = GS.FONTS.MONO_DISPLAY;
-        HCW.ctx.textAlign = "left";
+        ctx.fillStyle = this.renderProps.colors.displayText;
+        ctx.font = GS.FONTS.MONO_DISPLAY;
+        ctx.textAlign = "left";
 
         let textToDraw = this.value;
-        const metrics = HCW.ctx.measureText(textToDraw);
+        const metrics = ctx.measureText(textToDraw);
         const textY = displayY + 28;
         let cursorX;
 
-        if (metrics.width > sx - 20) {
-            HCW.ctx.textAlign = "right";
-            const textX = x + sx - 10;
-            HCW.ctx.fillText(textToDraw, textX, textY);
+        if (metrics.width > sx - 25) {
+            ctx.textAlign = "right";
+            const textX = x + sx - 12;
+            ctx.fillText(textToDraw, textX, textY);
 
-            const prefixWidth = HCW.ctx.measureText(this.value.slice(0, this.cursorPos)).width;
+            const prefixWidth = ctx.measureText(this.value.slice(0, this.cursorPos)).width;
             cursorX = (textX - metrics.width) + prefixWidth;
         } else {
-            HCW.ctx.textAlign = "left";
-            const textX = x + 10;
-            HCW.ctx.fillText(textToDraw, textX, textY);
+            ctx.textAlign = "left";
+            const textX = x + 12;
+            ctx.fillText(textToDraw, textX, textY);
 
-            const prefixWidth = HCW.ctx.measureText(this.value.slice(0, this.cursorPos)).width;
+            const prefixWidth = ctx.measureText(this.value.slice(0, this.cursorPos)).width;
             cursorX = textX + prefixWidth;
         }
 
         // Draw Cursor
-        HCW.ctx.beginPath();
-        HCW.ctx.moveTo(cursorX, textY - 18);
-        HCW.ctx.lineTo(cursorX, textY + 4);
-        HCW.ctx.strokeStyle = this.renderProps.colors.cursorColor;
-        HCW.ctx.lineWidth = 2;
-        HCW.ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cursorX, textY - 18);
+        ctx.lineTo(cursorX, textY + 4);
+        ctx.strokeStyle = this.renderProps.colors.cursorColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-        HCW.ctx.textAlign = "start";
+        ctx.textAlign = "start";
 
-        const gridY = displayY + this.displayHeight + 10;
-        const gridH = sy - (gridY - y) - 5;
-        const gridW = sx - 10;
-        const gridX = x + 5;
+        // 4. Keyboard Key Grid
+        const gridY = displayY + this.displayHeight + 8;
+        const gridH = sy - (gridY - y) - 6;
+        const gridW = sx - 12;
+        const gridX = x + 6;
 
         const rows = this.keys.length;
         const rowH = (gridH - ((rows - 1) * this.gap)) / rows;
@@ -291,10 +309,9 @@ class HCWKeyboardField extends HCWBaseField {
             }
 
             const unitW = (gridW - ((rowKeys.length - 1) * this.gap)) / totalKeyWeight;
-
             let currentX = gridX;
 
-            rowKeys.forEach((keyRaw, colIndex) => {
+            rowKeys.forEach((keyRaw) => {
                 let colW = unitW;
                 if (rowIndex === 4) {
                     if (keyRaw === 'SPACE') colW = unitW * 3;
@@ -310,25 +327,37 @@ class HCWKeyboardField extends HCWBaseField {
                 }
 
                 let bg = this.renderProps.colors.keyDefault;
-                if (keyRaw === 'ENTER') bg = this.renderProps.colors.specialKey;
-                else if (keyRaw === 'DELETE' || keyRaw === '<=') bg = this.renderProps.colors.deleteKey;
-                else if (keyRaw === 'SHIFT') bg = this.isUpperCase ? this.renderProps.colors.shiftKeyActive : this.renderProps.colors.shiftKey;
+                let borderColor = '#383838';
+
+                if (keyRaw === 'ENTER') {
+                    bg = this.renderProps.colors.specialKey;
+                    borderColor = GS.PALETTE.ACCENT_GREEN;
+                } else if (keyRaw === 'DELETE' || keyRaw === '<=') {
+                    bg = this.renderProps.colors.deleteKey;
+                    borderColor = '#880000';
+                } else if (keyRaw === 'SHIFT') {
+                    bg = this.isUpperCase ? this.renderProps.colors.shiftKeyActive : this.renderProps.colors.shiftKey;
+                }
 
                 if (this._pressedKey === keyRaw) {
                     if (keyRaw === 'ENTER') bg = this.renderProps.colors.specialKeyActive;
                     else if (keyRaw === 'DELETE' || keyRaw === '<=') bg = this.renderProps.colors.deleteKeyActive;
-                    else if (keyRaw === 'SHIFT') { bg = '#aaaaaa'; }
+                    else if (keyRaw === 'SHIFT') bg = '#aaaaaa';
                     else bg = this.renderProps.colors.keyActive;
                 }
 
-                HCW.ctx.fillStyle = bg;
-                HCW.ctx.fillRect(currentX, rowY, colW, rowH);
+                ctx.fillStyle = bg;
+                ctx.fillRect(currentX, rowY, colW, rowH);
 
-                HCW.ctx.fillStyle = this.renderProps.colors.keyText;
-                HCW.ctx.font = (displayLabel.length > 1) ? GS.FONTS.SMALL_BOLD : GS.FONTS.LABEL;
-                HCW.ctx.textAlign = "center";
-                HCW.ctx.fillText(displayLabel, currentX + (colW / 2), rowY + (rowH / 2) + 5);
-                HCW.ctx.textAlign = "start";
+                ctx.strokeStyle = borderColor;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(currentX + 0.5, rowY + 0.5, colW - 1, rowH - 1);
+
+                ctx.fillStyle = (keyRaw === 'ENTER') ? GS.PALETTE.ACCENT_GREEN : this.renderProps.colors.keyText;
+                ctx.font = (displayLabel.length > 1) ? GS.FONTS.SMALL_BOLD : GS.FONTS.LABEL;
+                ctx.textAlign = "center";
+                ctx.fillText(displayLabel, currentX + (colW / 2), rowY + (rowH / 2) + 5);
+                ctx.textAlign = "start";
 
                 this.renderProps.buttons.push({
                     key: keyRaw,

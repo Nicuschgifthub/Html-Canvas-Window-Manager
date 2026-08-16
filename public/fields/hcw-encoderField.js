@@ -173,7 +173,7 @@ class HCWEncoderField extends HCWBaseField {
         // Track Background Arc
         ctx.beginPath();
         ctx.arc(cx, cy, radius, startRad, startRad + totalRad);
-        ctx.strokeStyle = '#252525';
+        ctx.strokeStyle = GS.FIELDS.ENCODER.TRACK_ARC_BG;
         ctx.lineWidth = 4;
         ctx.stroke();
 
@@ -257,16 +257,16 @@ class HCWEncoderField extends HCWBaseField {
 
         // 2. Outer Knob (Radial Gradient 3D Metallic)
         const outerGrad = ctx.createRadialGradient(cx - outerRadius * 0.3, knobCy - outerRadius * 0.3, outerRadius * 0.1, cx, knobCy, outerRadius);
-        outerGrad.addColorStop(0, '#4a4040');
+        outerGrad.addColorStop(0, GS.FIELDS.ENCODER.KNOB_GRAD_START);
         outerGrad.addColorStop(0.7, colors.knobOuter);
-        outerGrad.addColorStop(1, '#241f1f');
+        outerGrad.addColorStop(1, GS.FIELDS.ENCODER.KNOB_GRAD_END);
 
         ctx.beginPath();
         ctx.arc(cx, knobCy, outerRadius, 0, 2 * Math.PI);
         ctx.fillStyle = outerGrad;
         ctx.fill();
 
-        ctx.strokeStyle = '#5a4f4f';
+        ctx.strokeStyle = GS.FIELDS.ENCODER.KNOB_BORDER;
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -277,16 +277,16 @@ class HCWEncoderField extends HCWBaseField {
 
         // 4. Inner Knob (Radial Gradient 3D Metallic)
         const innerGrad = ctx.createRadialGradient(cx - innerRadius * 0.3, knobCy - innerRadius * 0.3, innerRadius * 0.1, cx, knobCy, innerRadius);
-        innerGrad.addColorStop(0, '#362e2e');
+        innerGrad.addColorStop(0, GS.FIELDS.ENCODER.INNER_KNOB_GRAD_START);
         innerGrad.addColorStop(0.8, colors.knobInner);
-        innerGrad.addColorStop(1, '#181414');
+        innerGrad.addColorStop(1, GS.FIELDS.ENCODER.INNER_KNOB_GRAD_END);
 
         ctx.beginPath();
         ctx.arc(cx, knobCy, innerRadius, 0, 2 * Math.PI);
         ctx.fillStyle = innerGrad;
         ctx.fill();
 
-        ctx.strokeStyle = '#473d3d';
+        ctx.strokeStyle = GS.FIELDS.ENCODER.INNER_KNOB_BORDER;
         ctx.lineWidth = 1;
         ctx.stroke();
 
