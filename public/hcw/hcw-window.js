@@ -112,6 +112,8 @@ class HCWWindow {
     setMinSizes(sx = 0, sy = 0) {
         this.minsizex = sx;
         this.minsizey = sy;
+        if (this.sx < this.minsizex) this.sx = this.minsizex;
+        if (this.sy < this.minsizey) this.sy = this.minsizey;
         return this;
     }
 
@@ -122,8 +124,8 @@ class HCWWindow {
     }
 
     setSize(sx, sy) {
-        if (sx > this.minsizex) this.sx = sx;
-        if (sy > this.minsizey) this.sy = sy;
+        this.sx = Math.max(sx, this.minsizex || 0);
+        this.sy = Math.max(sy, this.minsizey || 0);
         return this;
     }
 
@@ -169,11 +171,16 @@ class HCWWindow {
     }
 
     static resolveCollisions(activeWindow) {
+        if (!activeWindow || activeWindow.hidden) return;
+
         let processed = new Set();
         let queue = [activeWindow];
 
         let iterations = 0;
         const maxIterations = 100;
+
+        const gridX = (typeof HCW !== 'undefined' && HCW.grid && HCW.grid.pointDistanceX) ? HCW.grid.pointDistanceX : 0;
+        const gridY = (typeof HCW !== 'undefined' && HCW.grid && HCW.grid.pointDistanceY) ? HCW.grid.pointDistanceY : 0;
 
         while (queue.length > 0 && iterations < maxIterations) {
             let current = queue.shift();
@@ -183,33 +190,39 @@ class HCWWindow {
             const currentCenter = current.getCenter();
 
             HCW.windows.forEach(other => {
-                if (other.hidden) return;
-                if (other === current || processed.has(other)) return;
+                if (other.hidden || other === current || processed.has(other)) return;
 
                 if (current.checkOverlap(other)) {
-                    let overlapX = 0;
-                    let overlapY = 0;
+                    other.sx = Math.max(other.sx, other.minsizex || 0);
+                    other.sy = Math.max(other.sy, other.minsizey || 0);
 
-                    if (currentCenter.x < other.getCenter().x) {
-                        overlapX = (current.x + current.sx) - other.x;
+                    let rightX = current.x + current.sx;
+                    if (gridX > 0) rightX = Math.ceil(rightX / gridX) * gridX;
+
+                    let leftX = current.x - other.sx;
+                    if (gridX > 0) leftX = Math.floor(leftX / gridX) * gridX;
+
+                    let downY = current.y + current.sy;
+                    if (gridY > 0) downY = Math.ceil(downY / gridY) * gridY;
+
+                    let upY = current.y - other.sy;
+                    if (gridY > 0) upY = Math.floor(upY / gridY) * gridY;
+
+                    const otherCenter = other.getCenter();
+
+                    let candX = (otherCenter.x >= currentCenter.x) ? rightX : leftX;
+                    let candY = (otherCenter.y >= currentCenter.y) ? downY : upY;
+
+                    if (candX < 0) candX = rightX;
+                    if (candY < 0) candY = downY;
+
+                    const distX = Math.abs(candX - other.x);
+                    const distY = Math.abs(candY - other.y);
+
+                    if (distX <= distY) {
+                        other.x = candX;
                     } else {
-                        overlapX = (other.x + other.sx) - current.x;
-                        overlapX = -overlapX;
-                    }
-
-                    if (currentCenter.y < other.getCenter().y) {
-                        overlapY = (current.y + current.sy) - other.y;
-                    } else {
-                        overlapY = (other.y + other.sy) - current.y;
-                        overlapY = -overlapY;
-                    }
-
-                    const buffer = 10;
-
-                    if (Math.abs(overlapX) < Math.abs(overlapY)) {
-                        other.x += overlapX > 0 ? overlapX + buffer : overlapX - buffer;
-                    } else {
-                        other.y += overlapY > 0 ? overlapY + buffer : overlapY - buffer;
+                        other.y = candY;
                     }
 
                     other._calculateTouchZones();

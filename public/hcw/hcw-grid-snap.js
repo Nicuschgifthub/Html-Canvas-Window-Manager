@@ -3,6 +3,8 @@ class HCWGridSnap {
         let closestPoint = null;
         let minDistance = Infinity;
 
+        if (!HCW.grid || !HCW.grid.snappoints) return [x, y];
+
         HCW.grid.snappoints.forEach(([snapX, snapY]) => {
             let distance = Math.sqrt((snapX - x) ** 2 + (snapY - y) ** 2);
             if (distance < minDistance) {
@@ -11,30 +13,36 @@ class HCWGridSnap {
             }
         });
 
-        return closestPoint;
+        return closestPoint || [x, y];
     }
 
     static updateWindows() {
         if (HCW.pointer.usermoveorresize) return;
 
+        const gridX = HCW.grid ? HCW.grid.pointDistanceX : null;
+        const gridY = HCW.grid ? HCW.grid.pointDistanceY : null;
+
         HCW.windows.forEach(window => {
             if (window.hidden) return;
-            const snapsForCords = this._findClosestSnapPoint(window.x, window.y);
-            const snapsForDims = this._findClosestSnapPoint(window.x + window.sx, window.y + window.sy);
 
-            window.x = snapsForCords[0];
-            window.y = snapsForCords[1];
+            if (gridX && gridY) {
+                const snapsForCords = this._findClosestSnapPoint(window.x, window.y);
+                window.x = snapsForCords[0];
+                window.y = snapsForCords[1];
 
-            window.sx = snapsForDims[0] - window.x;
-            window.sy = snapsForDims[1] - window.y;
+                const minSx = window.minsizex || 0;
+                const minSy = window.minsizey || 0;
 
-            if (window.sx == 0) {
-                window.sx += HCW.grid.pointDistanceX;
+                const snappedSx = Math.round(window.sx / gridX) * gridX;
+                const snappedSy = Math.round(window.sy / gridY) * gridY;
+
+                window.sx = Math.max(minSx, snappedSx <= 0 ? gridX : snappedSx);
+                window.sy = Math.max(minSy, snappedSy <= 0 ? gridY : snappedSy);
             }
 
-            if (window.sy == 0) {
-                window.sy += HCW.grid.pointDistanceY;
-            }
+            if (typeof window._calculateTouchZones === 'function') window._calculateTouchZones();
+            if (typeof window._calculateBoundingBox === 'function') window._calculateBoundingBox();
+            if (typeof window._calculateContextWindow === 'function') window._calculateContextWindow();
         });
     }
 }

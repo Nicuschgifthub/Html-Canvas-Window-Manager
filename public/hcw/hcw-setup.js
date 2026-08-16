@@ -86,13 +86,22 @@ class HCWSetup {
     addWindow(window) {
         if (window == null) return;
         HCW.windows.push(window);
+        if (!window.hidden && typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
+            HCWWindow.resolveCollisions(window);
+        }
         HCW.temp.filesloaded ? HCWRender.updateFrame() : (HCW.temp.foreceupdateFrame = true);
         return this;
     }
 
     addWindows(windowsarray) {
         if (windowsarray == null) return;
-        HCW.windows.push(...windowsarray);
+        windowsarray.forEach(w => {
+            if (w == null) return;
+            HCW.windows.push(w);
+            if (!w.hidden && typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
+                HCWWindow.resolveCollisions(w);
+            }
+        });
         HCW.temp.filesloaded ? HCWRender.updateFrame() : (HCW.temp.foreceupdateFrame = true);
         return this;
     }

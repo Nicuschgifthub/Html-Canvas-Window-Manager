@@ -401,15 +401,6 @@ class HCWTouch {
             }
         }
 
-        // Check for Resize Ends (Down)
-        if (HCWWindowActions.getDownResizeWindow()) {
-            const win = HCWWindowActions.getDownResizeWindow();
-            HCWWindowActions.downResize.end();
-            if (typeof HCWWindow !== 'undefined' && typeof HCWWindow.resolveCollisions === 'function') {
-                HCWWindow.resolveCollisions(win);
-            }
-        }
-
         // Check for Window Clicked
         if (HCW.pointer._windowPressCandidate) {
             const { mouseX, mouseY } = HCWTouch._eventMouseToCords(e);
@@ -431,7 +422,7 @@ class HCWTouch {
         }
 
         // Reset Background Click no false
-        if (HCWBackgroundActions.backgroundPressed) HCWBackgroundActions.backgroundClickEnd();
+        if (HCWBackgroundActions.backgroundPressed()) HCWBackgroundActions.backgroundClickEnd();
 
         HCWRender.updateFrame();
     }
