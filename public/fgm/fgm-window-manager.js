@@ -96,10 +96,10 @@ class FGMWindowManager {
                 return new HCWEncoderField(`Encoder ${locationId}`).setFloats(0, 0).setLocationId(locationId);
             },
             colorMap() {
-                windowBuildValues.sx = 200;
-                windowBuildValues.sy = 200;
-                windowBuildValues.minSizeX = 200;
-                windowBuildValues.minSizeY = 200;
+                windowBuildValues.sx = 400;
+                windowBuildValues.sy = 400;
+                windowBuildValues.minSizeX = 400;
+                windowBuildValues.minSizeY = 400;
                 return new HCWColorMapField(`ColorMap ${locationId}`).setLocationId(locationId);
             },
             presetGroup() {

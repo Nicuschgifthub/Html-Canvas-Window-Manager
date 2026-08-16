@@ -13,6 +13,9 @@ let HCW = {
         downResizeWindow: null,
         usermoveorresize: false,
 
+        // Info
+        userForceWindowSmallerLimit: false,
+
         // Contextwindow
         contextwindow: null,
         contextdrag: false,

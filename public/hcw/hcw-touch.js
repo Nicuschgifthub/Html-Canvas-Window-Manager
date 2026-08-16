@@ -144,14 +144,30 @@ class HCWWindowActions {
                 if (axisKeys.includes('X')) {
                     const dx = mouseX - HCW.pointer.lastMouseX;
                     window.sx += dx;
+                    const windowSizeXBefore = window.sx;
                     window.sx = Math.max(window.sx, window[minSizeKeys.x]);
+
+                    if (windowSizeXBefore < window.sx) {
+                        HCW.pointer.userForceWindowSmallerLimit = true;
+                    } else {
+                        HCW.pointer.userForceWindowSmallerLimit = false;
+                    }
+
                     HCW.pointer.lastMouseX = mouseX;
                 }
 
                 if (axisKeys.includes('Y')) {
                     const dy = mouseY - HCW.pointer.lastMouseY;
                     window.sy += dy;
+                    const windowSizeYBefore = window.sy;
                     window.sy = Math.max(window.sy, window[minSizeKeys.y]);
+
+                    if (windowSizeYBefore < window.sy) {
+                        HCW.pointer.userForceWindowSmallerLimit = true;
+                    } else {
+                        HCW.pointer.userForceWindowSmallerLimit = false;
+                    }
+
                     HCW.pointer.lastMouseY = mouseY;
                 }
 
@@ -213,6 +229,9 @@ class HCWBackgroundActions {
 
                 let finalWidth = Math.abs(HCW.pointer.backgroundDragSizeX);
                 let finalHeight = Math.abs(HCW.pointer.backgroundDragSizeY);
+
+                // Add ckeck if box intercepts with other real elements;
+                // Box needs to be = or > then the next element selection; Otherwise dont spawn??
 
                 FGMEvents.backgroundBoxDrag({
                     x: finalX,
