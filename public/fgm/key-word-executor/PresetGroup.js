@@ -40,16 +40,6 @@ class KYEPresetGroup {
                 preset.setColor(GS.FIELDS.PRESETS.HIGHLIGHT_COLOR);
                 FGMShowHandler.setPageCursor(thisFunctionData);
             },
-            _openSettingsPresetGroup(data) {
-                if (typeof FGMWindowSettings !== 'undefined' && typeof FGMWindowSettings.openAndAwaitWindowSettings === 'function') {
-                    const activeWin = HCW.pointer.activewindow || (HCWDB.getWindows() ? HCWDB.getWindows()[0] : null);
-                    if (activeWin) {
-                        FGMWindowSettings.openAndAwaitWindowSettings(activeWin).then(res => {
-                            if (res) FGMWindowSettings.settingsLoop(res);
-                        });
-                    }
-                }
-            },
             _downloadShowFile(data) {
                 if (typeof FGMShowHandler !== 'undefined' && typeof FGMShowHandler.exportShowToFile === 'function') {
                     FGMShowHandler.exportShowToFile();
