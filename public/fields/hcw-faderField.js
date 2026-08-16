@@ -78,7 +78,9 @@ class HCWFaderField extends HCWBaseField {
     }
 
     _interaction(interaction) {
-        const height = this.renderProps.sy;
+        const headerH = 26;
+        const readoutH = 38; // bottom badge area
+        const trackH = Math.max(1, (this.renderProps.sy || 1) - headerH - readoutH);
 
         if (interaction.type === 'mousedown') {
             this._isDragging = true;
@@ -86,13 +88,8 @@ class HCWFaderField extends HCWBaseField {
             this._initialValue = this.value;
         }
         else if (interaction.type === 'mousemove' && this._isDragging) {
-            // Calculate how far the mouse moved from the start point
             const deltaY = this._clickStartY - interaction.mouseY;
-
-            // Convert pixel movement to 0.0 - 1.0 range
-            // (Moving up is positive, so we add the normalized delta)
-            const normalizedDelta = deltaY / height;
-
+            const normalizedDelta = deltaY / trackH;
             this.setFloat(this._initialValue + normalizedDelta);
         }
         else if (interaction.type === 'mouseup' || interaction.type === 'mouseleave') {
