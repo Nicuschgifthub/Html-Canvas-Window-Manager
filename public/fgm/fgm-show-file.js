@@ -210,6 +210,127 @@ class FGMShowFile {
         return allWindows;
     }
 
+    // ─── Fixture Library ───────────────────────────────────────────────────
+
+    getFixtures() {
+        return this.showFile.fixtures || {};
+    }
+
+    /**
+     * Add a parsed GDTF result into the show file's fixture library.
+     * Stores the full definition + pre-resolved attribute channel map per mode.
+     * Key is auto-generated from manufacturer + fixture name.
+     *
+     * @param {object} gdtfResult  Output from GDTFParser.loadFromFile()
+     * @returns {string} fixtureKey
+     */
+    addFixtureToShow(gdtfResult) {
+        if (!this.showFile.fixtures) this.showFile.fixtures = {};
+
+        // Build a stable key from manufacturer + name (slugified)
+        const slug = `${gdtfResult.manufacturer}_${gdtfResult.name}`
+            .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+
+        // Avoid duplicates — append counter if key exists
+        let key = slug;
+        let counter = 1;
+        while (this.showFile.fixtures[key] && counter < 999) {
+            key = `${slug}_${counter++}`;
+        }
+
+        // Build per-mode attribute maps using AttributeBook resolution
+        const mappedModes = gdtfResult.modes.map(mode => {
+            const attributeChannels = {};
+
+            mode.channels.forEach(ch => {
+                // Try to resolve the GDTF attribute name to a canonical book entry
+                const resolved = (typeof AttributeBook !== 'undefined')
+                    ? AttributeBook.resolve(ch.attribute)
+                    : null;
+
+                const canonName = resolved ? resolved.name : ch.attribute;
+
+                attributeChannels[canonName] = {
+                    // Resolved attribute info
+                    attribute:     canonName,
+                    pretty:        resolved ? resolved.pretty        : ch.attribute,
+                    featureGroup:  resolved ? resolved.featureGroup  : 'Unknown',
+                    feature:       resolved ? resolved.feature       : 'Unknown',
+                    physicalUnit:  resolved ? resolved.physicalUnit  : 'None',
+                    encoderBehaviour: resolved ? resolved.encoderBehaviour : 'absolute',
+                    defaultMin:    resolved ? resolved.defaultMin    : 0,
+                    defaultMax:    resolved ? resolved.defaultMax    : 255,
+                    icon:          resolved ? resolved.icon          : '?',
+                    // Raw GDTF channel data
+                    gdtfAttribute: ch.attribute,
+                    offsets:       ch.offset,     // relative offsets within mode footprint (1-indexed)
+                    is16bit:       ch.is16bit,
+                    default:       ch.default,
+                    geometry:      ch.geometry,
+                    // Resolved flag
+                    resolved:      !!resolved,
+                };
+            });
+
+            return {
+                name:           mode.name,
+                description:    mode.description,
+                channelCount:   mode.channelCount,
+                attributeChannels,              // canonical attr name → channel map
+                unmappedCount:  mode.channels.filter(ch => {
+                    if (typeof AttributeBook === 'undefined') return true;
+                    return !AttributeBook.resolve(ch.attribute);
+                }).length
+            };
+        });
+
+        this.showFile.fixtures[key] = {
+            key,
+
+            // ── Identity ──────────────────────────────────────────────────
+            name:         gdtfResult.name,
+            shortName:    gdtfResult.shortName,
+            manufacturer: gdtfResult.manufacturer,
+            description:  gdtfResult.description,
+            dataVersion:  gdtfResult.dataVersion,
+
+            // ── Thumbnail (first image from thumbnails/ folder) ───────────
+            thumbnail: gdtfResult.images
+                ? (Object.entries(gdtfResult.images).find(([k]) => k.toLowerCase().startsWith('thumbnails/'))?.[1] || null)
+                : null,
+
+            // ── DMX Modes with fully remapped attribute channels ──────────
+            // attributeChannels: canonical attr name → { offsets, is16bit, featureGroup, ... }
+            modes: mappedModes,
+
+            // ── Wheels with gobo images already embedded on each slot ─────
+            // slot.image = base64 data URL if extracted from ZIP
+            wheels: gdtfResult.wheels,
+
+            // ── All extracted images keyed by ZIP path ────────────────────
+            // e.g. { 'wheels/Gobo1_Open.png': 'data:image/png;base64,...' }
+            images: gdtfResult.images || {},
+
+            // ── Physical info (weight, connectors, operating temp) ────────
+            physical: gdtfResult.physical || null,
+        };
+
+
+
+        console.log(
+            `%c 📁 Fixture saved to show: ${gdtfResult.manufacturer} ${gdtfResult.name} → "${key}"`,
+            'background:#1a3322; color:#00ff95; font-size:11px; padding:2px 6px; border-radius:3px;'
+        );
+
+        return key;
+    }
+
+    removeFixture(key) {
+        if (this.showFile.fixtures && this.showFile.fixtures[key]) {
+            delete this.showFile.fixtures[key];
+        }
+    }
+
     exportShowJSON() {
         this.saveWindowsToShowFilePages();
         return JSON.stringify(this.showFile, null, 2);

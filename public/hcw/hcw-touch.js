@@ -493,11 +493,12 @@ class HCWTouch {
         if (name.endsWith('.gdtf')) {
             if (typeof GDTFParser !== 'undefined') {
                 GDTFParser.loadFromFile(file).then(result => {
-                    globalThis._lastGDTFResult = result;
-                    console.log(
-                        `%c ✓ GDTF Loaded: ${result.name} by ${result.manufacturer}`,
-                        'background:#00ff95; color:#000; font-size:13px; font-weight:bold; padding:3px 8px; border-radius:4px;'
-                    );
+                    if (!globalThis.GDTFLibrary) globalThis.GDTFLibrary = [];
+                    globalThis.GDTFLibrary.push(result);
+
+                    if (typeof FGMShowHandler !== 'undefined' && typeof FGMShowHandler.addFixtureToShow === 'function') {
+                        FGMShowHandler.addFixtureToShow(result);
+                    }
                 }).catch(err => {
                     console.error('GDTFParser error:', err);
                 });

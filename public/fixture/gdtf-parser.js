@@ -1,21 +1,5 @@
-/**
- * GDTFParser
- * Drag-and-drop a .gdtf file onto the canvas and this class unpacks + parses it.
- * A .gdtf file is just a ZIP archive containing:
- *   description.xml  — all fixture data
- *   wheels/          — gobo / color wheel image assets
- *   models/          — 3D mesh files
- *   thumbnails/      — preview images
- *
- * Usage (automatic via HCWTouch drop handler):
- *   GDTFParser.loadFromFile(file).then(result => console.log(result));
- */
 class GDTFParser {
 
-    /**
-     * Entry point: accepts a File object (from drag-drop or input[type=file])
-     * Returns a Promise<GDTFFixtureDefinition>
-     */
     static async loadFromFile(file) {
         if (typeof JSZip === 'undefined') {
             throw new Error('GDTFParser: JSZip is not loaded. Check your <script> tag.');
@@ -24,41 +8,89 @@ class GDTFParser {
         console.group(`%c📦 GDTF Parser — ${file.name}`, 'color:#00ff95; font-weight:bold; font-size:13px;');
         console.log('File size:', (file.size / 1024).toFixed(1) + ' KB');
 
-        // 1. Read file as ArrayBuffer
         const arrayBuffer = await file.arrayBuffer();
 
-        // 2. Unzip with JSZip
         const zip = await JSZip.loadAsync(arrayBuffer);
         console.log('ZIP contents:', Object.keys(zip.files));
 
-        // 3. Extract description.xml
         const descFile = zip.file('description.xml');
         if (!descFile) {
             throw new Error('GDTFParser: No description.xml found in .gdtf archive.');
         }
         const xmlText = await descFile.async('text');
 
-        // 4. Parse XML
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
 
-        // 5. Check for XML parse errors
         const parseError = xmlDoc.querySelector('parsererror');
         if (parseError) {
             throw new Error('GDTFParser: XML parse error — ' + parseError.textContent);
         }
 
-        // 6. Extract all fixture data into a clean JS object
         const result = GDTFParser._extract(xmlDoc, zip);
 
-        // 7. Pretty-print to console for inspection
+        result.images = await GDTFParser._extractImages(zip);
+
+        result.wheels.forEach(wheel => {
+            wheel.slots.forEach(slot => {
+                if (slot.mediaFile) {
+
+                    const candidates = [
+                        `wheels/${slot.mediaFile}`,
+                        `wheels/${slot.mediaFile}.png`,
+                        `wheels/${slot.mediaFile}.jpg`,
+                        `wheels/${slot.mediaFile}.svg`,
+                        slot.mediaFile,
+                    ];
+                    for (const key of candidates) {
+                        if (result.images[key]) {
+                            slot.image = result.images[key]; // base64 data URL
+                            break;
+                        }
+                    }
+                }
+            });
+        });
+
         GDTFParser._prettyLog(result);
         console.groupEnd();
 
         return result;
     }
 
-    /** Core extraction — walks description.xml and returns a structured object */
+    static async _extractImages(zip) {
+        const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.svg', '.webp', '.gif'];
+        const IMAGE_DIRS = ['wheels/', 'thumbnails/', 'gobo/', 'media/'];
+
+        const imageFiles = Object.keys(zip.files).filter(name => {
+            const lower = name.toLowerCase();
+            const inImageDir = IMAGE_DIRS.some(dir => lower.startsWith(dir));
+            const hasImageExt = IMAGE_EXTS.some(ext => lower.endsWith(ext));
+            return (inImageDir || hasImageExt) && !zip.files[name].dir;
+        });
+
+        const images = {};
+        let loaded = 0;
+
+        await Promise.all(imageFiles.map(async (filename) => {
+            try {
+                const base64 = await zip.file(filename).async('base64');
+                const ext = filename.split('.').pop().toLowerCase();
+                const mime = ext === 'svg' ? 'image/svg+xml'
+                           : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg'
+                           : ext === 'webp' ? 'image/webp'
+                           : 'image/png';
+                images[filename] = `data:${mime};base64,${base64}`;
+                loaded++;
+            } catch (e) {
+                console.warn(`GDTFParser: could not read image "${filename}":`, e.message);
+            }
+        }));
+
+        console.log(`%c🖼  Images extracted: ${loaded} / ${imageFiles.length}`, 'color:#4499ff; font-weight:bold;');
+        return images;
+    }
+
     static _extract(xmlDoc, zip) {
         const gdtfEl = xmlDoc.querySelector('GDTF');
         const fixtureEl = xmlDoc.querySelector('FixtureType');
@@ -66,7 +98,7 @@ class GDTFParser {
         if (!fixtureEl) throw new Error('GDTFParser: No <FixtureType> element found.');
 
         const def = {
-            // ── Top-level identity ──────────────────────────────────────────
+
             dataVersion:  gdtfEl?.getAttribute('DataVersion') || 'unknown',
             name:         fixtureEl.getAttribute('Name') || '',
             shortName:    fixtureEl.getAttribute('ShortName') || '',
@@ -75,22 +107,16 @@ class GDTFParser {
             fixturetype:  fixtureEl.getAttribute('FixtureTypeID') || '',
             thumbnail:    fixtureEl.getAttribute('Thumbnail') || null,
 
-            // ── DMX Modes ───────────────────────────────────────────────────
             modes: GDTFParser._extractModes(xmlDoc),
 
-            // ── Attribute definitions ────────────────────────────────────────
             attributes: GDTFParser._extractAttributes(xmlDoc),
 
-            // ── Wheels (Gobo / Color / Prism / Animation) ───────────────────
             wheels: GDTFParser._extractWheels(xmlDoc),
 
-            // ── Physical descriptions ────────────────────────────────────────
             physical: GDTFParser._extractPhysical(xmlDoc),
 
-            // ── Geometry tree summary ────────────────────────────────────────
             geometries: GDTFParser._extractGeometries(xmlDoc),
 
-            // ── Raw asset filenames in the ZIP ───────────────────────────────
             assets: {
                 models:     Object.keys(zip.files).filter(f => f.startsWith('models/')),
                 wheels:     Object.keys(zip.files).filter(f => f.startsWith('wheels/')),
@@ -101,21 +127,18 @@ class GDTFParser {
         return def;
     }
 
-    /** Extract all DMX modes and their channel maps */
     static _extractModes(xmlDoc) {
         const modes = [];
         xmlDoc.querySelectorAll('DMXMode').forEach(modeEl => {
             const channels = [];
             modeEl.querySelectorAll('DMXChannel').forEach(chEl => {
-                // Offset can be "1" or "1,2" (16-bit coarse+fine)
+
                 const offsetStr = chEl.getAttribute('Offset') || '';
                 const offsets = offsetStr.split(',').map(o => parseInt(o, 10)).filter(n => !isNaN(n));
 
-                // Attribute is referenced through LogicalChannel > ChannelFunction
                 const logicalCh = chEl.querySelector('LogicalChannel');
                 const attrName = logicalCh?.getAttribute('Attribute') || chEl.getAttribute('Attribute') || '';
 
-                // Default value
                 const defaultVal = chEl.getAttribute('Default') || '0/1';
 
                 channels.push({
@@ -139,7 +162,6 @@ class GDTFParser {
         return modes;
     }
 
-    /** Extract attribute definitions (pan range, tilt range, etc.) */
     static _extractAttributes(xmlDoc) {
         const attrs = {};
         xmlDoc.querySelectorAll('Attribute').forEach(el => {
@@ -157,7 +179,6 @@ class GDTFParser {
         return attrs;
     }
 
-    /** Extract wheel definitions — gobo/color/prism slots */
     static _extractWheels(xmlDoc) {
         const wheels = [];
         xmlDoc.querySelectorAll('Wheel').forEach(wheelEl => {
@@ -187,7 +208,6 @@ class GDTFParser {
         return wheels;
     }
 
-    /** Extract physical fixture description (weight, power, beam angle, etc.) */
     static _extractPhysical(xmlDoc) {
         const physEl = xmlDoc.querySelector('PhysicalDescriptions');
         if (!physEl) return null;
@@ -212,7 +232,6 @@ class GDTFParser {
         };
     }
 
-    /** Extract top-level geometry names (just names, not full tree) */
     static _extractGeometries(xmlDoc) {
         const geoms = [];
         const geomRoot = xmlDoc.querySelector('Geometries');
@@ -227,7 +246,6 @@ class GDTFParser {
         return geoms;
     }
 
-    /** Console pretty-print the extracted result */
     static _prettyLog(def) {
         console.log('%c🔦 Fixture Identity', 'color:#ffaa00; font-weight:bold;');
         console.table({
@@ -279,5 +297,4 @@ class GDTFParser {
     }
 }
 
-// Also expose a convenience function on the global for quick console testing
 globalThis.GDTFParser = GDTFParser;
