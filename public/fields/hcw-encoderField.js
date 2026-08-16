@@ -165,7 +165,30 @@ class HCWEncoderField extends HCWBaseField {
         this._lastInteractionAngle = currentAngle;
     }
 
+    _drawArcTrack(ctx, cx, cy, radius, value, color, startAngleDeg = 135, totalAngleDeg = 270) {
+        const startRad = (startAngleDeg * Math.PI) / 180;
+        const totalRad = (totalAngleDeg * Math.PI) / 180;
+        const endRad = startRad + (value * totalRad);
+
+        // Track Background Arc
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, startRad, startRad + totalRad);
+        ctx.strokeStyle = '#252525';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Active Progress Arc
+        if (value > 0) {
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, startRad, endRad);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+    }
+
     _drawIndicator(cx, cy, radius, value, color, isFullRotation = false) {
+        const ctx = HCW.ctx;
         let currentRad;
 
         if (isFullRotation) {
@@ -176,34 +199,39 @@ class HCWEncoderField extends HCWBaseField {
             currentRad = startRad + (value * rangeRad);
         }
 
-        const indX = cx + (Math.cos(currentRad) * (radius * 0.8));
-        const indY = cy + (Math.sin(currentRad) * (radius * 0.8));
+        const startX = cx + (Math.cos(currentRad) * (radius * 0.35));
+        const startY = cy + (Math.sin(currentRad) * (radius * 0.35));
+        const indX = cx + (Math.cos(currentRad) * (radius * 0.85));
+        const indY = cy + (Math.sin(currentRad) * (radius * 0.85));
 
-        HCW.ctx.beginPath();
-        HCW.ctx.moveTo(cx, cy);
-        HCW.ctx.lineTo(indX, indY);
-        HCW.ctx.strokeStyle = color;
-        HCW.ctx.lineWidth = 3;
-        HCW.ctx.stroke();
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(indX, indY);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Glowing Dot at Tip
+        ctx.beginPath();
+        ctx.arc(indX, indY, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
     }
 
     render(contextwindow) {
-        const sx = contextwindow.sx;
-        const sy = contextwindow.sy;
+        const ctx = HCW.ctx;
+        if (!ctx) return;
 
-        const showText = sy > 100;
-        const cx = contextwindow.x + (sx / 2);
+        const { x, y, sx, sy } = contextwindow;
+        const showText = sy > 110;
+        const cx = x + (sx / 2);
 
-        let knobCy;
-        if (showText) {
-            knobCy = contextwindow.y + (sy * 0.45);
-        } else {
-            knobCy = contextwindow.y + (sy * 0.5);
-        }
+        let knobCy = showText ? y + (sy * 0.42) : y + (sy * 0.5);
 
         const minDim = Math.min(sx, sy);
-        const outerRadius = (minDim * 0.35);
-        const innerRadius = (minDim * 0.20);
+        const outerRadius = Math.max(20, minDim * 0.32);
+        const innerRadius = Math.max(12, minDim * 0.18);
 
         this.renderProps.centerX = cx;
         this.renderProps.centerY = knobCy;
@@ -212,34 +240,98 @@ class HCWEncoderField extends HCWBaseField {
 
         const colors = this.renderProps.colors;
 
-        HCW.ctx.fillStyle = colors.background;
-        HCW.ctx.fillRect(contextwindow.x, contextwindow.y, sx, sy);
+        // Window Background
+        ctx.fillStyle = colors.background;
+        ctx.fillRect(x, y, sx, sy);
 
-        HCW.ctx.beginPath();
-        HCW.ctx.arc(cx, knobCy, outerRadius, 0, 2 * Math.PI);
-        HCW.ctx.fillStyle = colors.knobOuter;
-        HCW.ctx.fill();
+        // Header Title
+        if (showText) {
+            ctx.fillStyle = colors.text;
+            ctx.font = GS.FONTS.TITLE;
+            ctx.textAlign = "center";
+            ctx.fillText(this.getLabel(), cx, y + 20);
+        }
+
+        // 1. Outer Arc Progress Track
+        this._drawArcTrack(ctx, cx, knobCy, outerRadius + 6, this.value, colors.indicator, 135, 270);
+
+        // 2. Outer Knob (Radial Gradient 3D Metallic)
+        const outerGrad = ctx.createRadialGradient(cx - outerRadius * 0.3, knobCy - outerRadius * 0.3, outerRadius * 0.1, cx, knobCy, outerRadius);
+        outerGrad.addColorStop(0, '#4a4040');
+        outerGrad.addColorStop(0.7, colors.knobOuter);
+        outerGrad.addColorStop(1, '#241f1f');
+
+        ctx.beginPath();
+        ctx.arc(cx, knobCy, outerRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = outerGrad;
+        ctx.fill();
+
+        ctx.strokeStyle = '#5a4f4f';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
         this._drawIndicator(cx, knobCy, outerRadius, this.value, colors.indicator, false);
 
-        HCW.ctx.beginPath();
-        HCW.ctx.arc(cx, knobCy, innerRadius, 0, 2 * Math.PI);
-        HCW.ctx.fillStyle = colors.knobInner;
-        HCW.ctx.fill();
+        // 3. Inner Arc Progress Track
+        this._drawArcTrack(ctx, cx, knobCy, innerRadius + 4, this.value2, colors.indicatorInner, 0, 360);
+
+        // 4. Inner Knob (Radial Gradient 3D Metallic)
+        const innerGrad = ctx.createRadialGradient(cx - innerRadius * 0.3, knobCy - innerRadius * 0.3, innerRadius * 0.1, cx, knobCy, innerRadius);
+        innerGrad.addColorStop(0, '#362e2e');
+        innerGrad.addColorStop(0.8, colors.knobInner);
+        innerGrad.addColorStop(1, '#181414');
+
+        ctx.beginPath();
+        ctx.arc(cx, knobCy, innerRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = innerGrad;
+        ctx.fill();
+
+        ctx.strokeStyle = '#473d3d';
+        ctx.lineWidth = 1;
+        ctx.stroke();
 
         this._drawIndicator(cx, knobCy, innerRadius, this.value2, colors.indicatorInner, true);
 
-        if (showText) {
-            HCW.ctx.fillStyle = colors.text;
-            HCW.ctx.font = GS.FONTS.TITLE;
-            HCW.ctx.textAlign = "center";
-            HCW.ctx.fillText(this.getLabel(), cx, knobCy + outerRadius + 16);
+        // Center Cap Dot
+        ctx.beginPath();
+        ctx.arc(cx, knobCy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fill();
 
-            HCW.ctx.font = GS.FONTS.MONO_READOUT;
-            const v1Str = this._getFormattedValue(this.value);
-            const v2Str = this._getFormattedValue(this.value2);
-            HCW.ctx.fillText(`${v1Str} | ${v2Str}`, cx, knobCy + outerRadius + 30);
+        // 5. Dual Readout Pill Badges at Bottom
+        if (showText && sy >= 140) {
+            const v1Str = `V1: ${this._getFormattedValue(this.value)}`;
+            const v2Str = `V2: ${this._getFormattedValue(this.value2)}`;
 
-            HCW.ctx.textAlign = "start";
+            const badgeH = 22;
+            const badgeW = (sx - 30) / 2;
+            const badgeY = y + sy - badgeH - 10;
+
+            // Outer V1 Badge (Left)
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(x + 10, badgeY, badgeW, badgeH);
+            ctx.strokeStyle = colors.indicator;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 10, badgeY, badgeW, badgeH);
+
+            ctx.fillStyle = colors.indicator;
+            ctx.font = GS.FONTS.MONO_READOUT;
+            ctx.textAlign = "center";
+            ctx.fillText(v1Str, x + 10 + badgeW / 2, badgeY + badgeH / 2 + 4);
+
+            // Inner V2 Badge (Right)
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(x + 20 + badgeW, badgeY, badgeW, badgeH);
+            ctx.strokeStyle = colors.indicatorInner;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 20 + badgeW, badgeY, badgeW, badgeH);
+
+            ctx.fillStyle = colors.indicatorInner;
+            ctx.font = GS.FONTS.MONO_READOUT;
+            ctx.textAlign = "center";
+            ctx.fillText(v2Str, x + 20 + badgeW + badgeW / 2, badgeY + badgeH / 2 + 4);
         }
+
+        ctx.textAlign = "start";
     }
 }
