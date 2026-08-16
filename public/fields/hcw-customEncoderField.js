@@ -177,40 +177,91 @@ class HCWCustomEncoderField extends HCWBaseField {
     }
 
     render(contextwindow) {
-        const sx = contextwindow.sx;
-        const sy = contextwindow.sy;
-        const cx = contextwindow.x + (sx / 2);
-        const knobCy = sy > 100 ? contextwindow.y + (sy * 0.45) : contextwindow.y + (sy * 0.5);
+        const ctx = HCW.ctx;
+        if (!ctx) return;
+
+        const { x, y, sx, sy } = contextwindow;
+        const showText = sy > 110;
+        const cx = x + (sx / 2);
+
+        let knobCy = showText ? y + (sy * 0.42) : y + (sy * 0.5);
+
         const minDim = Math.min(sx, sy);
+        const outerRadius = Math.max(20, minDim * 0.32);
+        const innerRadius = Math.max(12, minDim * 0.19);
+
         this.renderProps.centerX = cx;
         this.renderProps.centerY = knobCy;
-        this.renderProps.outerRadius = (minDim * 0.35);
-        this.renderProps.innerRadius = (minDim * 0.20);
+        this.renderProps.outerRadius = outerRadius;
+        this.renderProps.innerRadius = innerRadius;
 
-        const ctx = HCW.ctx;
         const colors = this.renderProps.colors;
 
+        // 1. Background
         ctx.fillStyle = colors.background;
-        ctx.fillRect(contextwindow.x, contextwindow.y, sx, sy);
+        ctx.fillRect(x, y, sx, sy);
 
-        ctx.beginPath();
-        ctx.arc(cx, knobCy, this.renderProps.outerRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = colors.knobOuter;
-        ctx.fill();
+        // Header Title
+        if (showText) {
+            ctx.fillStyle = colors.text;
+            ctx.font = GS.FONTS.TITLE;
+            ctx.textAlign = "center";
+            ctx.fillText(this.getLabel(), cx, y + 20);
+        }
 
+        // 2. 270° Outer Progress Arc
         const startRad = (135 * Math.PI) / 180;
         const rangeRad = (270 * Math.PI) / 180;
         const currentRad = startRad + (this.value * rangeRad);
+
         ctx.beginPath();
-        ctx.moveTo(cx, knobCy);
-        ctx.lineTo(
-            cx + Math.cos(currentRad) * (this.renderProps.outerRadius * 0.8),
-            knobCy + Math.sin(currentRad) * (this.renderProps.outerRadius * 0.8)
-        );
+        ctx.arc(cx, knobCy, outerRadius + 6, startRad, startRad + rangeRad);
+        ctx.strokeStyle = '#252525';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        if (this.value > 0) {
+            ctx.beginPath();
+            ctx.arc(cx, knobCy, outerRadius + 6, startRad, currentRad);
+            ctx.strokeStyle = colors.indicator;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+
+        // 3. Outer Wheel Rim (3D Metallic Gradient)
+        const outerGrad = ctx.createRadialGradient(cx - outerRadius * 0.3, knobCy - outerRadius * 0.3, outerRadius * 0.1, cx, knobCy, outerRadius);
+        outerGrad.addColorStop(0, '#4a4040');
+        outerGrad.addColorStop(0.7, colors.knobOuter);
+        outerGrad.addColorStop(1, '#241f1f');
+
+        ctx.beginPath();
+        ctx.arc(cx, knobCy, outerRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = outerGrad;
+        ctx.fill();
+
+        ctx.strokeStyle = '#5a4f4f';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // 4. Indicator Line & Glowing Tip
+        const startX = cx + (Math.cos(currentRad) * (outerRadius * 0.35));
+        const startY = knobCy + (Math.sin(currentRad) * (outerRadius * 0.35));
+        const indX = cx + (Math.cos(currentRad) * (outerRadius * 0.85));
+        const indY = knobCy + (Math.sin(currentRad) * (outerRadius * 0.85));
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(indX, indY);
         ctx.strokeStyle = colors.indicator;
         ctx.lineWidth = 3;
         ctx.stroke();
 
+        ctx.beginPath();
+        ctx.arc(indX, indY, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = colors.indicator;
+        ctx.fill();
+
+        // 5. Center Active Gobo / Color Slot Wheel
         let activeKeys = [];
         const dmx = Math.round(this.value * 255);
 
@@ -228,7 +279,7 @@ class HCWCustomEncoderField extends HCWBaseField {
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(cx, knobCy, this.renderProps.innerRadius - 2, 0, Math.PI * 2);
+        ctx.arc(cx, knobCy, innerRadius, 0, Math.PI * 2);
         ctx.clip();
 
         if (activeKeys.length > 0) {
@@ -236,11 +287,11 @@ class HCWCustomEncoderField extends HCWBaseField {
             activeKeys.forEach((key, i) => {
                 ctx.beginPath();
                 ctx.moveTo(cx, knobCy);
-                ctx.arc(cx, knobCy, this.renderProps.innerRadius, i * sliceAngle - Math.PI / 2, (i + 1) * sliceAngle - Math.PI / 2);
+                ctx.arc(cx, knobCy, innerRadius, i * sliceAngle - Math.PI / 2, (i + 1) * sliceAngle - Math.PI / 2);
                 const img = this.iconCache[key];
                 if (img && img.complete) {
                     ctx.save(); ctx.clip();
-                    ctx.drawImage(img, cx - this.renderProps.innerRadius, knobCy - this.renderProps.innerRadius, this.renderProps.innerRadius * 2, this.renderProps.innerRadius * 2);
+                    ctx.drawImage(img, cx - innerRadius, knobCy - innerRadius, innerRadius * 2, innerRadius * 2);
                     ctx.restore();
                 } else {
                     ctx.fillStyle = (key.startsWith('#') || key.startsWith('rgb')) ? key : '#444';
@@ -248,23 +299,55 @@ class HCWCustomEncoderField extends HCWBaseField {
                 }
             });
         } else if (this._loadedImage && this._loadedImage.complete) {
-            ctx.drawImage(this._loadedImage, cx - this.renderProps.innerRadius, knobCy - this.renderProps.innerRadius, this.renderProps.innerRadius * 2, this.renderProps.innerRadius * 2);
+            ctx.drawImage(this._loadedImage, cx - innerRadius, knobCy - innerRadius, innerRadius * 2, innerRadius * 2);
         } else if (this.centerColor) {
             ctx.fillStyle = this.centerColor;
             ctx.fill();
         } else {
-            ctx.fillStyle = '#000000';
+            ctx.fillStyle = '#0a0a0a';
             ctx.fill();
         }
         ctx.restore();
 
-        if (sy > 100) {
-            ctx.fillStyle = colors.text;
-            ctx.font = GS.FONTS.TITLE;
-            ctx.textAlign = "center";
-            ctx.fillText(this.getLabel(), cx, knobCy + this.renderProps.outerRadius + 16);
+        // Glass Inner Ring Bevel
+        ctx.strokeStyle = '#ffffff44';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, knobCy, innerRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 6. Dual Readout Badges at Bottom
+        if (showText && sy >= 140) {
+            const v1Str = `DMX: ${dmx}`;
+            const v2Str = `Fine: ${Math.round(this.value2 * 255)}`;
+
+            const badgeH = 22;
+            const badgeW = (sx - 30) / 2;
+            const badgeY = y + sy - badgeH - 10;
+
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(x + 10, badgeY, badgeW, badgeH);
+            ctx.strokeStyle = colors.indicator;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 10, badgeY, badgeW, badgeH);
+
+            ctx.fillStyle = colors.indicator;
             ctx.font = GS.FONTS.MONO_READOUT;
-            ctx.fillText(Math.round(this.value * 255), cx, knobCy + this.renderProps.outerRadius + 30);
+            ctx.textAlign = "center";
+            ctx.fillText(v1Str, x + 10 + badgeW / 2, badgeY + badgeH / 2 + 4);
+
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(x + 20 + badgeW, badgeY, badgeW, badgeH);
+            ctx.strokeStyle = GS.PALETTE.ACCENT_GREEN;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 20 + badgeW, badgeY, badgeW, badgeH);
+
+            ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+            ctx.font = GS.FONTS.MONO_READOUT;
+            ctx.textAlign = "center";
+            ctx.fillText(v2Str, x + 20 + badgeW + badgeW / 2, badgeY + badgeH / 2 + 4);
         }
+
+        ctx.textAlign = "start";
     }
 }

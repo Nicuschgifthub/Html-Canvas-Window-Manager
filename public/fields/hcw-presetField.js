@@ -266,6 +266,9 @@ class HCWPresetField extends HCWBaseField {
     }
 
     render(contextwindow) {
+        const ctx = HCW.ctx;
+        if (!ctx) return;
+
         const { x, y, sx, sy } = contextwindow;
 
         const availWidth = sx;
@@ -275,19 +278,27 @@ class HCWPresetField extends HCWBaseField {
 
         this._clampScroll();
 
-        HCW.ctx.fillStyle = this.renderProps.colors.background;
-        HCW.ctx.fillRect(x, y, sx, sy);
+        // 1. Window Background
+        ctx.fillStyle = this.renderProps.colors.background;
+        ctx.fillRect(x, y, sx, sy);
 
-        HCW.ctx.fillStyle = this.renderProps.colors.headerText;
-        HCW.ctx.font = GS.FONTS.TITLE;
-        HCW.ctx.textAlign = "center";
-        HCW.ctx.fillText(this.getLabel(), x + (sx / 2), y + 20);
-        HCW.ctx.textAlign = "start";
+        // 2. Header Bar
+        ctx.fillStyle = '#141414';
+        ctx.fillRect(x, y, sx, this.headerHeight);
 
-        HCW.ctx.save();
-        HCW.ctx.beginPath();
-        HCW.ctx.rect(x, y + this.headerHeight, sx, sy - this.headerHeight);
-        HCW.ctx.clip();
+        ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+        ctx.fillRect(x, y + this.headerHeight - 2, sx, 2);
+
+        ctx.fillStyle = this.renderProps.colors.headerText;
+        ctx.font = GS.FONTS.TITLE;
+        ctx.textAlign = "center";
+        ctx.fillText(this.getLabel(), x + (sx / 2), y + 18);
+        ctx.textAlign = "start";
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y + this.headerHeight, sx, sy - this.headerHeight);
+        ctx.clip();
 
         this.renderProps.visibleItems = [];
 
@@ -302,39 +313,44 @@ class HCWPresetField extends HCWBaseField {
 
             if (py + this.itemHeight >= y && py <= y + sy) {
 
-                let bgColor = preset.getColor() || this.renderProps.colors.itemDefaultColor;
-                if (index === this._pressedIndex) {
-                    bgColor = this.renderProps.colors.itemPressedColor;
+                // Tile Background (Flat Modern MA3 Style)
+                const isPressed = (index === this._pressedIndex);
+                const isSelected = (preset.getSelectionState && preset.getSelectionState() > 0);
+
+                let tileBg = preset.getColor() || preset.getDefaultColor() || GS.FIELDS.PRESETS.DEFAULT_COLOR;
+                if (isPressed) {
+                    tileBg = '#00773d';
+                } else if (isSelected) {
+                    tileBg = '#004d26';
                 }
 
-                if (preset.getDefaultColor() !== null && preset.getColor() == null) {
-                    bgColor = preset.getDefaultColor();
-                }
-
-                const isFlashing = preset.isFlashing();
-
+                const isFlashing = preset.isFlashing ? preset.isFlashing() : false;
                 if (isFlashing) {
-                    if (typeof FGMKernel !== 'undefined' && FGMKernel.getAwaitingColor) {
-                        bgColor = FGMKernel.getAwaitingColor();
-                    } else {
-                        const pulse = (Math.sin(Date.now() / 150) + 1) / 2;
-                        if (pulse > 0.5) bgColor = '#ffffffaa';
-                    }
+                    const pulse = (Math.sin(Date.now() / 150) + 1) / 2;
+                    if (pulse > 0.5) tileBg = '#ffffffdd';
                 }
 
-                HCW.ctx.fillStyle = bgColor;
-                HCW.ctx.fillRect(px, py, itemWidth, this.itemHeight);
+                ctx.fillStyle = tileBg;
+                ctx.fillRect(px, py, itemWidth, this.itemHeight);
 
-                if (preset.getSelectionState() > 0) {
-                    const state = preset.getSelectionState();
-                    HCW.ctx.strokeStyle = state === 2 ? "#39af0aff" : "#f1c40f";
-                    HCW.ctx.lineWidth = 3;
-                    HCW.ctx.strokeRect(px + 1.5, py + 1.5, itemWidth - 3, this.itemHeight - 3);
-                }
+                // Clean Outer Outline
+                ctx.strokeStyle = isSelected ? GS.PALETTE.ACCENT_GREEN : '#2a2a2a';
+                ctx.lineWidth = isSelected ? 2 : 1;
+                ctx.strokeRect(px + 0.5, py + 0.5, itemWidth - 1, this.itemHeight - 1);
 
-                HCW.ctx.fillStyle = this.renderProps.colors.itemText;
-                HCW.ctx.font = GS.FONTS.LABEL;
-                HCW.ctx.textAlign = "center";
+                // Top-Left Index Badge (MA3 Style)
+                const presetId = preset.getId ? preset.getId() : (index + 1);
+                ctx.fillStyle = '#00000088';
+                ctx.fillRect(px, py, 22, 14);
+                ctx.fillStyle = GS.PALETTE.TEXT_SECONDARY;
+                ctx.font = GS.FONTS.SMALL;
+                ctx.textAlign = "center";
+                ctx.fillText(presetId.toString(), px + 11, py + 10);
+
+                // Preset Name Text
+                ctx.fillStyle = this.renderProps.colors.itemText;
+                ctx.font = GS.FONTS.LABEL;
+                ctx.textAlign = "center";
 
                 const name = preset.getName();
                 const padding = 6;
@@ -343,10 +359,10 @@ class HCWPresetField extends HCWBaseField {
                 let lines = [];
                 let currentLine = words[0];
 
-                if (HCW.ctx.measureText(name).width > maxWidth) {
+                if (ctx.measureText(name).width > maxWidth) {
                     for (let i = 1; i < words.length; i++) {
                         const testLine = currentLine + " " + words[i];
-                        if (HCW.ctx.measureText(testLine).width > maxWidth) {
+                        if (ctx.measureText(testLine).width > maxWidth) {
                             lines.push(currentLine);
                             currentLine = words[i];
                         } else {
@@ -371,28 +387,29 @@ class HCWPresetField extends HCWBaseField {
                 if (lines.length > 1) {
                     const startTextY = baseY - (lineHeight / 2);
                     lines.forEach((line, i) => {
-                        HCW.ctx.fillText(line, px + (itemWidth / 2), startTextY + (i * lineHeight));
+                        ctx.fillText(line, px + (itemWidth / 2), startTextY + (i * lineHeight));
                     });
                 } else {
-                    HCW.ctx.fillText(lines[0], px + (itemWidth / 2), baseY);
+                    ctx.fillText(lines[0], px + (itemWidth / 2), baseY);
                 }
 
+                // Progress Bar (if active)
                 if (hasProgress) {
                     const barHeight = 6;
                     const progress = Math.max(0, Math.min(1, preset.getProgress()));
 
-                    HCW.ctx.fillStyle = "rgba(0,0,0,0.3)";
-                    HCW.ctx.fillRect(px, py + this.itemHeight - barHeight, itemWidth, barHeight);
+                    ctx.fillStyle = "rgba(0,0,0,0.3)";
+                    ctx.fillRect(px, py + this.itemHeight - barHeight, itemWidth, barHeight);
 
-                    HCW.ctx.fillStyle = "#00ff00";
-                    HCW.ctx.fillRect(px, py + this.itemHeight - barHeight, itemWidth * progress, barHeight);
+                    ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+                    ctx.fillRect(px, py + this.itemHeight - barHeight, itemWidth * progress, barHeight);
 
-                    HCW.ctx.fillStyle = this.renderProps.colors.itemText;
-                    HCW.ctx.font = GS.FONTS.SMALL;
-                    HCW.ctx.fillText(Math.round(progress * 100) + "%", px + (itemWidth / 2), py + this.itemHeight - barHeight - 4);
+                    ctx.fillStyle = this.renderProps.colors.itemText;
+                    ctx.font = GS.FONTS.SMALL;
+                    ctx.fillText(Math.round(progress * 100) + "%", px + (itemWidth / 2), py + this.itemHeight - barHeight - 4);
                 }
 
-                HCW.ctx.textAlign = "start";
+                ctx.textAlign = "start";
 
                 this.renderProps.visibleItems.push({
                     index,
@@ -403,6 +420,6 @@ class HCWPresetField extends HCWBaseField {
                 });
             }
         });
-        HCW.ctx.restore();
+        ctx.restore();
     }
 }

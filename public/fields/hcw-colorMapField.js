@@ -221,34 +221,71 @@ class HCWColorMapField extends HCWBaseField {
 
     render(w) {
         const ctx = HCW.ctx;
+        if (!ctx) return;
+
         const pad = 10;
         const innerW = w.sx - pad * 2;
         const innerH = w.sy - pad * 2;
 
-        const previewH = 35;
-        const topY = w.y + pad + 12;
-        const previewSize = previewH;
-        const dataWidth = innerW - previewSize - pad;
+        // 1. Background
+        ctx.fillStyle = GS.FIELDS.COLOR_MAP.BACKGROUND;
+        ctx.fillRect(w.x, w.y, w.sx, w.sy);
 
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(w.x + pad, topY, innerW, previewH);
+        // 2. Header Bar
+        const headerH = 26;
+        ctx.fillStyle = '#141414';
+        ctx.fillRect(w.x, w.y, w.sx, headerH);
+
+        ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+        ctx.fillRect(w.x, w.y + headerH - 2, w.sx, 2);
+
+        ctx.fillStyle = GS.FIELDS.COLOR_MAP.TEXT;
+        ctx.font = GS.FONTS.TITLE;
+        ctx.textAlign = "left";
+        ctx.fillText(this.getLabel(), w.x + pad, w.y + 17);
+
+        // 3. Top Color Preview & Readout Strip
+        const topY = w.y + headerH + pad;
+        const previewH = 34;
+        const previewW = 50;
+        const readoutW = innerW - previewW - pad;
 
         const rgb = this.getColors();
         const finalR = Math.min(255, rgb.r);
         const finalG = Math.min(255, rgb.g);
         const finalB = Math.min(255, rgb.b);
 
-        ctx.fillStyle = `rgb(${finalR}, ${finalG}, ${finalB})`;
-        ctx.fillRect(w.x + pad + dataWidth + pad, topY, previewSize, previewH);
+        // Readout Dark Box
+        ctx.fillStyle = GS.PALETTE.BG_SECONDARY;
+        ctx.fillRect(w.x + pad, topY, readoutW, previewH);
+        ctx.strokeStyle = '#282828';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(w.x + pad, topY, readoutW, previewH);
 
-        ctx.fillStyle = GS.FIELDS.COLOR_MAP.TEXT_MUTED;
+        // Hex & RGB Text in Readout
+        const hexStr = `#${finalR.toString(16).padStart(2,'0')}${finalG.toString(16).padStart(2,'0')}${finalB.toString(16).padStart(2,'0')}`.toUpperCase();
+        const rgbText = `RGB: ${finalR}, ${finalG}, ${finalB}`;
+        const ledText = `W:${this.extra.white} A:${this.extra.amber} U:${this.extra.uv}`;
+
+        ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
         ctx.font = GS.FONTS.MONO_READOUT;
         ctx.textAlign = 'left';
-        const dmxText = `W:${this.extra.white.toString().padStart(3, '0')} A:${this.extra.amber.toString().padStart(3, '0')} U:${this.extra.uv.toString().padStart(3, '0')}`;
-        ctx.fillText(dmxText, w.x + pad + 5, topY + (previewH / 2) + 4);
+        ctx.fillText(`${hexStr}  ${rgbText}`, w.x + pad + 8, topY + 15);
 
+        ctx.fillStyle = GS.PALETTE.TEXT_SECONDARY;
+        ctx.font = GS.FONTS.SMALL;
+        ctx.fillText(ledText, w.x + pad + 8, topY + 28);
+
+        // Color Swatch Preview Box
+        const previewX = w.x + pad + readoutW + pad;
+        ctx.fillStyle = `rgb(${finalR}, ${finalG}, ${finalB})`;
+        ctx.fillRect(previewX, topY, previewW, previewH);
+        ctx.strokeStyle = '#ffffff44';
+        ctx.strokeRect(previewX, topY, previewW, previewH);
+
+        // 4. 2D Color Map Canvas & Vertical LED Faders
         const mapTop = topY + previewH + pad;
-        const mapSize = Math.floor(innerH * 0.55);
+        const mapSize = Math.max(80, Math.floor(innerH * 0.48));
         this._ensureColorMap(mapSize);
 
         const mapX = w.x + pad;
@@ -257,70 +294,109 @@ class HCWColorMapField extends HCWBaseField {
         if (this._colorMapCanvas instanceof HTMLCanvasElement) {
             ctx.drawImage(this._colorMapCanvas, mapX, mapY);
         }
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(mapX, mapY, mapSize, mapSize);
+
         this.renderProps.map = { x: mapX, y: mapY, w: mapSize, h: mapSize };
 
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
+        // 2D Cursor Target Crosshair & Ring
+        const cursorX = mapX + (this.h * mapSize);
+        const cursorY = mapY + ((1 - this.s) * mapSize);
+
         ctx.beginPath();
-        ctx.arc(
-            mapX + (this.h * mapSize),
-            mapY + (1 - this.s) * mapSize,
-            4,
-            0,
-            Math.PI * 2
-        );
+        ctx.arc(cursorX, cursorY, 6, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
         ctx.stroke();
 
-        const vFaderW = (innerW - mapSize - (pad * 4)) / 4;
+        ctx.beginPath();
+        ctx.arc(cursorX, cursorY, 2, 0, Math.PI * 2);
+        ctx.fillStyle = '#000000';
+        ctx.fill();
+
+        // 5. Vertical Strips: V (Brightness), W (White), A (Amber), U (UV)
+        const vFaderAreaW = innerW - mapSize - (pad * 2);
         const vKeys = ['value', 'white', 'amber', 'uv'];
-        const vColors = ['#ffffff', '#f0f0f0', '#ffbf00', '#bb00ff'];
+        const vLabels = ['V', 'W', 'A', 'U'];
+        const vColors = ['#ffffff', '#e0e0e0', '#ffbf00', '#bb00ff'];
+        const vFaderW = Math.max(12, (vFaderAreaW - (pad * (vKeys.length - 1))) / vKeys.length);
 
         vKeys.forEach((k, i) => {
-            const x = mapX + mapSize + pad + (i * (vFaderW + pad));
-            ctx.fillStyle = '#111';
-            ctx.fillRect(x, mapY, vFaderW, mapSize);
+            const vx = mapX + mapSize + pad + (i * (vFaderW + pad));
+
+            // Slot Track
+            ctx.fillStyle = '#0f0f0f';
+            ctx.fillRect(vx, mapY, vFaderW, mapSize);
+            ctx.strokeStyle = '#252525';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(vx, mapY, vFaderW, mapSize);
 
             const val = k === 'value' ? this.v * 255 : this.extra[k];
             const barH = (val / 255) * mapSize;
+            const barY = mapY + mapSize - barH;
 
-            ctx.fillStyle = vColors[i];
-            ctx.globalAlpha = k === 'value' ? 1.0 : 0.6;
-            ctx.fillRect(x, mapY + mapSize - barH, vFaderW, barH);
-            ctx.globalAlpha = 1.0;
+            // Fill Bar
+            if (barH > 0) {
+                ctx.fillStyle = vColors[i];
+                ctx.globalAlpha = k === 'value' ? 1.0 : 0.7;
+                ctx.fillRect(vx + 1, barY, vFaderW - 2, barH);
+                ctx.globalAlpha = 1.0;
+            }
 
-            const rect = { x, y: mapY, w: vFaderW, h: mapSize };
+            // Label at Top of Fader Slot
+            ctx.fillStyle = '#888888';
+            ctx.font = GS.FONTS.SMALL_BOLD;
+            ctx.textAlign = 'center';
+            ctx.fillText(vLabels[i], vx + vFaderW / 2, mapY + 12);
+
+            const rect = { x: vx, y: mapY, w: vFaderW, h: mapSize };
             if (k === 'value') this.renderProps.valueFader = rect;
             else this.renderProps.sliders[k] = rect;
         });
 
+        // 6. Horizontal RGB Channel Sliders
         let hy = mapY + mapSize + pad;
-        const hSliderH = Math.max(12, (w.y + w.sy - hy - pad) / 3 - 4);
-        const hSliderW = innerW - 20;
+        const availableH = w.y + w.sy - hy - pad;
+        const hSliderH = Math.max(14, Math.floor(availableH / 3) - 4);
+        const hSliderW = innerW - 25;
 
-        this.renderProps.sliders.r = this._drawModernHSlider(ctx, 'R', mapX + 20, hy, hSliderW, hSliderH, rgb.r, '#ff4444'); hy += hSliderH + 4;
-        this.renderProps.sliders.g = this._drawModernHSlider(ctx, 'G', mapX + 20, hy, hSliderW, hSliderH, rgb.g, '#44ff44'); hy += hSliderH + 4;
-        this.renderProps.sliders.b = this._drawModernHSlider(ctx, 'B', mapX + 20, hy, hSliderW, hSliderH, rgb.b, '#4444ff');
+        this.renderProps.sliders.r = this._drawModernHSlider(ctx, 'R', mapX + 25, hy, hSliderW, hSliderH, rgb.r, '#ff4444'); hy += hSliderH + 4;
+        this.renderProps.sliders.g = this._drawModernHSlider(ctx, 'G', mapX + 25, hy, hSliderW, hSliderH, rgb.g, '#44ff44'); hy += hSliderH + 4;
+        this.renderProps.sliders.b = this._drawModernHSlider(ctx, 'B', mapX + 25, hy, hSliderW, hSliderH, rgb.b, '#4444ff');
 
-        ctx.fillStyle = GS.FIELDS.COLOR_MAP.TEXT;
-        ctx.font = GS.FONTS.TITLE;
-        ctx.textAlign = "left";
-        ctx.fillText(this.getLabel().toUpperCase(), w.x + pad, w.y + 17);
+        ctx.textAlign = "start";
     }
 
     _drawModernHSlider(ctx, label, x, y, w, h, value, color) {
-        // Track
-        ctx.fillStyle = '#1a1a1a';
+        // Track Slot
+        ctx.fillStyle = '#0e0e0e';
         ctx.fillRect(x, y, w, h);
-        // Fill
+        ctx.strokeStyle = '#222222';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, w, h);
+
+        // Fill Bar
+        const fillW = (value / 255) * w;
+        if (fillW > 0) {
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.85;
+            ctx.fillRect(x + 1, y + 1, fillW - 1, h - 2);
+            ctx.globalAlpha = 1.0;
+        }
+
+        // Channel Letter Label (Left)
         ctx.fillStyle = color;
-        ctx.globalAlpha = 0.8;
-        ctx.fillRect(x, y, (value / 255) * w, h);
-        ctx.globalAlpha = 1.0;
-        // Label
-        ctx.fillStyle = '#fff';
+        ctx.font = GS.FONTS.SMALL_BOLD;
+        ctx.textAlign = "right";
+        ctx.fillText(label, x - 6, y + (h / 2) + 4);
+
+        // Value Badge (Right overlay)
+        ctx.fillStyle = '#ffffff';
         ctx.font = GS.FONTS.MONO_READOUT;
         ctx.textAlign = "right";
-        ctx.fillText(label, x - 5, y + h / 2 + 4);
+        ctx.fillText(value.toString(), x + w - 6, y + (h / 2) + 4);
+
         return { x, y, w, h };
     }
 }

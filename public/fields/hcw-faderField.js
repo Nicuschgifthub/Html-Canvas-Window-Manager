@@ -106,23 +106,120 @@ class HCWFaderField extends HCWBaseField {
     }
 
     render(contextwindow) {
+        const ctx = HCW.ctx;
+        if (!ctx) return;
+
         const { x, y, sx, sy } = contextwindow;
         const colors = this.renderProps.colors;
 
-        HCW.ctx.fillStyle = colors.background;
-        HCW.ctx.fillRect(x, y, sx, sy);
+        this.renderProps.sx = sx;
+        this.renderProps.sy = sy;
 
-        const levelHeight = this.value * sy;
-        const levelY = y + (sy - levelHeight);
+        // 1. Background
+        ctx.fillStyle = colors.background;
+        ctx.fillRect(x, y, sx, sy);
 
-        HCW.ctx.fillStyle = colors.fader;
-        HCW.ctx.fillRect(x, levelY, sx, levelHeight);
+        // Header Title
+        const headerH = 26;
+        ctx.fillStyle = colors.text;
+        ctx.font = GS.FONTS.TITLE;
+        ctx.textAlign = "center";
+        ctx.fillText(this.getLabel(), x + (sx / 2), y + 18);
 
-        HCW.ctx.fillStyle = colors.text;
-        HCW.ctx.font = GS.FONTS.TITLE;
-        HCW.ctx.textAlign = "left";
-        HCW.ctx.fillText(this.getLabel(), x + 5, y + 15);
-        HCW.ctx.font = GS.FONTS.MONO_READOUT;
-        HCW.ctx.fillText(this._getFormattedValue(), x + 5, y + 30);
+        // 2. Track & Fader Dimensions
+        const trackMarginX = Math.max(12, sx * 0.3);
+        const trackW = sx - (trackMarginX * 2);
+        const trackY = y + headerH + 10;
+        const trackH = sy - headerH - 45; // Space for bottom readout
+
+        // Draw Recessed Track Slot Background
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(x + trackMarginX, trackY, trackW, trackH);
+        ctx.strokeStyle = '#282828';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + trackMarginX, trackY, trackW, trackH);
+
+        // 3. Ruler Tick Marks (0%, 25%, 50%, 75%, 100%)
+        ctx.strokeStyle = '#383838';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const tickY = trackY + (trackH * (i / 4));
+            const tickW = 4;
+            // Left Ticks
+            ctx.beginPath();
+            ctx.moveTo(x + trackMarginX - tickW - 2, tickY);
+            ctx.lineTo(x + trackMarginX - 2, tickY);
+            ctx.stroke();
+            // Right Ticks
+            ctx.beginPath();
+            ctx.moveTo(x + trackMarginX + trackW + 2, tickY);
+            ctx.lineTo(x + trackMarginX + trackW + tickW + 2, tickY);
+            ctx.stroke();
+        }
+
+        // 4. Fill Bar (Level Height)
+        const fillH = this.value * trackH;
+        const fillY = trackY + (trackH - fillH);
+
+        if (fillH > 0) {
+            const fillGrad = ctx.createLinearGradient(0, fillY + fillH, 0, fillY);
+            fillGrad.addColorStop(0, '#005b2f');
+            fillGrad.addColorStop(1, GS.PALETTE.ACCENT_GREEN);
+
+            ctx.fillStyle = fillGrad;
+            ctx.fillRect(x + trackMarginX + 1, fillY, trackW - 2, fillH);
+
+            // Bright Top Level Highlight
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + trackMarginX + 1, fillY, trackW - 2, 2);
+        }
+
+        // 5. 3D Metallic Fader Handle (Cap)
+        const capW = Math.min(sx - 8, trackW + 16);
+        const capH = 22;
+        const capX = x + (sx / 2) - (capW / 2);
+        const capY = fillY - (capH / 2);
+
+        // Cap Shadow
+        ctx.fillStyle = '#00000066';
+        ctx.fillRect(capX + 2, capY + 3, capW, capH);
+
+        // Cap 3D Metallic Gradient
+        const capGrad = ctx.createLinearGradient(0, capY, 0, capY + capH);
+        capGrad.addColorStop(0, '#5a5050');
+        capGrad.addColorStop(0.5, '#3a3333');
+        capGrad.addColorStop(1, '#1e1a1a');
+
+        ctx.fillStyle = capGrad;
+        ctx.fillRect(capX, capY, capW, capH);
+
+        ctx.strokeStyle = '#776b6b';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(capX, capY, capW, capH);
+
+        // Cap Grip Ridges
+        ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+        ctx.fillRect(capX + 4, capY + (capH / 2) - 1, capW - 8, 2);
+
+        // 6. Bottom Readout Badge
+        const badgeY = y + sy - 28;
+        const badgeH = 20;
+        const badgeW = sx - 16;
+        const badgeX = x + 8;
+
+        ctx.fillStyle = '#0e0e0e';
+        ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+        ctx.strokeStyle = GS.PALETTE.ACCENT_GREEN;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
+
+        ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+        ctx.font = GS.FONTS.MONO_READOUT;
+        ctx.textAlign = "center";
+        const pct = Math.round(this.value * 100);
+        const dmx = Math.round(this.value * 255);
+        ctx.fillText(`${pct}% (${dmx})`, x + (sx / 2), badgeY + (badgeH / 2) + 4);
+
+        ctx.textAlign = "start";
     }
 }
