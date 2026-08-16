@@ -10,7 +10,7 @@ I am working on a new way on how the entire backbone code will work
 
 ## Current images
 
-![Current-example-1](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/latest.png)
+![Current-example-1](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/latest-002.png)
 
 ![Current-example-2](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/add-window.png)
 ![Current-example-3](https://raw.githubusercontent.com/Nicuschgifthub/Html-Canvas-Window-Manager/main/_images/edit-window.png)
