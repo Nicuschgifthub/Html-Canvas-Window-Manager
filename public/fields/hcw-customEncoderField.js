@@ -213,7 +213,7 @@ class HCWCustomEncoderField extends HCWBaseField {
         // 2. 270° Outer Progress Arc
         const startRad = (135 * Math.PI) / 180;
         const rangeRad = (270 * Math.PI) / 180;
-        const currentRad = startRad + (this.value * rangeRad);
+        const arcRad = startRad + (this.value * rangeRad);
 
         ctx.beginPath();
         ctx.arc(cx, knobCy, outerRadius + 6, startRad, startRad + rangeRad);
@@ -223,7 +223,7 @@ class HCWCustomEncoderField extends HCWBaseField {
 
         if (this.value > 0) {
             ctx.beginPath();
-            ctx.arc(cx, knobCy, outerRadius + 6, startRad, currentRad);
+            ctx.arc(cx, knobCy, outerRadius + 6, startRad, arcRad);
             ctx.strokeStyle = colors.indicator;
             ctx.lineWidth = 4;
             ctx.stroke();
@@ -245,10 +245,11 @@ class HCWCustomEncoderField extends HCWBaseField {
         ctx.stroke();
 
         // 4. Indicator Line & Glowing Tip (1:1 mouse rotation tracking across 4 full revolutions)
-        const currentRad = (this.value * 4 * 2 * Math.PI) - (Math.PI / 2);
-        const startY = knobCy + (Math.sin(currentRad) * (outerRadius * 0.35));
-        const indX = cx + (Math.cos(currentRad) * (outerRadius * 0.85));
-        const indY = knobCy + (Math.sin(currentRad) * (outerRadius * 0.85));
+        const indicatorRad = (this.value * 4 * 2 * Math.PI) - (Math.PI / 2);
+        const startX = cx + (Math.cos(indicatorRad) * (outerRadius * 0.35));
+        const startY = knobCy + (Math.sin(indicatorRad) * (outerRadius * 0.35));
+        const indX = cx + (Math.cos(indicatorRad) * (outerRadius * 0.85));
+        const indY = knobCy + (Math.sin(indicatorRad) * (outerRadius * 0.85));
 
         ctx.beginPath();
         ctx.moveTo(startX, startY);
