@@ -140,10 +140,11 @@ class HCWCustomEncoderField extends HCWBaseField {
         if (delta > Math.PI) delta -= 2 * Math.PI;
         if (delta < -Math.PI) delta += 2 * Math.PI;
         const rotationSensitivity = delta / (Math.PI * 2);
+        this.outerSlowFactor = 0.25;
         if (this.renderProps.activeRing === 'inner') {
             this.setFloats(this.value, this.value2 + rotationSensitivity);
         } else {
-            this.setFloats(this.value + rotationSensitivity, this.value2);
+            this.setFloats(this.value + (rotationSensitivity * this.outerSlowFactor), this.value2);
         }
         this._lastInteractionAngle = currentAngle;
     }
@@ -243,8 +244,8 @@ class HCWCustomEncoderField extends HCWBaseField {
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        // 4. Indicator Line & Glowing Tip
-        const startX = cx + (Math.cos(currentRad) * (outerRadius * 0.35));
+        // 4. Indicator Line & Glowing Tip (1:1 mouse rotation tracking across 4 full revolutions)
+        const currentRad = (this.value * 4 * 2 * Math.PI) - (Math.PI / 2);
         const startY = knobCy + (Math.sin(currentRad) * (outerRadius * 0.35));
         const indX = cx + (Math.cos(currentRad) * (outerRadius * 0.85));
         const indY = knobCy + (Math.sin(currentRad) * (outerRadius * 0.85));

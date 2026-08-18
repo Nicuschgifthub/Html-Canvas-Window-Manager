@@ -270,7 +270,7 @@ class HCWEncoderField extends HCWBaseField {
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        this._drawIndicator(cx, knobCy, outerRadius, this.value, colors.indicator, false);
+        this._drawIndicator(cx, knobCy, outerRadius, this.value * 4, colors.indicator, true);
 
         // 3. Inner Arc Progress Track
         this._drawArcTrack(ctx, cx, knobCy, innerRadius + 4, this.value2, colors.indicatorInner, 0, 360);
