@@ -309,7 +309,8 @@ var HCWFactory = {
         HCWWindow, HCWBaseField, HCWFaderField, HCWPresetField,
         HCWPreset, HCWEncoderField, HCWKeyboardField, HCWNumberField,
         HCWColorMapField, HCWTableField, HCWCustomEncoderField,
-        HCWSearchField, HCWSearchResult, HCWXYPadField, HCW3DViewerField
+        HCWSearchField, HCWSearchResult, HCWXYPadField, HCW3DViewerField,
+        HCWSettingsField
     },
 
     serialize(data) {

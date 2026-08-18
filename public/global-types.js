@@ -190,6 +190,9 @@ class GLOBAL_TYPES {
             },
             get VIEWER_3D() {
                 return 'CONTEXT_FIELD_3D_VIEWER';
+            },
+            get SETTINGS() {
+                return 'CONTEXT_FIELD_SETTINGS';
             }
         }
     }
@@ -238,6 +241,9 @@ class GLOBAL_TYPES {
                     },
                     get VIEWER_3D() {
                         return 'Viewer3D';
+                    },
+                    get SETTINGS() {
+                        return 'Settings';
                     }
                 }
             }

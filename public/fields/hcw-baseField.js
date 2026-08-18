@@ -140,6 +140,9 @@ class HCWBaseField {
             case "HCW3DViewerField":
                 this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.VIEWER_3D;
                 break;
+            case "HCWSettingsField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.SETTINGS;
+                break;
             default:
                 break;
         }

@@ -116,6 +116,13 @@ class FGMWindowManager {
             pageMenu() {
                 return FGMWindowManager._getPageMenu();
             },
+            settings() {
+                windowBuildValues.sx = 420;
+                windowBuildValues.sy = 450;
+                windowBuildValues.minSizeX = 300;
+                windowBuildValues.minSizeY = 250;
+                return new HCWSettingsField(`Settings ${locationId}`).setLocationId(locationId);
+            },
             settingsMenu() {
                 return FGMWindowManager._getSettingsMenu();
             }
