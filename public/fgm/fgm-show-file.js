@@ -173,11 +173,11 @@ class FGMShowFile {
     }
 
     saveWindowsToShowFilePages() {
-        this.showFile.pages.content = {};
         const windows = (typeof HCWDB !== 'undefined' && HCWDB.getWindows) ? HCWDB.getWindows() : [];
         windows.forEach(window => {
             if (!window) return;
-            const serializedWindow = HCWFactory.serialize(window);
+            const factory = globalThis.HCWFactory || (typeof HCWFactory !== 'undefined' ? HCWFactory : null);
+            const serializedWindow = factory ? factory.serialize(window) : JSON.stringify(window);
             const pageId = window.getPageId();
 
             if (!this.getPages()[pageId]) this.getPages()[pageId] = [];
@@ -200,7 +200,8 @@ class FGMShowFile {
                 const pageWindows = showFile.pages.content[pageId];
                 if (Array.isArray(pageWindows)) {
                     pageWindows.forEach(windowData => {
-                        const windowInstance = HCWFactory.reconstruct(windowData);
+                        const factory = globalThis.HCWFactory || (typeof HCWFactory !== 'undefined' ? HCWFactory : null);
+                        const windowInstance = factory ? factory.reconstruct(windowData) : null;
                         if (windowInstance) allWindows.push(windowInstance);
                     });
                 }

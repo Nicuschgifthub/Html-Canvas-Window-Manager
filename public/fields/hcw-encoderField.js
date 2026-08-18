@@ -273,7 +273,7 @@ class HCWEncoderField extends HCWBaseField {
         this._drawIndicator(cx, knobCy, outerRadius, this.value * 4, colors.indicator, true);
 
         // 3. Inner Arc Progress Track
-        this._drawArcTrack(ctx, cx, knobCy, innerRadius + 4, this.value2, colors.indicatorInner, 0, 360);
+        this._drawArcTrack(ctx, cx, knobCy, innerRadius + 4, this.value2, colors.indicatorInner, -90, 360);
 
         // 4. Inner Knob (Radial Gradient 3D Metallic)
         const innerGrad = ctx.createRadialGradient(cx - innerRadius * 0.3, knobCy - innerRadius * 0.3, innerRadius * 0.1, cx, knobCy, innerRadius);

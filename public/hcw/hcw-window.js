@@ -304,7 +304,7 @@ class HCWWindow {
     }
 }
 
-const HCWFactory = {
+var HCWFactory = {
     classList: {
         HCWWindow, HCWBaseField, HCWFaderField, HCWPresetField,
         HCWPreset, HCWEncoderField, HCWKeyboardField, HCWNumberField,
@@ -380,3 +380,5 @@ const HCWFactory = {
         }
     }
 };
+
+globalThis.HCWFactory = HCWFactory;
