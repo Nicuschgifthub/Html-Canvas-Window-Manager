@@ -1,11 +1,10 @@
 class FixturePatchManager {
     constructor() {
-        this._fixtures = {};      // id → FixturePatch
-        this._selected = new Set(); // set of fixture IDs currently selected
+        this._fixtures = {};
+        this._selected = new Set();
         this._nextId = 1;
-        this._listeners = [];     // change listeners
+        this._listeners = [];
     }
-
 
     addFixture(gdtfResult, opts = {}) {
         const id = `fixture_${String(this._nextId++).padStart(3, '0')}`;
@@ -30,7 +29,6 @@ class FixturePatchManager {
 
         return patch;
     }
-
 
     removeFixture(id) {
         const patch = this._fixtures[id];
