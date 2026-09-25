@@ -9,7 +9,7 @@ class FGMShowFile {
             },
             name: "My First Show",
             description: "",
-            createdByHCWArtnetType: "FullFGM", // FullFGM, CustomFGM, 12Channel, 6Channel
+            createdByHCWType: "FullFGM", // FullFGM, CustomFGM, 12Channel, 6Channel
             info: {
 
             },
