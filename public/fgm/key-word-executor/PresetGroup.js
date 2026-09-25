@@ -13,7 +13,7 @@ class KYEPresetGroup {
 
     static findPresetFunctionAndExecute(params) {
         if (!params || !params.locationId) return;
-        const presetGroup = HCWDB.getContextFieldByLocationId(params.locationId);
+        const presetGroup = params.originContext;
         if (!presetGroup) return;
         const preset = typeof presetGroup.getPresetByIndex === 'function' ? presetGroup.getPresetByIndex(params.subId) : null;
         if (!preset) return;

@@ -62,6 +62,8 @@ class FGMCommandEngine {
 
         const TargetClass = globalThis[params.keyword];
 
+        params.originContext = HCWDB.getContextFieldByLocationId(params.locationId);
+
         if (TargetClass && typeof TargetClass.command === 'function') {
             TargetClass.command(params);
         } else {

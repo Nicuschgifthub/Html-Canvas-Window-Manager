@@ -2,7 +2,7 @@ class KYETable {
     static command(params) {
         if (!params || !params.locationId || params.userAction) return;
 
-        const field = FGMContextHelper.getContextByLocationId(params.locationId);
+        const field = params.originContext;
         if (!field) return;
 
         if (params.action === 'Delete' && params.values && params.values.row !== undefined) {
