@@ -519,19 +519,10 @@ class HCWTouch {
 
         // ── GDTF fixture file ──────────────────────────────────────────────
         if (name.endsWith('.gdtf')) {
-            if (typeof GDTFParser !== 'undefined') {
-                GDTFParser.loadFromFile(file).then(result => {
-                    if (!globalThis.GDTFLibrary) globalThis.GDTFLibrary = [];
-                    globalThis.GDTFLibrary.push(result);
-
-                    if (typeof FGMShowHandler !== 'undefined' && typeof FGMShowHandler.addFixtureToShow === 'function') {
-                        FGMShowHandler.addFixtureToShow(result);
-                    }
-                }).catch(err => {
-                    console.error('GDTFParser error:', err);
-                });
+            if (typeof FixtureLibrary !== 'undefined') {
+                FixtureLibrary.importFile(file).catch(err => console.error('GDTF import failed:', err));
             } else {
-                console.error('GDTFParser is not loaded.');
+                console.error('FixtureLibrary is not loaded.');
             }
             return;
         }

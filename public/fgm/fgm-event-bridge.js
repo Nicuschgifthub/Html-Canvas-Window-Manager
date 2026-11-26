@@ -3,6 +3,9 @@ class FGMEvents {
     static backgroundClicked(data) {
         console.log("BG click");
 
+        // a pending Store / Delete / Label is cancelled by tapping the background
+        if (typeof FGMPools !== 'undefined' && FGMPools.armed) FGMPools.disarm();
+
         if (GlobalInterrupter.hasEventWaiting(GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED)) {
             GlobalInterrupter.resolveEvent(GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED, data);
             console.log(`%c Interrupted >> Action "${GLOBAL_TYPES.ACTIONS.BACKGROUND_CLICKED}" handled by waiter.`, 'color: #ffcc00; font-style: italic;');
@@ -108,6 +111,10 @@ class FGMEvents {
 
             case GLOBAL_TYPES.ACTIONS.XY_PAD_UPDATE:
                 commandString = `${keyword} ${location} At pan ${data.panDMX} tilt ${data.tiltDMX}`;
+                break;
+
+            case GLOBAL_TYPES.ACTIONS.FIXTURE_SHEET_UPDATES.ROW_PRESS:
+                commandString = `${keyword} ${location} Press Row ${data.rowId}`;
                 break;
 
             case 'ACTION_SEQUENCE_EDITOR_UPDATE':

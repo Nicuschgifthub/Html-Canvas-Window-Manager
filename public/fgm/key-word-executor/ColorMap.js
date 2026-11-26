@@ -1,9 +1,15 @@
 class KYEColorMap {
     static command(params) {
-        if (!params || !params.locationId || params.userAction) return;
+        if (!params || !params.locationId) return;
 
         const field = params.originContext;
         if (!field) return;
+
+        // user moved the control → drive whatever it is assigned to
+        if (params.userAction) {
+            FGMMapping.applyFromField(field);
+            return;
+        }
 
         if (params.values) {
             const colors = {};

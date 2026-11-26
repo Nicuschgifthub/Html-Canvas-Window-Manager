@@ -1,177 +1,222 @@
+/**
+ * FixturePatchManager — the fixture type library + the patch.
+ *
+ *   PatchManager.addType(gdtfModel)                 → typeKey
+ *   PatchManager.patch({ typeKey, modeName, count, fid, universe, address })
+ *   PatchManager.getFixture(fid) / getAllFixtures()
+ *
+ * Everything is persisted in the show file (`fixtureTypes` + `patch`).
+ * Listeners get ('patchChanged' | 'typesChanged', data).
+ */
 class FixturePatchManager {
     constructor() {
-        this._fixtures = {};
-        this._selected = new Set();
-        this._nextId = 1;
+        this._types = {};        // typeKey → parsed GDTF model
+        this._fixtures = new Map(); // fid → FixturePatch
         this._listeners = [];
     }
 
-    addFixture(gdtfResult, opts = {}) {
-        const id = `fixture_${String(this._nextId++).padStart(3, '0')}`;
+    // ── fixture type library ─────────────────────────────────────────────
 
-        const name = opts.name
-            || `${gdtfResult.manufacturer} ${gdtfResult.shortName || gdtfResult.name} #${this._nextId - 1}`;
+    static typeKeyFor(type) {
+        return `${type.manufacturer}_${type.name}`.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    }
 
-        const modeName  = opts.modeName  || (gdtfResult.modes[0]?.name ?? '');
-        const universe  = opts.universe  ?? 1;
-        const address   = opts.address   ?? this._nextFreeAddress(universe, modeName, gdtfResult);
+    /** Add (or replace) a parsed fixture type. Same manufacturer+name → same key. */
+    addType(type) {
+        const key = FixturePatchManager.typeKeyFor(type);
+        const replacing = !!this._types[key];
+        this._types[key] = type;
 
-        const patch = new FixturePatch({ id, name, gdtfResult, modeName, universe, address });
-        this._fixtures[id] = patch;
+        if (replacing) {
+            // re-bind patched fixtures of that type to the new definition
+            this._fixtures.forEach((f, fid) => {
+                if (f.typeKey === key) this._fixtures.set(fid, this._createPatch({ ...f.toJSON() }));
+            });
+        }
 
-        this._emit('fixtureAdded', { patch });
+        this._emit('typesChanged', { key });
+        if (replacing) this._emit('patchChanged', {});
+        return key;
+    }
 
-        console.log(
-            `%c ✓ Patched: ${name}  [${modeName}]  Uni${universe}/Addr${address}`,
-            'background:#00ff95; color:#000; font-size:12px; font-weight:bold; padding:2px 8px; border-radius:4px;'
-        );
-        patch.debugLog();
+    getType(key) {
+        return this._types[key] || null;
+    }
 
+    getTypes() {
+        return Object.entries(this._types).map(([key, type]) => ({ key, type }));
+    }
+
+    removeType(key) {
+        if ([...this._fixtures.values()].some(f => f.typeKey === key)) return false;
+        delete this._types[key];
+        this._emit('typesChanged', { key });
+        return true;
+    }
+
+    isTypeUsed(key) {
+        return [...this._fixtures.values()].some(f => f.typeKey === key);
+    }
+
+    // ── patch ─────────────────────────────────────────────────────────────
+
+    _createPatch({ fid, name, typeKey, modeName, universe, address }) {
+        const type = this._types[typeKey];
+        if (!type) throw new Error(`Unknown fixture type "${typeKey}"`);
+        return new FixturePatch({ fid, name, typeKey, type, modeName, universe, address });
+    }
+
+    /**
+     * Patch one or more fixtures of a type.
+     * FIDs count up from `fid`, addresses follow each other (wrapping to the next universe).
+     * Returns { fixtures, errors }.
+     */
+    patch({ typeKey, modeName, count = 1, fid = null, universe = null, address = null, name = null }) {
+        const type = this._types[typeKey];
+        if (!type) return { fixtures: [], errors: [`Unknown fixture type "${typeKey}"`] };
+        const mode = type.modes.find(m => m.name === modeName) || type.modes[0];
+        if (!mode) return { fixtures: [], errors: ['Fixture type has no DMX modes'] };
+
+        const footprint = Math.max(1, mode.footprint);
+        let nextFid = fid ?? this.nextFreeFid();
+        let pos = (universe && address) ? { universe, address } : this.nextFreeAddress(footprint);
+
+        const fixtures = [];
+        const errors = [];
+
+        for (let i = 0; i < count; i++) {
+            while (this._fixtures.has(nextFid)) nextFid++;
+            if (pos.address + footprint - 1 > 512) pos = { universe: pos.universe + 1, address: 1 };
+
+            const patch = this._createPatch({
+                fid: nextFid,
+                name: name ? (count > 1 ? `${name} ${i + 1}` : name) : `${type.shortName || type.name} ${i + 1}`,
+                typeKey,
+                modeName: mode.name,
+                universe: pos.universe,
+                address: pos.address
+            });
+
+            const clash = this.findCollisions(patch);
+            if (clash.length) errors.push(`FID ${nextFid} @ ${patch.addressString} overlaps ${clash.map(c => c.fid).join(', ')}`);
+
+            this._fixtures.set(nextFid, patch);
+            fixtures.push(patch);
+
+            nextFid++;
+            pos = { universe: pos.universe, address: pos.address + footprint };
+        }
+
+        this._emit('patchChanged', { added: fixtures.map(f => f.fid) });
+        return { fixtures, errors };
+    }
+
+    /** Change fid / name / mode / address of a patched fixture. */
+    updateFixture(fid, changes) {
+        const current = this._fixtures.get(fid);
+        if (!current) return null;
+        const next = { ...current.toJSON(), ...changes };
+
+        if (next.fid !== fid && this._fixtures.has(next.fid)) throw new Error(`FID ${next.fid} is already used`);
+
+        const patch = this._createPatch(next);
+        this._fixtures.delete(fid);
+        this._fixtures.set(patch.fid, patch);
+        this._sort();
+
+        this._emit('patchChanged', { updated: patch.fid, previousFid: fid });
         return patch;
     }
 
-    removeFixture(id) {
-        const patch = this._fixtures[id];
-        if (!patch) return;
-        delete this._fixtures[id];
-        this._selected.delete(id);
-        this._emit('fixtureRemoved', { id });
+    removeFixture(fid) {
+        if (!this._fixtures.delete(fid)) return;
+        this._emit('patchChanged', { removed: fid });
     }
 
-    selectFixture(id, additive = false) {
-        if (!additive) this._selected.clear();
-        if (this._fixtures[id]) this._selected.add(id);
-        this._emit('selectionChanged', { selected: [...this._selected] });
+    clearPatch() {
+        this._fixtures.clear();
+        this._emit('patchChanged', {});
     }
 
-    deselectFixture(id) {
-        this._selected.delete(id);
-        this._emit('selectionChanged', { selected: [...this._selected] });
-    }
-
-    selectAll() {
-        Object.keys(this._fixtures).forEach(id => this._selected.add(id));
-        this._emit('selectionChanged', { selected: [...this._selected] });
-    }
-
-    clearSelection() {
-        this._selected.clear();
-        this._emit('selectionChanged', { selected: [] });
-    }
-
-    isSelected(id) {
-        return this._selected.has(id);
-    }
-
-    getSelectedFixtures() {
-        return [...this._selected].map(id => this._fixtures[id]).filter(Boolean);
-    }
-
-
-    setAttributeOnSelection(attrName, value) {
-        const fixtures = this.getSelectedFixtures();
-        fixtures.forEach(f => {
-            if (f.hasAttribute(attrName)) {
-                f.setValue(attrName, value);
-            }
-        });
-        this._emit('attributeChanged', { attrName, value, fixtures: fixtures.map(f => f.id) });
-    }
-
-
-    nudgeAttributeOnSelection(attrName, delta) {
-        const fixtures = this.getSelectedFixtures();
-        fixtures.forEach(f => {
-            if (f.hasAttribute(attrName)) {
-                f.setValue(attrName, f.getValue(attrName) + delta);
-            }
-        });
-        this._emit('attributeChanged', { attrName, delta, fixtures: fixtures.map(f => f.id) });
-    }
-
-
-    getConsensusValue(attrName) {
-        const fixtures = this.getSelectedFixtures().filter(f => f.hasAttribute(attrName));
-        if (fixtures.length === 0) return 0;
-        const sum = fixtures.reduce((acc, f) => acc + f.getValue(attrName), 0);
-        return sum / fixtures.length;
-    }
-
-
-    getSharedAttributes() {
-        const fixtures = this.getSelectedFixtures();
-        if (fixtures.length === 0) return [];
-
-        let shared = fixtures[0].attributes;
-        for (let i = 1; i < fixtures.length; i++) {
-            shared = shared.filter(a => fixtures[i].hasAttribute(a));
-        }
-        return shared;
-    }
-
-
-    getUnionAttributes() {
-        const fixtures = this.getSelectedFixtures();
-        const all = new Set();
-        fixtures.forEach(f => f.attributes.forEach(a => all.add(a)));
-        return [...all];
-    }
-
-
-    getAttributeSummary() {
-        const shared = this.getSharedAttributes();
-        const groups = {};
-
-        shared.forEach(attrName => {
-            const def = AttributeBook.get(attrName);
-            if (!def) return;
-            if (!groups[def.featureGroup]) groups[def.featureGroup] = [];
-            groups[def.featureGroup].push({
-                name:            attrName,
-                pretty:          def.pretty,
-                icon:            def.icon,
-                feature:         def.feature,
-                physicalUnit:    def.physicalUnit,
-                encoderBehaviour: def.encoderBehaviour,
-                defaultMin:      def.defaultMin,
-                defaultMax:      def.defaultMax,
-                value:           this.getConsensusValue(attrName),  // 0.0 – 1.0
-                is16bit:         this.getSelectedFixtures().some(f => f.attributeMap[attrName]?.is16bit)
-            });
-        });
-
-        return groups;
-    }
-
-    getFixture(id) {
-        return this._fixtures[id] || null;
+    getFixture(fid) {
+        return this._fixtures.get(Number(fid)) || null;
     }
 
     getAllFixtures() {
-        return Object.values(this._fixtures);
+        return [...this._fixtures.values()];
     }
 
     get count() {
-        return Object.keys(this._fixtures).length;
+        return this._fixtures.size;
     }
 
+    _sort() {
+        this._fixtures = new Map([...this._fixtures.entries()].sort((a, b) => a[0] - b[0]));
+    }
 
-    getDMXState() {
-        const state = {};
-        Object.values(this._fixtures).forEach(f => {
-            if (!state[f.universe]) state[f.universe] = {};
-            f.getAllDMXBytes().forEach(({ address, value }) => {
-                state[f.universe][address] = value;
+    nextFreeFid() {
+        let fid = 1;
+        this._fixtures.forEach((_, k) => { if (k >= fid) fid = k + 1; });
+        return fid;
+    }
+
+    /** First address after the highest used one that fits `footprint` channels. */
+    nextFreeAddress(footprint = 1) {
+        let universe = 1;
+        let address = 1;
+        this._fixtures.forEach(f => {
+            f.getOccupiedAddresses().forEach(a => {
+                if (a.universe > universe || (a.universe === universe && a.address + 1 > address)) {
+                    universe = a.universe;
+                    address = a.address + 1;
+                }
             });
         });
-        return state;
+        if (address + footprint - 1 > 512) return { universe: universe + 1, address: 1 };
+        return { universe, address };
+    }
+
+    /** Other fixtures that share at least one DMX address with `patch`. */
+    findCollisions(patch) {
+        const mine = new Set(patch.getOccupiedAddresses().map(a => `${a.universe}.${a.address}`));
+        return this.getAllFixtures().filter(f => f.fid !== patch.fid &&
+            f.getOccupiedAddresses().some(a => mine.has(`${a.universe}.${a.address}`)));
+    }
+
+    // ── show file persistence ────────────────────────────────────────────
+
+    typesToJSON() {
+        return JSON.parse(JSON.stringify(this._types));
     }
 
     toJSON() {
-        return {
-            fixtures: Object.values(this._fixtures).map(f => f.toJSON())
-        };
+        return this.getAllFixtures().map(f => f.toJSON());
     }
+
+    loadFromShow(showFile) {
+        this._types = {};
+        this._fixtures = new Map();
+
+        Object.entries(showFile.fixtureTypes || {}).forEach(([key, type]) => {
+            if (type && type.modelVersion === GDTFParser.MODEL_VERSION) this._types[key] = type;
+            else console.warn(`PatchManager: fixture type "${key}" was saved by an older parser — re-import the .gdtf`);
+        });
+
+        (showFile.patch || []).forEach(entry => {
+            try {
+                const p = this._createPatch(entry);
+                this._fixtures.set(p.fid, p);
+            } catch (e) {
+                console.warn(`PatchManager: could not restore FID ${entry.fid}: ${e.message}`);
+            }
+        });
+        this._sort();
+
+        this._emit('typesChanged', {});
+        this._emit('patchChanged', {});
+    }
+
+    // ── events ───────────────────────────────────────────────────────────
 
     on(callback) {
         this._listeners.push(callback);
@@ -180,28 +225,8 @@ class FixturePatchManager {
 
     _emit(event, data) {
         this._listeners.forEach(cb => {
-            try { cb(event, data); } catch (e) { console.error('FixturePatchManager listener error:', e); }
+            try { cb(event, data); } catch (e) { console.error('PatchManager listener error:', e); }
         });
-    }
-
-    _nextFreeAddress(universe, modeName, gdtfResult) {
-
-        const mode = gdtfResult.modes.find(m => m.name === modeName) || gdtfResult.modes[0];
-        const footprint = mode ? mode.channelCount : 1;
-
-        const used = Object.values(this._fixtures)
-            .filter(f => f.universe === universe)
-            .map(f => f.address + f.channelCount - 1);
-
-        const highestUsed = used.length > 0 ? Math.max(...used) : 0;
-        return Math.min(highestUsed + 1, 513 - footprint);
-    }
-
-    debugLog() {
-        console.group('%c🎭 Fixture Patch Manager', 'color:#00ff95; font-weight:bold; font-size:13px;');
-        console.log(`Total fixtures: ${this.count} | Selected: ${this._selected.size}`);
-        Object.values(this._fixtures).forEach(f => f.debugLog());
-        console.groupEnd();
     }
 }
 

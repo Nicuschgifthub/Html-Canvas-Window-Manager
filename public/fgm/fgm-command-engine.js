@@ -43,7 +43,7 @@ class FGMCommandEngine {
             }
 
             // Identify Key-Value Pairs (r 255, g 0, inner 127)
-            if (['r', 'g', 'b', 'c', 'a', 'u', 'inner', 'outer', 'value', 'byte'].includes(lowerToken)) {
+            if (['r', 'g', 'b', 'w', 'c', 'a', 'u', 'inner', 'outer', 'value', 'byte', 'pan', 'tilt'].includes(lowerToken)) {
                 params.values[lowerToken] = nextToken;
             }
         });

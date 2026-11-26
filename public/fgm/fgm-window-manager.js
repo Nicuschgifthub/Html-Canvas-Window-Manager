@@ -59,7 +59,7 @@ class FGMWindowManager {
                 windowBuildValues.sy = 200;
                 windowBuildValues.minSizeX = 150;
                 windowBuildValues.minSizeY = 150;
-                return new HCWCustomEncoderField(`Custom Wheel ${locationId}`).setLocationId(locationId);
+                return new HCWCustomEncoderField(`Wheel ${locationId}`).setLocationId(locationId);
             },
             keyboard() {
                 windowBuildValues.sx = 500;
@@ -112,6 +112,15 @@ class FGMWindowManager {
                             .setData({ _presetNumber: i })
                     )
                 );
+            },
+            fixtureSheet() {
+                windowBuildValues.sx = 600;
+                windowBuildValues.sy = 300;
+                windowBuildValues.minSizeX = 300;
+                windowBuildValues.minSizeY = 200;
+                const sheet = new HCWFixtureSheetField(`Fixture Sheet ${locationId}`).setLocationId(locationId);
+                FGMFixtureSheet.refreshField(sheet);
+                return sheet;
             },
             pageMenu() {
                 return FGMWindowManager._getPageMenu();

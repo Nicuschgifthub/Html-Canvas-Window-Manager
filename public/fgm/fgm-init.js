@@ -17,6 +17,15 @@ class FGMLoadFiles {
             '/fgm/fgm-event-bridge.js',
             '/fgm/fgm-window-manager.js',
             '/fgm/fgm-window-settings.js',
+            '/fgm/fgm-modal.js',
+            '/fgm/fgm-mapping.js',
+            '/fgm/fgm-pools.js',
+            '/fgm/fgm-fixture-sheet.js',
+            // panels (config menu)
+            '/fgm/panels/patch-panel.js',
+            '/fgm/panels/assign-panel.js',
+            '/fgm/panels/library-panel.js',
+            '/fgm/panels/output-panel.js',
             // Input devices
             'fgm/input-device-interactions/fgm-keyboard-interaction.js',
             'fgm/input-device-interactions/fgm-presetGroup-interaction.js',
@@ -24,9 +33,11 @@ class FGMLoadFiles {
             'fgm/key-word-executor/PresetGroup.js',
             'fgm/key-word-executor/Fader.js',
             'fgm/key-word-executor/Encoder.js',
+            'fgm/key-word-executor/CustomEncoder.js',
             'fgm/key-word-executor/ColorMap.js',
             'fgm/key-word-executor/Table.js',
             'fgm/key-word-executor/XYPad.js',
+            'fgm/key-word-executor/FixtureSheet.js',
         ]
     }
 

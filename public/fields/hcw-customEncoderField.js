@@ -149,8 +149,21 @@ class HCWCustomEncoderField extends HCWBaseField {
         this._lastInteractionAngle = currentAngle;
     }
 
-    setWheelData(dataArray) {
+    getExcludedJSONKeys() {
+        // images are runtime objects; generated wheel data is rebuilt from the GDTF on load
+        const keys = [...super.getExcludedJSONKeys(), 'iconCache', '_loadedImage'];
+        if (this.generatedWheel) keys.push('wheelData');
+        return keys;
+    }
+
+    /**
+     * dataArray: [{ range: [from, to] | [[from, to], …], data: '#hex' | imageUrl | [two keys for a split], label? }]
+     * ranges are in the outer ring's 0-255 space.
+     */
+    setWheelData(dataArray, generated = false) {
+        this.generatedWheel = !!generated;
         this.wheelData = Array.isArray(dataArray) ? dataArray : [];
+        if (!this.iconCache) this.iconCache = {};
         this.wheelData.forEach(item => {
             const keys = Array.isArray(item.data) ? item.data : [item.data];
             keys.forEach(key => {
@@ -165,6 +178,12 @@ class HCWCustomEncoderField extends HCWBaseField {
             });
         });
         return this;
+    }
+
+    _fitText(ctx, text, maxWidth) {
+        if (ctx.measureText(text).width <= maxWidth) return text;
+        while (text.length > 1 && ctx.measureText(text + '…').width > maxWidth) text = text.slice(0, -1);
+        return text + '…';
     }
 
     setCenterImage(src) {
@@ -265,12 +284,15 @@ class HCWCustomEncoderField extends HCWBaseField {
 
         // 5. Center Active Gobo / Color Slot Wheel
         let activeKeys = [];
+        let activeLabel = null;
         const dmx = Math.round(this.value * 255);
+        const iconCache = this.iconCache || {};
 
-        this.wheelData.forEach(item => {
+        (this.wheelData || []).forEach(item => {
             const ranges = Array.isArray(item.range[0]) ? item.range : [item.range];
             const match = ranges.some(r => dmx >= r[0] && dmx <= r[1]);
             if (match) {
+                if (item.label && !activeLabel) activeLabel = item.label;
                 if (Array.isArray(item.data)) {
                     activeKeys.push(...item.data);
                 } else {
@@ -290,7 +312,7 @@ class HCWCustomEncoderField extends HCWBaseField {
                 ctx.beginPath();
                 ctx.moveTo(cx, knobCy);
                 ctx.arc(cx, knobCy, innerRadius, i * sliceAngle - Math.PI / 2, (i + 1) * sliceAngle - Math.PI / 2);
-                const img = this.iconCache[key];
+                const img = iconCache[key];
                 if (img && img.complete) {
                     ctx.save(); ctx.clip();
                     ctx.drawImage(img, cx - innerRadius, knobCy - innerRadius, innerRadius * 2, innerRadius * 2);
@@ -320,8 +342,8 @@ class HCWCustomEncoderField extends HCWBaseField {
 
         // 6. Dual Readout Badges at Bottom
         if (showText && sy >= 140) {
-            const v1Str = `DMX: ${dmx}`;
-            const v2Str = `Fine: ${Math.round(this.value2 * 255)}`;
+            const v1Str = activeLabel || `DMX: ${dmx}`;
+            const v2Str = activeLabel ? `${dmx} · ${Math.round(this.value2 * 255)}` : `Fine: ${Math.round(this.value2 * 255)}`;
 
             const badgeH = 22;
             const badgeW = (sx - 30) / 2;
@@ -336,7 +358,7 @@ class HCWCustomEncoderField extends HCWBaseField {
             ctx.fillStyle = colors.indicator;
             ctx.font = GS.FONTS.MONO_READOUT;
             ctx.textAlign = "center";
-            ctx.fillText(v1Str, x + 10 + badgeW / 2, badgeY + badgeH / 2 + 4);
+            ctx.fillText(this._fitText(ctx, v1Str, badgeW - 6), x + 10 + badgeW / 2, badgeY + badgeH / 2 + 4);
 
             ctx.fillStyle = '#111111';
             ctx.fillRect(x + 20 + badgeW, badgeY, badgeW, badgeH);

@@ -20,7 +20,11 @@ _DEFS_STORE.add('window-settings', (input) => {
             label: "Location ID",
             getValue: () => targetContext.getLocationId(),
             getKeyboardValue: () => targetContext.getLocationId(), // Overridden for strings
-            setterFunction: (value) => targetContext.setLocationId(value),
+            setterFunction: (value) => {
+                FGMMapping.moveLocation(targetContext.getLocationId(), value);
+                targetContext.setLocationId(value);
+                FGMMapping.refreshField(targetContext, true);
+            },
             isReadOnly: targetContext.getLocationId().startsWith("0"),
             setterValueVerify: (newValue) => {
                 const val = newValue.toString().trim();
@@ -30,6 +34,26 @@ _DEFS_STORE.add('window-settings', (input) => {
                 if (exists && exists !== targetContext) return { valid: false, infoText: `ID ${val} used by "${exists.getLabel()}"` };
                 return { valid: true, infoText: "" };
             }
+        },
+        // What the control does (fixture attribute, fixture select, …)
+        {
+            label: "Function",
+            _onlyIf: () => FGMMapping.isAssignable(targetContext),
+            getValue: () => FGMMapping.describe(FGMMapping.get(targetContext.getLocationId())),
+            onPress: () => FGMAssignPanel.chooseFor(targetContext)
+        },
+        // Fixture sheet
+        {
+            label: "Columns",
+            _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.FIXTURE_SHEET,
+            getValue: () => FGMFixtureSheet.describeGroups(targetContext),
+            onPress: () => FGMFixtureSheet.chooseGroups(targetContext)
+        },
+        {
+            label: "Values",
+            _forContextTypeOnly: GLOBAL_TYPES.CONTEXT_FIELDS.FIXTURE_SHEET,
+            getValue: () => (FGMFixtureSheet.DISPLAY_MODES.find(m => m.value === (targetContext.getSheetOptions().display || 'auto')) || {}).label,
+            onPress: () => FGMFixtureSheet.chooseDisplay(targetContext)
         },
         // Faders
         {

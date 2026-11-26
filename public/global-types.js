@@ -129,6 +129,14 @@ class GLOBAL_TYPES {
                 }
             },
 
+            get FIXTURE_SHEET_UPDATES() {
+                return {
+                    get ROW_PRESS() {
+                        return 'ACTION_FIXTURE_SHEET_ROW_PRESS';
+                    }
+                }
+            },
+
             get SEARCH_UPDATES() {
                 return {
                     get RESULT_PRESS() {
@@ -193,6 +201,9 @@ class GLOBAL_TYPES {
             },
             get SETTINGS() {
                 return 'CONTEXT_FIELD_SETTINGS';
+            },
+            get FIXTURE_SHEET() {
+                return 'CONTEXT_FIELD_FIXTURE_SHEET';
             }
         }
     }
@@ -244,6 +255,9 @@ class GLOBAL_TYPES {
                     },
                     get SETTINGS() {
                         return 'Settings';
+                    },
+                    get FIXTURE_SHEET() {
+                        return 'FixtureSheet';
                     }
                 }
             }
@@ -289,8 +303,17 @@ class GLOBAL_TYPES {
                     get COLOR() {
                         return 'pool_type_color';
                     },
-                    get SHUTTER() {
-                        return 'pool_type_shutter';
+                    get GOBO() {
+                        return 'pool_type_gobo';
+                    },
+                    get BEAM() {
+                        return 'pool_type_beam';
+                    },
+                    get FOCUS() {
+                        return 'pool_type_focus';
+                    },
+                    get ALL() {
+                        return 'pool_type_all';
                     }
                 }
             }

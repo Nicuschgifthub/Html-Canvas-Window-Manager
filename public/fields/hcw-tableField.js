@@ -13,6 +13,7 @@ class HCWTableField extends HCWBaseField {
 
         this.rowHeight = 35;
         this.headerHeight = 40;
+        this.titleHeight = 0; // > 0 when setTitleBar(true): the label is drawn above the headers
         this.addBtnHeight = 40;
 
         this.scrollY = 0;
@@ -80,6 +81,21 @@ class HCWTableField extends HCWBaseField {
     setButtonRemoveRow(addButton = true) {
         this.showRemoveButton = addButton;
         return this;
+    }
+
+    /** Show the field label as a title bar above the column headers (table mode). */
+    setTitleBar(show = true) {
+        this.titleHeight = show ? 28 : 0;
+        this.updateFrame();
+        return this;
+    }
+
+    /** Shorten text with "…" so it fits into maxWidth. */
+    _fit(ctx, text, maxWidth) {
+        text = String(text ?? '');
+        if (ctx.measureText(text).width <= maxWidth) return text;
+        while (text.length > 1 && ctx.measureText(text + '…').width > maxWidth) text = text.slice(0, -1);
+        return text + '…';
     }
 
     setRenderMode(mode) {
@@ -166,7 +182,7 @@ class HCWTableField extends HCWBaseField {
         const addBtnTotalH = (this.addRowLabel != null) ? (this.addBtnHeight + 20) : 10;
         const contentHeight = rowsHeight + addBtnTotalH;
 
-        const hH = this.renderMode === 'table' ? this.headerHeight : 0;
+        const hH = this.renderMode === 'table' ? this.headerHeight + this.titleHeight : 0;
         const viewHeight = this.renderProps.sy - hH;
 
         if (contentHeight <= viewHeight) {
@@ -219,8 +235,20 @@ class HCWTableField extends HCWBaseField {
         ctx.fillStyle = colors.background;
         ctx.fillRect(w.x, w.y, w.sx, w.sy);
 
+        if (this.titleHeight > 0) {
+            ctx.fillStyle = '#141414';
+            ctx.fillRect(w.x, w.y, w.sx, this.titleHeight);
+            ctx.fillStyle = GS.PALETTE.ACCENT_GREEN;
+            ctx.fillRect(w.x, w.y + this.titleHeight - 2, w.sx, 2);
+            ctx.fillStyle = colors.headerText;
+            ctx.font = GS.FONTS.TITLE;
+            ctx.textAlign = 'left';
+            ctx.fillText(this._fit(ctx, this.getLabel(), w.sx - pad * 2), w.x + pad, w.y + 18);
+        }
+        const headerY = w.y + this.titleHeight;
+
         ctx.fillStyle = colors.headerBg;
-        ctx.fillRect(w.x, w.y, w.sx, this.headerHeight);
+        ctx.fillRect(w.x, headerY, w.sx, this.headerHeight);
 
         ctx.fillStyle = colors.headerText;
         ctx.font = GS.FONTS.HEADER;
@@ -228,12 +256,12 @@ class HCWTableField extends HCWBaseField {
 
         this.headers.forEach((header, i) => {
             const x = w.x + pad + i * colW;
-            ctx.fillText(header, x + colW / 2, w.y + this.headerHeight / 2 + 5);
+            ctx.fillText(this._fit(ctx, header, colW - 4), x + colW / 2, headerY + this.headerHeight / 2 + 5);
         });
 
         ctx.save();
-        const contentAreaY = w.y + this.headerHeight;
-        const contentAreaH = w.sy - this.headerHeight;
+        const contentAreaY = headerY + this.headerHeight;
+        const contentAreaH = w.sy - this.headerHeight - this.titleHeight;
 
         ctx.beginPath();
         ctx.rect(w.x, contentAreaY, w.sx, contentAreaH);
@@ -252,7 +280,7 @@ class HCWTableField extends HCWBaseField {
             row.forEach((cell, colIndex) => {
                 const cellX = w.x + pad + colIndex * colW;
                 ctx.fillStyle = colors.cellText;
-                ctx.fillText(cell, cellX + colW / 2, rowY + this.rowHeight / 2 + 5);
+                ctx.fillText(this._fit(ctx, cell, colW - 6), cellX + colW / 2, rowY + this.rowHeight / 2 + 5);
 
                 this.renderProps.cells.push({
                     x: cellX, y: rowY, w: colW, h: this.rowHeight, rowIndex, colIndex, value: cell
@@ -280,7 +308,7 @@ class HCWTableField extends HCWBaseField {
         for (let i = 1; i < this.headers.length; i++) {
             const x = w.x + pad + i * colW;
             ctx.beginPath();
-            ctx.moveTo(x, w.y + this.headerHeight);
+            ctx.moveTo(x, headerY + this.headerHeight);
             ctx.lineTo(x, w.y2);
             ctx.stroke();
         }

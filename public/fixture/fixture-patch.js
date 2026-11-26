@@ -1,130 +1,204 @@
+/**
+ * FixturePatch — one patched fixture: a fixture type (from GDTFParser), a DMX
+ * mode, a fixture id (FID) and a DMX address.
+ *
+ * It knows *where* its channels are and *which channel functions* exist on them.
+ * It does not store values — the Programmer does that, DMXOutput renders them.
+ */
 class FixturePatch {
 
-    constructor({ id, name, gdtfResult, modeName, universe, address }) {
-        this.id = id;
+    /**
+     * @param {object} opts
+     * @param {number} opts.fid        user facing fixture id (e.g. 101)
+     * @param {string} opts.name
+     * @param {string} opts.typeKey    key into PatchManager's fixture type library
+     * @param {object} opts.type       parsed GDTF fixture type model
+     * @param {string} opts.modeName
+     * @param {number} opts.universe   1-based
+     * @param {number} opts.address    1-based start address of DMX break 1
+     */
+    constructor({ fid, name, typeKey, type, modeName, universe, address }) {
+        this.fid = fid;
         this.name = name;
-        this.gdtfResult = gdtfResult;
-        this.universe = universe;
-        this.address = address; // 1-indexed DMX start address
+        this.typeKey = typeKey;
+        this.type = type;
 
-        this.mode = gdtfResult.modes.find(m => m.name === modeName)
-            || gdtfResult.modes[0]
-            || null;
-
+        this.mode = type.modes.find(m => m.name === modeName) || type.modes[0] || null;
         this.modeName = this.mode ? this.mode.name : 'Unknown';
 
-        this.attributeMap = {};
+        this.universe = universe;
+        this.address = address;
 
-        this._values = {};
-
-        this._buildAttributeMap();
+        this._buildIndex();
     }
 
-    _buildAttributeMap() {
-        if (!this.mode) return;
+    _buildIndex() {
+        this.channels = this.mode ? this.mode.channels : [];
+        this._channelByKey = {};
+        this._channelByName = {};
+        this._byAttribute = {};
 
-        this.mode.channels.forEach(ch => {
-
-            const attrDef = AttributeBook.resolve(ch.attribute);
-            if (!attrDef) return; // unknown / unmapped attribute — skip
-
-            const canonName = attrDef.name;
-
-            const absoluteOffsets = ch.offset.map(o => this.address + o - 1);
-
-            this.attributeMap[canonName] = {
-                attribute: attrDef,       // full attribute definition
-                offsets: absoluteOffsets,// absolute 1-indexed DMX addresses
-                is16bit: ch.is16bit,
-                rawDefault: ch.default,
-                geometry: ch.geometry,
-            };
-
-            this._values[canonName] = 0;
+        this.channels.forEach(ch => {
+            this._channelByKey[ch.key] = ch;
+            if (!this._channelByName[ch.name]) this._channelByName[ch.name] = ch;
+            const seen = new Set();
+            ch.functions.forEach(fn => {
+                if (seen.has(fn.attribute)) return;
+                seen.add(fn.attribute);
+                (this._byAttribute[fn.attribute] = this._byAttribute[fn.attribute] || []).push(ch);
+            });
         });
     }
 
-    hasAttribute(attrName) {
-        return !!this.attributeMap[attrName];
+    // ── identity ─────────────────────────────────────────────────────────
+
+    get label() {
+        return `${this.fid} ${this.name}`;
     }
 
-    getValue(attrName) {
-        return this._values[attrName] ?? 0;
+    get footprint() {
+        return this.mode ? this.mode.footprint : 0;
     }
 
-    setValue(attrName, normalisedValue) {
-        if (!this.attributeMap[attrName]) return;
-        this._values[attrName] = Math.max(0, Math.min(1, normalisedValue));
+    get typeName() {
+        return `${this.type.manufacturer} ${this.type.name}`;
     }
 
-    getDMXBytes(attrName) {
-        const map = this.attributeMap[attrName];
-        if (!map) return [];
+    /** "1.001" style address of break 1 */
+    get addressString() {
+        return `${this.universe}.${String(this.address).padStart(3, '0')}`;
+    }
 
-        const norm = this._values[attrName] ?? 0;
+    // ── addressing ───────────────────────────────────────────────────────
 
-        if (map.is16bit && map.offsets.length === 2) {
-            const raw16 = Math.round(norm * 65535);
-            const coarse = (raw16 >> 8) & 0xFF;
-            const fine = raw16 & 0xFF;
-            return [
-                { address: map.offsets[0], value: coarse },
-                { address: map.offsets[1], value: fine }
-            ];
-        } else {
-            const raw8 = Math.round(norm * 255);
-            return [{ address: map.offsets[0], value: raw8 }];
+    /**
+     * Start of a DMX break. Break 1 is the patched address; further breaks
+     * follow on directly after the previous break (overflowing to the next universe).
+     */
+    getBreakStart(dmxBreak = 1) {
+        let universe = this.universe;
+        let address = this.address;
+        const breaks = this.mode ? this.mode.breaks : {};
+        for (let b = 1; b < dmxBreak; b++) {
+            address += breaks[b] || 0;
+            const nextSize = breaks[b + 1] || 0;
+            if (address + nextSize - 1 > 512) { universe++; address = 1; }
         }
+        return { universe, address };
     }
 
-    getAllDMXBytes() {
-        const result = [];
-        Object.keys(this.attributeMap).forEach(attrName => {
-            result.push(...this.getDMXBytes(attrName));
-        });
-
-        return result.sort((a, b) => a.address - b.address);
+    /** Absolute { universe, address } for every byte of a channel, coarse first. */
+    getChannelAddresses(channel) {
+        const start = this.getBreakStart(channel.dmxBreak);
+        return channel.offsets.map(o => ({ universe: start.universe, address: start.address + o - 1 }));
     }
 
-    get channelCount() {
-        return this.mode ? this.mode.channelCount : 0;
+    /** Every universe/address this fixture occupies (for collision checks). */
+    getOccupiedAddresses() {
+        const out = [];
+        this.channels.forEach(ch => out.push(...this.getChannelAddresses(ch)));
+        return out;
     }
 
+    // ── channel / function lookup ────────────────────────────────────────
 
+    getChannel(key) {
+        return this._channelByKey[key] || null;
+    }
+
+    getChannelByName(name) {
+        return this._channelByName[name] || null;
+    }
+
+    hasAttribute(attribute) {
+        return !!this._byAttribute[attribute];
+    }
+
+    /** Attributes of every channel function in this mode. */
     get attributes() {
-        return Object.keys(this.attributeMap);
+        return Object.keys(this._byAttribute);
     }
+
+    /** Channels that have at least one function with this attribute. */
+    getChannelsForAttribute(attribute) {
+        return this._byAttribute[attribute] || [];
+    }
+
+    /**
+     * Pick the channel function for `attribute` on `channel`.
+     * When a channel has several functions with the same attribute (mode
+     * dependent functions, or e.g. "Open" appearing three times on a shutter
+     * channel) the one whose ModeMaster condition is currently met wins.
+     *
+     * @param {function} readChannel  (channelName) → current raw value, used for ModeMaster checks
+     */
+    pickFunction(channel, attribute, readChannel = null) {
+        const candidates = channel.functions.filter(f => f.attribute === attribute);
+        if (candidates.length <= 1) return candidates[0] || null;
+
+        if (readChannel) {
+            const active = candidates.find(f => this.isFunctionActive(f, readChannel));
+            if (active) return active;
+        }
+        return candidates.find(f => !f.modeMaster) || candidates[0];
+    }
+
+    isFunctionActive(fn, readChannel) {
+        if (!fn.modeMaster) return true;
+        const masterName = fn.modeMaster.split('.')[0];
+        const master = this.getChannelByName(masterName);
+        if (!master) return true;
+        const value = readChannel(master);
+        const from = GDTFParser.parseDMXValue(fn.modeFrom, master.bytes);
+        const to = GDTFParser.parseDMXValue(fn.modeTo, master.bytes);
+        return value >= from && value <= to;
+    }
+
+    /** The function a raw value on `channel` falls into (respecting ModeMaster). */
+    decodeValue(channel, raw, readChannel = null) {
+        const fn = channel.functions.find(f =>
+            raw >= f.dmxFrom && raw <= f.dmxTo && (!readChannel || this.isFunctionActive(f, readChannel))
+        ) || null;
+        const set = fn ? fn.sets.find(s => s.name && raw >= s.dmxFrom && raw <= s.dmxTo) || null : null;
+        return { fn, set };
+    }
+
+    // ── value conversion inside a function ───────────────────────────────
+
+    static normToRaw(fn, norm) {
+        const n = Math.max(0, Math.min(1, norm));
+        return Math.round(fn.dmxFrom + n * (fn.dmxTo - fn.dmxFrom));
+    }
+
+    static rawToNorm(fn, raw) {
+        const span = fn.dmxTo - fn.dmxFrom;
+        if (span <= 0) return 0;
+        return Math.max(0, Math.min(1, (raw - fn.dmxFrom) / span));
+    }
+
+    static physicalToRaw(fn, physical) {
+        const span = fn.physicalTo - fn.physicalFrom;
+        if (span === 0) return fn.dmxFrom;
+        return FixturePatch.normToRaw(fn, (physical - fn.physicalFrom) / span);
+    }
+
+    static rawToPhysical(fn, raw) {
+        return fn.physicalFrom + FixturePatch.rawToNorm(fn, raw) * (fn.physicalTo - fn.physicalFrom);
+    }
+
+    // ── serialisation ────────────────────────────────────────────────────
 
     toJSON() {
         return {
-            id: this.id,
+            fid: this.fid,
             name: this.name,
-            gdtfName: this.gdtfResult.name,
-            manufacturer: this.gdtfResult.manufacturer,
+            typeKey: this.typeKey,
             modeName: this.modeName,
             universe: this.universe,
-            address: this.address,
-            values: { ...this._values }
+            address: this.address
         };
-    }
-
-    debugLog() {
-        console.group(`%c🔦 Patch: ${this.name}`, 'color:#00ff95; font-weight:bold;');
-        console.log(`Fixture: ${this.gdtfResult.manufacturer} ${this.gdtfResult.name}`);
-        console.log(`Mode: "${this.modeName}"  |  Universe: ${this.universe}  |  Address: ${this.address}  |  Footprint: ${this.channelCount}ch`);
-        console.log(`Mapped attributes: ${this.attributes.length} of ${this.mode?.channels.length || 0} channels`);
-        console.table(
-            Object.entries(this.attributeMap).map(([name, map]) => ({
-                'Attribute': name,
-                'Pretty': map.attribute.pretty,
-                'Feature Group': map.attribute.featureGroup,
-                'DMX Addr': map.offsets.join(', '),
-                '16-bit': map.is16bit ? '✓' : '',
-                'Current Value': (this._values[name] * 100).toFixed(1) + '%',
-            }))
-        );
-        console.groupEnd();
     }
 }
 
 globalThis.FixturePatch = FixturePatch;
+if (typeof module !== 'undefined') module.exports = FixturePatch;

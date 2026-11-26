@@ -64,6 +64,7 @@ class FGMWindowSettings {
         });
 
         const rowDefinitions = rawDefinitions.filter(def => {
+            if (def._onlyIf && !def._onlyIf()) return false;
             if (!def._forContextTypeOnly) return true;
             if (Array.isArray(def._forContextTypeOnly)) return def._forContextTypeOnly.includes(currentType);
             return def._forContextTypeOnly === currentType;
@@ -107,6 +108,7 @@ class FGMWindowSettings {
 
         if (GlobalActionType !== GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_PRESS) {
             if (GlobalActionType == GLOBAL_TYPES.ACTIONS.TABLE_UPDATES.CELL_ADD) {
+                FGMMapping.remove(targetContext.getLocationId());
                 HCWDB.removeWindowByWindowId(targetWindow.getId());
             }
             FGMShowHandler.setPageCursor();
@@ -117,6 +119,22 @@ class FGMWindowSettings {
 
         const { rowIndex, colIndex } = resolvedAction;
         const definition = rowDefinitions[rowIndex];
+
+        // rows with their own flow (e.g. "Function" → assignment chooser)
+        if (colIndex === 1 && definition && typeof definition.onPress === 'function') {
+            settingsWindow.setHidden(true);
+            try {
+                await definition.onPress();
+            } catch (e) {
+                console.error("Settings row action error:", e);
+            } finally {
+                settingsWindow.getContextField().setRows(rowDefinitions.map(def => [def.label, def.getValue()]));
+                FGMShowHandler.setPageEmpty();
+                settingsWindow.setHidden(false);
+                HCWRender.updateFrame();
+            }
+            return this.settingsLoop(data);
+        }
 
         if (colIndex === 1 && definition && !definition.isReadOnly) {
             settingsWindow.setHidden(true);

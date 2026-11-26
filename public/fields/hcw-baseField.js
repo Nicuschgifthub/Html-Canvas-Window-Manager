@@ -49,6 +49,19 @@ class HCWBaseField {
         return this.parentWindow;
     }
 
+    /**
+     * Short text shown on the window frame (e.g. what a fader is assigned to).
+     * Drawn by HCWRender — fields don't need to handle it themselves.
+     */
+    setTag(text = null, color = null) {
+        this.tag = text ? { text: String(text), color } : null;
+        return this;
+    }
+
+    getTag() {
+        return this.tag || null;
+    }
+
     updateFrame() {
         if (typeof HCWRender !== 'undefined') {
             HCWRender.updateFrame();
@@ -139,6 +152,9 @@ class HCWBaseField {
                 break;
             case "HCW3DViewerField":
                 this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.VIEWER_3D;
+                break;
+            case "HCWFixtureSheetField":
+                this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.FIXTURE_SHEET;
                 break;
             case "HCWSettingsField":
                 this.address.keyword = GLOBAL_TYPES.CONSOLE.KEYWORDS.SETTINGS;

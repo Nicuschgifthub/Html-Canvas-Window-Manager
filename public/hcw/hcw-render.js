@@ -81,6 +81,34 @@ class HCWRender {
         this._drawBaseBox(window);
         this._drawTouchZones(window);
         this.drawContextField(window);
+        this._drawTag(window);
+    }
+
+    /** Field tag (e.g. "Dimmer · Sel") printed on the bottom frame of the window. */
+    static _drawTag(window) {
+        const field = window.getContextField();
+        const tag = field && typeof field.getTag === 'function' ? field.getTag() : null;
+        if (!tag || !HCW.ctx) return;
+
+        const ctx = HCW.ctx;
+        const zone = window.touchzone || 12;
+        const maxW = window.sx - zone * 2;
+        if (maxW < 20) return;
+
+        ctx.save();
+        ctx.font = 'bold 10px Arial, sans-serif';
+        let text = tag.text;
+        while (text.length > 1 && ctx.measureText(text).width + 8 > maxW) text = text.slice(0, -2) + '…';
+        const w = Math.min(maxW, ctx.measureText(text).width + 8);
+        const x = window.x + zone;
+        const y = window.y + window.sy - zone;
+
+        ctx.fillStyle = tag.color || '#0b3d27';
+        ctx.fillRect(x, y, w, zone);
+        ctx.fillStyle = '#00ff95';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x + 4, y + zone / 2 + 1);
+        ctx.restore();
     }
 
     static drawBackgroundBoxDrag() {
