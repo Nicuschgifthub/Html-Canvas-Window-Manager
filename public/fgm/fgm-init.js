@@ -21,6 +21,7 @@ class FGMLoadFiles {
             '/fgm/fgm-mapping.js',
             '/fgm/fgm-pools.js',
             '/fgm/fgm-fixture-sheet.js',
+            '/fgm/fgm-effect-engine.js',
             // panels (config menu)
             '/fgm/panels/patch-panel.js',
             '/fgm/panels/assign-panel.js',

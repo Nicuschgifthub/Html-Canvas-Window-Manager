@@ -40,6 +40,7 @@ class FGMMapping {
     static get PROGRAMMER_KEYS() {
         return [
             { key: 'store', label: 'Store', color: '#6b1a1a' },
+            { key: 'make', label: 'Make', color: '#352a5a' },
             { key: 'delete', label: 'Delete', color: '#3d2a2a' },
             { key: 'label', label: 'Label', color: '#2a2a3d' },
             { key: 'selectAll', label: 'Select All' },
@@ -341,11 +342,19 @@ class FGMMapping {
         switch (key) {
             case 'selectAll': Programmer.selectAll(); break;
             case 'clearSelection': Programmer.clearSelection(); break;
-            case 'clear': Programmer.clear(); break;
+            case 'clear': {
+                // MA style: the first press clears values and releases applied effects,
+                // a press with nothing left clears the selection
+                const released = Effects.releaseAll();
+                if (released && !Programmer.hasValues()) break;
+                Programmer.clear();
+                break;
+            }
             case 'highlight': Programmer.toggleHighlight(); break;
             case 'next': Programmer.step(1); break;
             case 'prev': Programmer.step(-1); break;
             case 'store':
+            case 'make':
             case 'delete':
             case 'label':
                 FGMPools.arm(key);
@@ -569,6 +578,17 @@ class FGMMapping {
         FGMMapping._redraw();
     }
 
+    /** Only the windows showing an Effects pool (effect names / running state changed). */
+    static refreshEffectPools() {
+        HCWDB.getWindows().forEach(win => {
+            const field = win.getContextField && win.getContextField();
+            if (!field || !this.isAssignable(field)) return;
+            const a = this.get(field.getLocationId());
+            if (a && a.type === this.TYPES.POOL && FGMPools.isEffectPool(a.pool)) this.refreshField(field, true);
+        });
+        FGMMapping._redraw();
+    }
+
     static refreshField(field, rebuildPresets = false) {
         const a = this.get(field.getLocationId());
         if (typeof field.setTag === 'function') field.setTag(a ? this.describe(a) : null);
@@ -626,7 +646,7 @@ class FGMMapping {
             if (d._fixtureSelect !== undefined) on = Programmer.isSelected(d._fixtureSelect);
             else if (d._poolSlot) on = FGMPools.isActive(d._poolSlot.pool, d._poolSlot.slot);
             else if (d._programmerKey === 'highlight') on = Programmer.highlight;
-            else if (['store', 'delete', 'label'].includes(d._programmerKey)) {
+            else if (['store', 'make', 'delete', 'label'].includes(d._programmerKey)) {
                 on = !!FGMPools.armed && FGMPools.armed.action === d._programmerKey;
                 p.setFlashing(on);
             }

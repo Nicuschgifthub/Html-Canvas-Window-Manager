@@ -129,6 +129,17 @@ class GLOBAL_TYPES {
                 }
             },
 
+            get CURVE_EDITOR_UPDATES() {
+                return {
+                    get CHANGE() {
+                        return 'ACTION_CURVE_EDITOR_CHANGE';
+                    },
+                    get BUTTON() {
+                        return 'ACTION_CURVE_EDITOR_BUTTON';
+                    }
+                }
+            },
+
             get FIXTURE_SHEET_UPDATES() {
                 return {
                     get ROW_PRESS() {
@@ -204,6 +215,12 @@ class GLOBAL_TYPES {
             },
             get FIXTURE_SHEET() {
                 return 'CONTEXT_FIELD_FIXTURE_SHEET';
+            },
+            get CURVE_EDITOR() {
+                return 'CONTEXT_FIELD_CURVE_EDITOR';
+            },
+            get EFFECT_ENGINE() {
+                return 'CONTEXT_FIELD_EFFECT_ENGINE';
             }
         }
     }
@@ -314,6 +331,9 @@ class GLOBAL_TYPES {
                     },
                     get ALL() {
                         return 'pool_type_all';
+                    },
+                    get EFFECT() {
+                        return 'pool_type_effect';
                     }
                 }
             }

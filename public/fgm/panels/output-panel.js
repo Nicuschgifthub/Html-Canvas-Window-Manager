@@ -1,15 +1,22 @@
 /**
- * Output panel — Art-Net settings and a DMX monitor per universe.
+ * Output panel — console server status, Art-Net settings and a DMX monitor per
+ * universe. The monitor shows what the server really outputs (incl. effects).
  */
 class FGMOutputPanel {
 
     static async open() {
         while (true) {
             const s = DMXOutput.getSettings();
-            DMXOutput.render();
+            const st = DMXOutput.status;
             const universes = [...DMXOutput.universes.keys()].sort((a, b) => a - b);
 
             const rows = [
+                {
+                    label: 'Console server',
+                    value: DMXOutput.connected
+                        ? `connected · ${st ? `${st.remotes} remote${st.remotes === 1 ? '' : 's'} · ${st.effectsRunning} FX running · ${st.frameMs} ms/frame` : '…'}`
+                        : '⚠ not connected — is node index.js running?'
+                },
                 { label: 'Art-Net output', value: s.enabled ? 'ON' : 'off', edit: () => DMXOutput.updateSettings({ enabled: !s.enabled }) },
                 {
                     label: 'Target IP', value: s.ip, edit: async () => {
@@ -39,7 +46,11 @@ class FGMOutputPanel {
                         if (v !== null) DMXOutput.updateSettings({ rate: Number(v) });
                     }
                 },
-                { label: 'Packets sent', value: `${DMXOutput.stats.packets}${DMXOutput.stats.errors ? ` · ${DMXOutput.stats.errors} errors (${DMXOutput.stats.lastError})` : ''}` },
+                {
+                    label: 'Packets sent',
+                    value: `${DMXOutput.stats.packets}${DMXOutput.stats.errors ? ` · ${DMXOutput.stats.errors} errors (${DMXOutput.stats.lastError})` : ''}`
+                        + (st && st.artnet && st.artnet.sourcePort && st.artnet.sourcePort !== 6454 ? ` · ⚠ from port ${st.artnet.sourcePort}` : '')
+                },
                 ...universes.map(u => ({
                     label: `Universe ${u} monitor`,
                     value: `${DMXOutput.getUniverse(u).filter(v => v > 0).length} channels > 0`,
@@ -65,7 +76,6 @@ class FGMOutputPanel {
     /** Every patched address of a universe with its fixture, attribute and value. */
     static async monitor(universe) {
         while (true) {
-            DMXOutput.render();
             const data = DMXOutput.getUniverse(universe);
             const rows = [];
 

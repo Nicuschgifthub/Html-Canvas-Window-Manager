@@ -11,10 +11,18 @@
  * pool's GDTF feature groups (Color pool → "Color", Beam → "Beam" + "Shapers" …).
  * "All" takes everything.
  *
+ *   pool_type_effect     effect presets — the slots live in Effects (memory.effects,
+ *                        effect.preset = slot), not in memory.pools
+ *
  * Workflow (MA style): press STORE (programmer keys) → tap a pool slot.
  * Same for DELETE and LABEL. Tapping the background cancels.
+ * MAKE → tap an Effects slot: empty → pick a template and edit it, used → edit it
+ * (opens the Effect Engine on it).
  * Without an armed action a tap recalls the slot:
  *   group  → selects its fixtures
+ *   effect → with fixtures selected: adds them to the effect (and starts it);
+ *            all of them already in it: takes them out. Nothing selected: on / off.
+ *            Applied effects are programmer content: Clear Programmer releases them.
  *   preset → loads its values into the programmer for the selected fixtures
  *            only — with nothing selected nothing changes. A selected fixture
  *            that is not in the preset gets the values of a stored fixture of
@@ -33,7 +41,8 @@ class FGMPools {
             { key: T.GOBO, label: 'Gobo', short: 'Gobo', color: '#2d4a22', featureGroups: ['Gobo'] },
             { key: T.BEAM, label: 'Beam', short: 'Beam', color: '#3d2b56', featureGroups: ['Beam', 'Shapers'] },
             { key: T.FOCUS, label: 'Focus', short: 'Focus', color: '#21453f', featureGroups: ['Focus'] },
-            { key: T.ALL, label: 'All', short: 'Preset', color: '#4a3a2a', featureGroups: null }
+            { key: T.ALL, label: 'All', short: 'Preset', color: '#4a3a2a', featureGroups: null },
+            { key: T.EFFECT, label: 'Effects', short: 'Effect', color: '#352a5a', featureGroups: null, isEffect: true }
         ];
     }
 
@@ -41,7 +50,7 @@ class FGMPools {
         return this.TYPES.find(t => t.key === key) || null;
     }
 
-    static armed = null;           // { action: 'store' | 'delete' | 'label' }
+    static armed = null;           // { action: 'store' | 'delete' | 'label' | 'make' }
     static lastRecalled = {};      // poolType → slot (feedback)
     static _flashTimer = null;
     static _message = null;
@@ -72,11 +81,20 @@ class FGMPools {
         return this._pools()[poolType] || {};
     }
 
+    static isEffectPool(poolType) {
+        return poolType === GLOBAL_TYPES.POOLS.TYPES.EFFECT;
+    }
+
     static getSlot(poolType, slot) {
+        if (this.isEffectPool(poolType)) {
+            const lead = Effects.preset(slot);
+            return lead ? { name: lead.name, effect: lead } : null;
+        }
         return this.getPool(poolType)[String(slot)] || null;
     }
 
     static highestSlot(poolType) {
+        if (this.isEffectPool(poolType)) return Effects.highestPreset();
         return Object.keys(this.getPool(poolType)).reduce((n, k) => Math.max(n, Number(k) || 0), 0);
     }
 
@@ -88,6 +106,7 @@ class FGMPools {
                 if (item.types) Object.keys(item.types).forEach(k => { if (item.types[k] === oldFid) item.types[k] = newFid; });
             });
         });
+        Effects.renameFid(oldFid, newFid);
     }
 
     // ── arming (Store / Delete / Label) ──────────────────────────────────
@@ -114,13 +133,41 @@ class FGMPools {
         const armed = this.armed;
         if (armed) {
             this.disarm();
-            if (armed.action === 'store') this.store(pool, slot);
+            if (armed.action === 'make') await this.make(pool, slot);
+            else if (armed.action === 'store') this.store(pool, slot);
             else if (armed.action === 'delete') this.remove(pool, slot);
             else if (armed.action === 'label') await this.label(pool, slot);
             FGMMapping.refreshAll(true);
             return;
         }
         this.recall(pool, slot);
+    }
+
+    // ── effects ──────────────────────────────────────────────────────────
+
+    /** MAKE → effect slot: new effect from a template, or edit the existing one. */
+    static async make(poolType, slot) {
+        if (!this.isEffectPool(poolType)) return this._fail('MAKE creates effects — tap a slot in an Effects pool');
+        let lead = Effects.preset(slot);
+        if (!lead) {
+            lead = await FGMEffectEngine.makePreset(slot);
+            if (!lead) { FGMShowHandler.setPageCursor(); return; }
+        }
+        await FGMEffectEngine.openModal({ effectId: lead.id });
+    }
+
+    static _recallEffect(slot) {
+        const lead = Effects.preset(slot);
+        if (!lead) return this._fail(`Effect ${slot} is empty — MAKE + tap to create it`);
+        if (!Programmer.selection.length) {
+            if (!lead.fids.length) return this._fail(`${lead.name}: select fixtures, then tap the effect`);
+            Effects.toggle(lead.id);
+            return true;
+        }
+        const result = Effects.applyToSelection(slot, Programmer.selection);
+        const skipped = Programmer.selection.filter(fid => !Effects.presetEffects(slot).some(e => PatchManager.getFixture(fid)?.hasAttribute(e.attribute)));
+        if (result === 'added' && skipped.length) this._fail(`${lead.name}: ${skipped.length} selected fixture${skipped.length === 1 ? ' has' : 's have'} no ${lead.attribute}`);
+        return !!result;
     }
 
     // ── store ────────────────────────────────────────────────────────────
@@ -138,6 +185,7 @@ class FGMPools {
     static store(poolType, slot) {
         const def = this.getType(poolType);
         if (!def) return false;
+        if (def.isEffect) return this._fail('Effects are created with MAKE + tap');
         const pool = this._pools()[poolType];
         const existing = pool[String(slot)];
 
@@ -172,6 +220,11 @@ class FGMPools {
     }
 
     static remove(poolType, slot) {
+        if (this.isEffectPool(poolType)) {
+            const lead = Effects.preset(slot);
+            if (lead) Effects.remove(lead.id);
+            return;
+        }
         delete this._pools()[poolType][String(slot)];
         if (this.lastRecalled[poolType] === slot) delete this.lastRecalled[poolType];
     }
@@ -184,13 +237,17 @@ class FGMPools {
             initial: item.name,
             verify: (v) => String(v).trim() ? { valid: true, infoText: '' } : { valid: false, infoText: 'Empty' }
         });
-        if (name !== null) item.name = String(name).trim();
+        if (name !== null) {
+            if (item.effect) Effects.update(item.effect.id, { name: String(name).trim() });
+            else item.name = String(name).trim();
+        }
         FGMShowHandler.setPageCursor();
     }
 
     // ── recall ───────────────────────────────────────────────────────────
 
     static recall(poolType, slot) {
+        if (this.isEffectPool(poolType)) return this._recallEffect(slot);
         const item = this.getSlot(poolType, slot);
         if (!item) return false;
 
@@ -241,6 +298,7 @@ class FGMPools {
     static isActive(poolType, slot) {
         const item = this.getSlot(poolType, slot);
         if (!item) return false;
+        if (item.effect) return !!item.effect.running && item.effect.fids.length > 0;
         if (item.fids) {
             const sel = Programmer.selection;
             return sel.length === item.fids.length && item.fids.every((f, i) => sel[i] === f);
@@ -252,6 +310,10 @@ class FGMPools {
     static tileColor(poolType, item) {
         const def = this.getType(poolType);
         if (!item) return '#202020';
+        if (item.effect) {
+            const idx = Effects.list().indexOf(item.effect);
+            return FGMMapping._darken(HCWEffectEngineField.effectColor(Math.max(0, idx)), 0.45);
+        }
         if (poolType === GLOBAL_TYPES.POOLS.TYPES.COLOR) {
             const hex = this._presetColor(item);
             if (hex) return FGMMapping._darken(hex, 0.6);
@@ -327,6 +389,7 @@ class FGMPools {
     /** Tag text while Store / Delete / Label waits for a slot. */
     static armedText() {
         if (!this.armed) return null;
+        if (this.armed.action === 'make') return 'MAKE → tap an Effects slot (background = cancel)';
         return `${this.armed.action.toUpperCase()} → tap a pool slot (background = cancel)`;
     }
 }

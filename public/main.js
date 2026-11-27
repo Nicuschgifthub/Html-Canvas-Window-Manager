@@ -8,6 +8,7 @@ const start = () => {
     FGMPools.init();
     FGMShowHandler.loadPatchFromShowFile();
     DMXOutput.start();
+    FGMEffectEngine.init();
 }
 
 setTimeout(() => {

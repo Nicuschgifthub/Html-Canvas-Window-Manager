@@ -122,6 +122,13 @@ class FGMWindowManager {
                 FGMFixtureSheet.refreshField(sheet);
                 return sheet;
             },
+            effectEngine() {
+                windowBuildValues.sx = 900;
+                windowBuildValues.sy = 520;
+                windowBuildValues.minSizeX = 640;
+                windowBuildValues.minSizeY = 400;
+                return new HCWEffectEngineField('Effect Engine').setLocationId(locationId);
+            },
             pageMenu() {
                 return FGMWindowManager._getPageMenu();
             },

@@ -60,7 +60,9 @@ class FGMShowFile {
                 },
                 pools: {
 
-                }
+                },
+                // effect definitions — evaluated by the console server (server/effect-engine.js)
+                effects: []
             }
         }
 
@@ -294,6 +296,8 @@ class FGMShowFile {
 
         this.setPageCursor(this.showFile.pages.cursor || 0);
         this.loadPatchFromShowFile();
+        // the console server gets the new show's settings + effects (patch / values follow by events)
+        if (typeof ConsoleLink !== 'undefined') ConsoleLink.pushAll();
 
         if (typeof HCWRender !== 'undefined' && typeof HCWRender.updateFrame === 'function') {
             HCWRender.updateFrame();

@@ -6,6 +6,7 @@ _DEFS_STORE.add('window-add-menu', () => {
         { label: "Encoder", key: "encoder" },
         { label: "Presets", key: "presetGroup" },
         { label: "Fixture Sheet", key: "fixtureSheet" },
+        { label: "Effect Engine", key: "effectEngine" },
         { label: "Page Menu", key: "pageMenu" },
         { label: "Settings Generator", key: "settings" },
         { label: "Settings Menu", key: "settingsMenu", internalOnly: true },

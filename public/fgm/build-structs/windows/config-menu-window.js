@@ -6,6 +6,7 @@ _DEFS_STORE.add('window-config-menu', () => {
             new HCWPreset().setLabel("Patch").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _openPatch: {} }),
             new HCWPreset().setLabel("Assign").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _openAssignments: {} }),
             new HCWPreset().setLabel("Fixture Types").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _openFixtureLibrary: {} }),
+            new HCWPreset().setLabel("Effects").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _openEffects: {} }),
             new HCWPreset().setLabel("Output").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _openOutput: {} }),
             new HCWPreset().setLabel("Save Show").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({ _downloadShowFile: {} }),
             //new HCWPreset().setLabel("Status").setDefaultColor(GS.FIELDS.PRESETS.DEFAULT_COLOR).setData({}),

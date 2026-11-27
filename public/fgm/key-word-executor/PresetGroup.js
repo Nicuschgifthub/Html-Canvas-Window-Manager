@@ -67,7 +67,8 @@ class KYEPresetGroup {
             _openPatch() { FGMPatchPanel.open(); },
             _openAssignments() { FGMAssignPanel.open(); },
             _openFixtureLibrary() { FGMLibraryPanel.open(); },
-            _openOutput() { FGMOutputPanel.open(); }
+            _openOutput() { FGMOutputPanel.open(); },
+            _openEffects() { FGMEffectEngine.openModal(); }
         };
     }
 }

@@ -1,69 +1,19 @@
 const express = require('express');
 const path = require('path');
-const dgram = require('dgram');
 const fs = require('fs');
+const http = require('http');
+const { WebSocketServer } = require('ws');
+const ConsoleEngine = require('./server/console-engine.js');
 
 const app = express();
-const PORT = 6598;
-const ARTNET_PORT = 6454;
-let udpSocket = null;
+const PORT = Number(process.env.PORT) || 6598;
 
-// Art-Net is sent FROM port 6454 (spec) — some nodes drop packets from any other source port.
-// If 6454 is taken (another lighting app running) fall back to a random port.
-function openSocket(port) {
-    const sock = dgram.createSocket({ type: 'udp4', reuseAddr: true });
-    sock.once('error', (err) => {
-        if (port !== 0) {
-            console.warn(`[Art-Net] Cannot bind UDP ${port} (${err.code}) — sending from a random port, some nodes ignore that`);
-            sock.close();
-            openSocket(0);
-        } else {
-            console.error('[Art-Net] UDP socket error:', err);
-        }
-    });
-    sock.bind(port, () => {
-        sock.setBroadcast(true); // allow 255.255.255.255 / x.x.x.255 targets
-        sock.on('error', (err) => console.error('[Art-Net] UDP socket error:', err));
-        sock.on('message', () => { }); // ArtPoll etc. from nodes — not handled yet
-        console.log(`[Art-Net] UDP socket bound to port ${sock.address().port}`);
-        udpSocket = sock;
-    });
-}
-openSocket(ARTNET_PORT);
-
-const _announced = new Set();
+// The console: output loop, effects, Art-Net. The webpage is a remote over /ws.
+const consoleEngine = new ConsoleEngine();
 
 app.use(express.json());
-app.use(express.raw({ type: 'application/octet-stream', limit: '10mb' }));
 
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.post('/api/artnet/send', (req, res) => {
-    const ip = req.headers['x-target-ip'];
-    const port = parseInt(req.headers['x-target-port']) || 6454;
-    const packet = req.body;
-
-    if (!ip || !packet || packet.length === 0) {
-        return res.status(400).send('Missing IP or Packet data');
-    }
-
-    if (!udpSocket) return res.status(503).send('Art-Net socket not ready');
-
-    const target = `${ip}:${port}`;
-    if (!_announced.has(target)) {
-        _announced.add(target);
-        const uni = packet.length > 15 ? (packet[15] << 8) | packet[14] : '?';
-        console.log(`[Art-Net] sending to ${target} (port-address ${uni})`);
-    }
-
-    udpSocket.send(packet, 0, packet.length, port, ip, (err) => {
-        if (err) {
-            console.error(`[Server] UDP Send Error to ${ip}:`, err);
-            return res.status(500).send(err.message);
-        }
-        res.status(200).send('OK');
-    });
-});
 
 // ── GDTF fixture library (./gdtf folder) ─────────────────────────────────
 const GDTF_DIR = path.join(__dirname, 'gdtf');
@@ -91,7 +41,12 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+// fixture types (parsed GDTF) can be several MB — allow big messages
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 256 * 1024 * 1024 });
+wss.on('connection', (ws, req) => consoleEngine.attach(ws, req));
+
+server.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}/`);
-    console.log(`Art-Net Bridge active on /api/artnet/send`);
+    console.log(`Console engine active — remotes connect on ws://localhost:${PORT}/ws`);
 });
