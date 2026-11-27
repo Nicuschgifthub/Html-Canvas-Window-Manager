@@ -119,10 +119,19 @@ class HCWPresetField extends HCWBaseField {
         return GLOBAL_TYPES.CONTEXT_FIELDS.PRESETS;
     }
 
+    // touch state — "Save Show" runs mid-click, so without this a tile is saved as pressed
+    getExcludedJSONKeys() {
+        return [...super.getExcludedJSONKeys(), '_pressedIndex', '_potentialClick', '_dragLastY', '_clickStartY'];
+    }
+
     fromJSON(json) {
         try {
             const data = typeof json === 'string' ? JSON.parse(json) : json;
             Object.assign(this, data);
+            // older show files saved the touch state
+            this._pressedIndex = -1;
+            this._potentialClick = false;
+            this._dragLastY = null;
             if (data.presets) {
                 this.presets = data.presets.map(p => new HCWPreset().fromJSON(p).setParentField(this));
             }
@@ -184,7 +193,7 @@ class HCWPresetField extends HCWBaseField {
 
     updateAllPresets(updates = {}, blacklistIds = []) {
         this.presets.forEach(preset => {
-            if (blacklistIds.find(p => p === preset.getId())) return;
+            if (blacklistIds.includes(preset.getId())) return;
             preset.update(updates);
         });
         this.updateFrame();

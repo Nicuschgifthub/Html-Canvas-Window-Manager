@@ -5,6 +5,7 @@
  *   value of a channel = highlight (if on and fixture selected and the channel has one)
  *                      → programmer value
  *                      → GDTF default
+ *   then the fixture's output corrections (Pan / Tilt invert, see FixturePatch.outputRaw)
  *
  * Settings live in the show file under settings.artnet:
  *   { enabled, ip, port, universeStart, rate }
@@ -75,6 +76,7 @@ class DMXOutputEngine {
             fixture.channels.forEach(channel => {
                 let raw = this.programmer.resolveRaw(fixture, channel);
                 if (highlighted && channel.highlight !== null && channel.highlight !== undefined) raw = channel.highlight;
+                raw = fixture.outputRaw(channel, raw); // Pan / Tilt invert
 
                 const bytes = GDTFParser.splitBytes(raw, channel.bytes);
                 fixture.getChannelAddresses(channel).forEach((addr, i) => {

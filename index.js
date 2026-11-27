@@ -5,9 +5,33 @@ const fs = require('fs');
 
 const app = express();
 const PORT = 6598;
-const udpSocket = dgram.createSocket('udp4');
-// allow 255.255.255.255 / x.x.x.255 Art-Net broadcast targets
-udpSocket.bind(() => udpSocket.setBroadcast(true));
+const ARTNET_PORT = 6454;
+let udpSocket = null;
+
+// Art-Net is sent FROM port 6454 (spec) — some nodes drop packets from any other source port.
+// If 6454 is taken (another lighting app running) fall back to a random port.
+function openSocket(port) {
+    const sock = dgram.createSocket({ type: 'udp4', reuseAddr: true });
+    sock.once('error', (err) => {
+        if (port !== 0) {
+            console.warn(`[Art-Net] Cannot bind UDP ${port} (${err.code}) — sending from a random port, some nodes ignore that`);
+            sock.close();
+            openSocket(0);
+        } else {
+            console.error('[Art-Net] UDP socket error:', err);
+        }
+    });
+    sock.bind(port, () => {
+        sock.setBroadcast(true); // allow 255.255.255.255 / x.x.x.255 targets
+        sock.on('error', (err) => console.error('[Art-Net] UDP socket error:', err));
+        sock.on('message', () => { }); // ArtPoll etc. from nodes — not handled yet
+        console.log(`[Art-Net] UDP socket bound to port ${sock.address().port}`);
+        udpSocket = sock;
+    });
+}
+openSocket(ARTNET_PORT);
+
+const _announced = new Set();
 
 app.use(express.json());
 app.use(express.raw({ type: 'application/octet-stream', limit: '10mb' }));
@@ -21,6 +45,15 @@ app.post('/api/artnet/send', (req, res) => {
 
     if (!ip || !packet || packet.length === 0) {
         return res.status(400).send('Missing IP or Packet data');
+    }
+
+    if (!udpSocket) return res.status(503).send('Art-Net socket not ready');
+
+    const target = `${ip}:${port}`;
+    if (!_announced.has(target)) {
+        _announced.add(target);
+        const uni = packet.length > 15 ? (packet[15] << 8) | packet[14] : '?';
+        console.log(`[Art-Net] sending to ${target} (port-address ${uni})`);
     }
 
     udpSocket.send(packet, 0, packet.length, port, ip, (err) => {

@@ -60,10 +60,10 @@ class FixturePatchManager {
 
     // ── patch ─────────────────────────────────────────────────────────────
 
-    _createPatch({ fid, name, typeKey, modeName, universe, address }) {
+    _createPatch({ fid, name, typeKey, modeName, universe, address, invertPan = false, invertTilt = false }) {
         const type = this._types[typeKey];
         if (!type) throw new Error(`Unknown fixture type "${typeKey}"`);
-        return new FixturePatch({ fid, name, typeKey, type, modeName, universe, address });
+        return new FixturePatch({ fid, name, typeKey, type, modeName, universe, address, invertPan, invertTilt });
     }
 
     /**

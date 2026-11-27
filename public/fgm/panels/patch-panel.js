@@ -1,7 +1,7 @@
 /**
  * Patch panel — list, add, edit and remove patched fixtures.
  *
- * Tap a cell to edit it: FID, Name, Mode or Address.
+ * Tap a cell to edit it: FID, Name, Mode, Address or Invert (Pan / Tilt).
  * Tap the type to open it in the fixture type inspector.
  * "+ Add Fixtures" walks through type → mode → count → FID → address.
  */
@@ -17,13 +17,14 @@ class FGMPatchPanel {
 
             const { window } = FGMModal.openTable({
                 title,
-                headers: ['FID', 'Name', 'Type', 'Mode', 'Address'],
+                headers: ['FID', 'Name', 'Type', 'Mode', 'Address', 'Invert'],
                 rows: fixtures.map(f => [
                     String(f.fid),
                     f.name,
                     f.type.shortName || f.type.name,
                     `${f.modeName} (${f.footprint})`,
-                    f.addressString + (PatchManager.findCollisions(f).length ? ' ⚠' : '')
+                    f.addressString + (PatchManager.findCollisions(f).length ? ' ⚠' : ''),
+                    f.invertLabel || '—'
                 ]),
                 addLabel: '+ Add Fixtures',
                 removable: true
@@ -97,7 +98,32 @@ class FGMPatchPanel {
                 }
                 return;
             }
+            case 5:
+                await this.editInvert(f);
+                return;
         }
+    }
+
+    /**
+     * Pan / Tilt invert. When the fixture is part of a programmer selection of
+     * several fixtures, the choice is applied to all of them (one edit per rig side).
+     */
+    static async editInvert(f) {
+        const selected = Programmer.isSelected(f.fid) ? Programmer.selection.filter(fid => PatchManager.getFixture(fid)) : [f.fid];
+        const targets = selected.length ? selected : [f.fid];
+        const picked = await FGMModal.choose({
+            title: targets.length > 1 ? `Invert — ${targets.length} selected fixtures` : `Invert — FID ${f.fid}`,
+            multi: true,
+            selected: [f.invertPan && 'pan', f.invertTilt && 'tilt'].filter(Boolean),
+            options: [
+                { label: 'Invert Pan', value: 'pan' },
+                { label: 'Invert Tilt', value: 'tilt' }
+            ]
+        });
+        if (!picked) return;
+        const changes = { invertPan: picked.includes('pan'), invertTilt: picked.includes('tilt') };
+        targets.forEach(fid => PatchManager.updateFixture(fid, changes));
+        if (targets.length > 1) this._message = `✓ invert set on ${targets.length} fixtures`;
     }
 
     static _checkCollisions(f) {

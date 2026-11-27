@@ -288,6 +288,9 @@ class FGMShowFile {
         } else if (typeof HCWDB !== 'undefined' && typeof HCWDB.addWindows === 'function') {
             HCWDB.addWindows(newWindows);
         }
+        // the id / location lookups still point at the windows that were just dropped —
+        // without this every control press (and the page highlight) acts on invisible old fields
+        if (typeof HCWDB !== 'undefined' && typeof HCWDB._syncIndexes === 'function') HCWDB._syncIndexes();
 
         this.setPageCursor(this.showFile.pages.cursor || 0);
         this.loadPatchFromShowFile();

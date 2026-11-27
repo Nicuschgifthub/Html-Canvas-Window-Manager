@@ -7,7 +7,7 @@
  *       subtitle: '2 selected',
  *       fixed: 2,                                   // frozen columns on the left
  *       columns: [{ label, width, group, groupColor }],
- *       rows: [{ id, selected, cells: [{ text, color, bg }] }]
+ *       rows: [{ id, selected, cells: [{ text, sub, color, bg }] }]   // sub = small second line
  *   });
  *
  * Tapping a row emits FIXTURE_SHEET_UPDATES.ROW_PRESS { rowId }.
@@ -25,7 +25,7 @@ class HCWFixtureSheetField extends HCWBaseField {
         this.titleHeight = 24;
         this.groupStripHeight = 4;
         this.headerHeight = 22;
-        this.rowHeight = 24;
+        this.rowHeight = 32;
 
         this.scrollX = 0;
         this.scrollY = 0;
@@ -45,7 +45,8 @@ class HCWFixtureSheetField extends HCWBaseField {
                 selectedBar: GS.PALETTE.ACCENT_GREEN,
                 grid: '#2a2a2a',
                 text: '#d8d8d8',
-                textDim: '#6a6a6a'
+                textDim: '#6a6a6a',
+                textSub: '#b0b0b0'
             }
         };
     }
@@ -55,7 +56,7 @@ class HCWFixtureSheetField extends HCWBaseField {
     }
 
     getExcludedJSONKeys() {
-        return [...super.getExcludedJSONKeys(), '_sheet', '_drag'];
+        return [...super.getExcludedJSONKeys(), '_sheet', '_drag', 'titleHeight', 'groupStripHeight', 'headerHeight', 'rowHeight'];
     }
 
     getSheetOptions() {
@@ -259,7 +260,15 @@ class HCWFixtureSheetField extends HCWBaseField {
                 if (cell.text === undefined || cell.text === null || cell.text === '') return;
                 ctx.fillStyle = cell.color || c.text;
                 const tx = ctx.textAlign === 'left' ? cx + 6 : cx + col.width / 2;
-                ctx.fillText(this._fit(ctx, cell.text, col.width - 8), tx, ry + this.rowHeight / 2 + 1);
+                if (cell.sub) {
+                    ctx.fillText(this._fit(ctx, cell.text, col.width - 8), tx, ry + this.rowHeight * 0.34 + 1);
+                    ctx.font = GS.FONTS.SMALL;
+                    ctx.fillStyle = c.textSub || '#b0b0b0';
+                    ctx.fillText(this._fit(ctx, cell.sub, col.width - 6), tx, ry + this.rowHeight * 0.72);
+                    ctx.font = i < sheet.fixed ? GS.FONTS.LABEL : GS.FONTS.MONO_READOUT;
+                } else {
+                    ctx.fillText(this._fit(ctx, cell.text, col.width - 8), tx, ry + this.rowHeight / 2 + 1);
+                }
             });
             ctx.restore();
         };

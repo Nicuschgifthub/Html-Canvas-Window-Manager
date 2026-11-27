@@ -31,7 +31,7 @@ class FGMFixtureSheet {
 
     static get DISPLAY_MODES() {
         return [
-            { value: 'auto', label: 'Auto (°, Hz, %, set names)' },
+            { value: 'auto', label: 'Auto (°, Hz, %)' },
             { value: 'percent', label: 'Percent' },
             { value: 'dmx', label: 'DMX' }
         ];
@@ -162,9 +162,13 @@ class FGMFixtureSheet {
         // range that does nothing on this fixture
         if (fn && fn.attribute === 'NoFeature' && display !== 'dmx') return { text: '—', color: programmedColor };
 
-        let text = this._format(fixture, first, fn, set, raw, display);
-        if (fn && fn.attribute !== attribute && set === null && display !== 'dmx') text = `${fn.name} ${text}`;
+        let text = this._format(fixture, fn, raw, display);
         if (mixed) text += '*';
+
+        const names = [];
+        if (fn && fn.attribute !== attribute && fn.attribute !== 'NoFeature') names.push(fn.name);
+        if (set && set.name) names.push(set.name);
+        const sub = names.join(' · ') || null;
 
         let bg = null;
         if (fn && fn.wheel && set && set.wheelSlotIndex) {
@@ -172,16 +176,14 @@ class FGMFixtureSheet {
             if (slot && slot.hex) bg = FGMMapping._darken(slot.hex, 0.45);
         }
 
-        return { text, color: programmedColor, bg };
+        return { text, sub, color: programmedColor, bg };
     }
 
-    static _format(fixture, channel, fn, set, raw, display) {
+    static _format(fixture, fn, raw, display) {
         if (display === 'dmx') return String(raw);
         if (!fn) return String(raw);
         const pct = `${Math.round(FixturePatch.rawToNorm(fn, raw) * 100)}%`;
         if (display === 'percent') return pct;
-
-        if (set && set.name) return set.name;
 
         const unit = fixture.type.attributes[fn.attribute]?.physicalUnit || 'None';
         const phys = FixturePatch.rawToPhysical(fn, raw);

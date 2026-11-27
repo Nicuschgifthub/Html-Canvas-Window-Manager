@@ -16,8 +16,10 @@ class FixturePatch {
      * @param {string} opts.modeName
      * @param {number} opts.universe   1-based
      * @param {number} opts.address    1-based start address of DMX break 1
+     * @param {boolean} opts.invertPan   mirror Pan at the output (fixture hung the other way)
+     * @param {boolean} opts.invertTilt  mirror Tilt at the output
      */
-    constructor({ fid, name, typeKey, type, modeName, universe, address }) {
+    constructor({ fid, name, typeKey, type, modeName, universe, address, invertPan = false, invertTilt = false }) {
         this.fid = fid;
         this.name = name;
         this.typeKey = typeKey;
@@ -28,6 +30,9 @@ class FixturePatch {
 
         this.universe = universe;
         this.address = address;
+
+        this.invertPan = !!invertPan;
+        this.invertTilt = !!invertTilt;
 
         this._buildIndex();
     }
@@ -186,6 +191,29 @@ class FixturePatch {
         return fn.physicalFrom + FixturePatch.rawToNorm(fn, raw) * (fn.physicalTo - fn.physicalFrom);
     }
 
+    // ── output corrections ───────────────────────────────────────────────
+
+    /** "Pan", "Tilt", "Pan+Tilt" or "" */
+    get invertLabel() {
+        return [this.invertPan && 'Pan', this.invertTilt && 'Tilt'].filter(Boolean).join('+');
+    }
+
+    /**
+     * Raw value as it goes out on DMX. Programmer values stay logical, an inverted
+     * Pan/Tilt is mirrored inside its channel function's DMX range here — so
+     * presets, fans and the XY pad behave the same on every fixture.
+     * Only the Pan / Tilt functions are mirrored (not PanRotate, not other
+     * functions sharing the channel).
+     */
+    outputRaw(channel, raw) {
+        if (!this.invertPan && !this.invertTilt) return raw;
+        const fn = channel.functions.find(f =>
+            ((f.attribute === 'Pan' && this.invertPan) || (f.attribute === 'Tilt' && this.invertTilt))
+            && raw >= f.dmxFrom && raw <= f.dmxTo
+        );
+        return fn ? fn.dmxFrom + fn.dmxTo - raw : raw;
+    }
+
     // ── serialisation ────────────────────────────────────────────────────
 
     toJSON() {
@@ -195,7 +223,9 @@ class FixturePatch {
             typeKey: this.typeKey,
             modeName: this.modeName,
             universe: this.universe,
-            address: this.address
+            address: this.address,
+            invertPan: this.invertPan,
+            invertTilt: this.invertTilt
         };
     }
 }
